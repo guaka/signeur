@@ -75,7 +75,7 @@ final class IncomingRequestViewSnapshotTests: XCTestCase {
             NIP46Request(
                 id: "pair-empty",
                 method: .connect,
-                params: [],
+                params: ["pairing-secret"],
                 appName: "Wallet",
                 appURL: nil,
                 appPubkey: TestVectors.otherPubkeyHex,
@@ -108,7 +108,7 @@ final class IncomingRequestViewSnapshotTests: XCTestCase {
             NIP46Request(
                 id: "nip04",
                 method: .nip04Encrypt,
-                params: ["payload"],
+                params: [TestVectors.otherPubkeyHex, "payload"],
                 appName: "Legacy Client",
                 appURL: nil,
                 appPubkey: TestVectors.otherPubkeyHex,
