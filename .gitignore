@@ -2,6 +2,12 @@
 .build/
 .swiftpm/
 .signstr-compiled.iconset/
+.device-build/
+.release/
+DerivedData/
+*.xcarchive
+*.dmg
+*.sha256
 
 *.xcuserstate
 xcuserdata/

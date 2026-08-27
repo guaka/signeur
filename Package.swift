@@ -25,6 +25,8 @@ let package = Package(
                 "plan.md",
                 "iOSApp",
                 "MacOSApp",
+                "Distribution",
+                "Scripts",
                 "Tools",
                 "README.md",
                 "project.yml"

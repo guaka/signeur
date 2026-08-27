@@ -4,6 +4,10 @@ options:
 packages:
   SignstrCore:
     path: .
+settings:
+  base:
+    MARKETING_VERSION: 0.1.0
+    CURRENT_PROJECT_VERSION: 1
 targets:
   Signstr:
     type: application
@@ -13,13 +17,15 @@ targets:
       - iOSApp
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.k.signstr
+        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signstr
         PRODUCT_NAME: Signstr
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_FILE: iOSApp/Info.plist
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: SUJ594N47C
+      configs:
+        Debug:
+          DEVELOPMENT_TEAM: SUJ594N47C
     dependencies:
       - package: SignstrCore
         product: SignstrCore
@@ -31,14 +37,18 @@ targets:
       - MacOSApp
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.k.signstr.mac
+        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signstr.mac
         PRODUCT_NAME: Signstr
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         CODE_SIGN_ENTITLEMENTS: MacOSApp/SignstrMac.entitlements
         INFOPLIST_FILE: MacOSApp/Info.plist
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: SUJ594N47C
+      configs:
+        Debug:
+          DEVELOPMENT_TEAM: SUJ594N47C
+        Release:
+          ENABLE_HARDENED_RUNTIME: YES
     dependencies:
       - package: SignstrCore
         product: SignstrCore
