@@ -34,11 +34,12 @@ Never include a real Nostr private key (`nsec`), seed phrase, signing
 credential, authentication token, or private relay content. Use disposable test
 keys and redact logs and screenshots.
 
-We aim to acknowledge reports within seven days. We will investigate, keep the
-reporter informed of material progress, and coordinate a disclosure date when a
-fix is ready. If a report is not accepted as a vulnerability, we will explain
-why. Reporters will be credited in the advisory when appropriate unless they
-prefer to remain anonymous.
+We generally acknowledge reports within seven days, although response times may
+vary. We will investigate, keep the reporter informed of material progress, and
+coordinate a disclosure date when a fix is ready. If a report is not accepted
+as a vulnerability, we will explain why. Reporters will be credited in the
+advisory when appropriate unless they prefer to remain anonymous. Signstr does
+not currently offer a bug bounty.
 
 For ordinary bugs and feature requests that do not have security implications,
 use the project's public issue tracker.
