@@ -1,0 +1,10 @@
+.DS_Store
+.build/
+.swiftpm/
+.signstr-compiled.iconset/
+
+*.xcuserstate
+xcuserdata/
+
+__pycache__/
+*.py[cod]
