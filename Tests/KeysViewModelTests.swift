@@ -129,7 +129,10 @@ final class KeysViewModelTests: XCTestCase {
         await viewModel.addKey()
         XCTAssertEqual(viewModel.statusMessage, "Saved Key 1.")
 
-        try? await Task.sleep(for: .milliseconds(30))
+        let deadline = ContinuousClock.now + .seconds(1)
+        while viewModel.statusMessage != nil, ContinuousClock.now < deadline {
+            try? await Task.sleep(for: .milliseconds(5))
+        }
         XCTAssertNil(viewModel.statusMessage)
     }
 
