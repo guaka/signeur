@@ -1,4 +1,8 @@
-# Signstr
+<p align="center">
+  <img src="iOSApp/Assets.xcassets/AppIcon.appiconset/icon-1024.png" width="180" alt="Signstr app icon">
+</p>
+
+<h1 align="center">Signstr</h1>
 
 Signstr is a Nostr signer for iPhone and Mac. Both apps share the same NIP-46,
 NIP-55, relay, permission, and signing core while using platform-native SwiftUI
