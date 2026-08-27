@@ -83,6 +83,23 @@ public enum RelayRequest {
         return text
     }
 
+    /// Requests the latest replaceable profile event for one author.
+    public static func subscribeToProfile(subscriptionID: String, authorPubkey: String) throws -> String {
+        guard SecurityPolicy.isCanonicalPublicKey(authorPubkey) else {
+            throw NostrEventError.invalidPublicKey
+        }
+        let payload: [Any] = [
+            "REQ",
+            subscriptionID,
+            ["authors": [authorPubkey], "kinds": [0], "limit": 1]
+        ]
+        let data = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
+        guard let text = String(data: data, encoding: .utf8) else {
+            throw NostrEventError.malformedJSON
+        }
+        return text
+    }
+
     public static func close(subscriptionID: String) -> String {
         "[\"CLOSE\",\"\(subscriptionID)\"]"
     }

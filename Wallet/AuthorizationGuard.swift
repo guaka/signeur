@@ -3,16 +3,8 @@ import Foundation
 public struct AuthorizationGuard: RequestAuthorization {
     public init() {}
 
-    public func canSign(session: NIP46Session) -> Bool {
-        guard session.request.method == .signEvent else {
-            return true
-        }
-
-        switch session.stateMachine.state {
-        case .signing, .awaitingUserDecision:
-            return true
-        default:
-            return false
-        }
+    public func canExecute(session: NIP46Session) -> Bool {
+        session.stateMachine.state == .signing
+            && session.identityID.map(SecurityPolicy.validateIdentifier) == true
     }
 }

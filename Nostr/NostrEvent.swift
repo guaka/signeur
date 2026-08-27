@@ -1,10 +1,16 @@
 import CryptoKit
 import Foundation
+import P256K
 
 public enum NostrEventError: Error, Equatable {
     case malformedJSON
     case invalidPrivateKey
     case signingFailed
+    case invalidEventID
+    case invalidSignature
+    case invalidPublicKey
+    case invalidTimestamp
+    case invalidPayload
 }
 
 public struct NostrEvent: Codable, Equatable, Sendable {
@@ -75,6 +81,45 @@ public struct NostrEvent: Codable, Equatable, Sendable {
         return SHA256.hash(data: Data(serialized.utf8)).map { String(format: "%02x", $0) }.joined()
     }
 
+    public func validate(
+        now: Date = Date(),
+        maxAge: TimeInterval = 10 * 60,
+        maxFutureSkew: TimeInterval = 2 * 60
+    ) throws {
+        guard SecurityPolicy.isCanonicalPublicKey(pubkey) else {
+            throw NostrEventError.invalidPublicKey
+        }
+        guard id.utf8.count == 64, id.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) }),
+              sig.utf8.count == 128, sig.utf8.allSatisfy({ (48...57).contains($0) || (97...102).contains($0) })
+        else {
+            throw NostrEventError.invalidSignature
+        }
+        guard tags.count <= SecurityPolicy.maxEventTags,
+              tags.allSatisfy({ $0.count <= SecurityPolicy.maxTagValues && $0.allSatisfy(SecurityPolicy.validateMetadataText) }),
+              content.utf8.count <= SecurityPolicy.maxRequestPayloadBytes * 2
+        else {
+            throw NostrEventError.invalidPayload
+        }
+        let expectedID = Self.computeID(pubkey: pubkey, createdAt: createdAt, kind: kind, tags: tags, content: content)
+        guard id == expectedID else { throw NostrEventError.invalidEventID }
+
+        let eventDate = Date(timeIntervalSince1970: TimeInterval(createdAt))
+        guard eventDate >= now.addingTimeInterval(-maxAge),
+              eventDate <= now.addingTimeInterval(maxFutureSkew)
+        else {
+            throw NostrEventError.invalidTimestamp
+        }
+
+        let publicKey = P256K.Schnorr.XonlyKey(dataRepresentation: try NostrEventFactory.hexBytes(pubkey))
+        let signature = try P256K.Schnorr.SchnorrSignature(
+            dataRepresentation: Data(try NostrEventFactory.hexBytes(sig))
+        )
+        var digest = try NostrEventFactory.hexBytes(id)
+        guard publicKey.isValid(signature, for: &digest) else {
+            throw NostrEventError.invalidSignature
+        }
+    }
+
     private static func serializeTags(_ tags: [[String]]) -> String {
         let inner = tags.map { tag in
             "[" + tag.map(escape).joined(separator: ",") + "]"
@@ -123,21 +168,58 @@ public struct UnsignedNostrEvent: Equatable, Sendable {
     public static func decode(json: String) throws -> UnsignedNostrEvent {
         guard
             let data = json.data(using: .utf8),
+            data.count <= SecurityPolicy.maxRequestPayloadBytes,
             let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-            let kind = object["kind"] as? Int
+            let kind = object["kind"] as? Int,
+            (0...65_535).contains(kind),
+            object["id"] == nil,
+            object["sig"] == nil,
+            object["pubkey"] == nil
         else {
             throw NostrEventError.malformedJSON
         }
 
-        let tags = (object["tags"] as? [[Any]])?.map { tag in
-            tag.compactMap { $0 as? String }
-        } ?? []
+        let tags: [[String]]
+        if let rawTags = object["tags"] {
+            guard let parsed = rawTags as? [[String]],
+                  parsed.count <= SecurityPolicy.maxEventTags,
+                  parsed.allSatisfy({ tag in
+                      tag.count <= SecurityPolicy.maxTagValues
+                          && tag.allSatisfy(SecurityPolicy.validateMetadataText)
+                  })
+            else {
+                throw NostrEventError.malformedJSON
+            }
+            tags = parsed
+        } else {
+            tags = []
+        }
+        let content: String
+        if let rawContent = object["content"] {
+            guard let value = rawContent as? String,
+                  value.utf8.count <= SecurityPolicy.maxRequestPayloadBytes
+            else {
+                throw NostrEventError.malformedJSON
+            }
+            content = value
+        } else {
+            content = ""
+        }
+        let createdAt: Int?
+        if let rawCreatedAt = object["created_at"] {
+            guard let value = rawCreatedAt as? Int, value >= 0 else {
+                throw NostrEventError.malformedJSON
+            }
+            createdAt = value
+        } else {
+            createdAt = nil
+        }
 
         return UnsignedNostrEvent(
-            createdAt: object["created_at"] as? Int,
+            createdAt: createdAt,
             kind: kind,
             tags: tags,
-            content: object["content"] as? String ?? ""
+            content: content
         )
     }
 }

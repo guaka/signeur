@@ -32,7 +32,7 @@ struct MacRootView: View {
     @StateObject private var keysVM = MacAppBootstrap.makeKeysViewModel()
     @StateObject private var pairingVM = MacAppBootstrap.makePairingViewModel()
 
-    @State private var section: MacRootSection? = .requests
+    @State private var section: MacRootSection = .requests
     @State private var didStart = false
     @State private var pairingErrorMessage: String?
 
@@ -43,7 +43,7 @@ struct MacRootView: View {
                     Image(nsImage: NSApplication.shared.applicationIconImage)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 44, height: 44)
+                        .frame(width: 52, height: 52)
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -58,15 +58,16 @@ struct MacRootView: View {
                 .padding(.vertical, 10)
 
                 List(MacRootSection.allCases, selection: $section) { item in
-                    Label(item.title, systemImage: item.icon)
-                        .tag(item)
+                    NavigationLink(value: item) {
+                        Label(item.title, systemImage: item.icon)
+                    }
                 }
             }
             .navigationTitle("Signstr")
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
         } detail: {
             content
-                .navigationTitle((section ?? .requests).title)
+                .navigationTitle(section.title)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
                         Button(action: pasteConnectionLink) {
@@ -126,7 +127,7 @@ struct MacRootView: View {
 
     @ViewBuilder
     private var content: some View {
-        switch section ?? .requests {
+        switch section {
         case .requests:
             IncomingRequestView(
                 viewModel: sessionVM,
@@ -134,12 +135,18 @@ struct MacRootView: View {
                     .init(title: "Connect from Clipboard", systemImage: "doc.on.clipboard") {
                         pasteConnectionLink()
                     }
-                ]
+                ],
+                onConnectionApproved: showApprovedConnection
             )
         case .connected:
             ConnectedAppsView(viewModel: connectedAppsVM)
         case .keys:
             MacKeysView(viewModel: keysVM)
         }
+    }
+
+    private func showApprovedConnection() {
+        section = .connected
+        Task { await connectedAppsVM.refresh() }
     }
 }

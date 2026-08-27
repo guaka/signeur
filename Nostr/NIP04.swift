@@ -17,7 +17,7 @@ public enum NIP04 {
         iv: [UInt8]? = nil
     ) throws -> String {
         let key = try NostrKeyAgreement.sharedX(privateKey: privateKey, publicKeyXOnly: publicKeyXOnly)
-        let iv = iv ?? NIP44.randomBytes(kCCBlockSizeAES128)
+        let iv = try iv ?? NIP44.randomBytes(kCCBlockSizeAES128)
         let ciphertext = try crypt(operation: CCOperation(kCCEncrypt), data: Array(plaintext.utf8), key: key, iv: iv)
         return "\(Data(ciphertext).base64EncodedString())?iv=\(Data(iv).base64EncodedString())"
     }

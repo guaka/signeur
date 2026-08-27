@@ -10,8 +10,9 @@ public struct PairingRequestFactory: Sendable {
         id: String? = nil,
         requestedAt: Date = Date()
     ) -> NIP46Request {
-        NIP46Request(
-            id: id ?? Self.requestID(for: pairing),
+        let requestID = id ?? Self.requestID(for: pairing)
+        return NIP46Request(
+            id: requestID,
             method: .connect,
             params: [pairing.secret],
             appName: pairing.appName,
@@ -20,8 +21,9 @@ public struct PairingRequestFactory: Sendable {
             requestedPermissions: pairing.requestedPerms,
             relays: pairing.relays,
             requestedAt: requestedAt,
-            correlationID: pairing.secret,
-            rawPayloadPreview: Self.preview(for: pairing)
+            correlationID: requestID,
+            rawPayloadPreview: SecurityPolicy.truncatedPreview(Self.preview(for: pairing)),
+            origin: .pairing
         )
     }
 

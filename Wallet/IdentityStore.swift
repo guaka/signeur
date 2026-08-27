@@ -56,6 +56,16 @@ public actor IdentityStore {
         defaults.string(forKey: activeIdentityKey)
     }
 
+    public func publicKeyHex(for identityID: String) -> String? {
+        guard let npub = identities.first(where: { $0.id == identityID })?.npub,
+              let bytes = try? Bech32.decode(npub, expectedHRP: "npub"),
+              bytes.count == 32
+        else {
+            return nil
+        }
+        return bytes.map { String(format: "%02x", $0) }.joined()
+    }
+
     public func delete(identityID: String) {
         identities.removeAll { $0.id == identityID }
         if defaults.string(forKey: activeIdentityKey) == identityID {

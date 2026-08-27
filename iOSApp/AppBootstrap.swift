@@ -9,6 +9,7 @@ enum AppBootstrap {
     static let connectionStore = ConnectionStore()
     static let executor = NIP46MethodExecutor(nsecStore: nsecStore)
     static let relayPool = NostrRelayPool()
+    static let profileLookup = RelayNostrProfileLookup()
 
     static let relayTransport = NIP46RelayTransport(
         pool: relayPool,
@@ -26,7 +27,15 @@ enum AppBootstrap {
             }
         },
         copyToClipboard: { value in
-            Task { @MainActor in UIPasteboard.general.string = value }
+            Task { @MainActor in
+                UIPasteboard.general.setItems(
+                    [["public.utf8-plain-text": value]],
+                    options: [
+                        .localOnly: true,
+                        .expirationDate: Date().addingTimeInterval(120)
+                    ]
+                )
+            }
         }
     )
 
@@ -42,6 +51,7 @@ enum AppBootstrap {
         pool: relayPool,
         connections: connectionStore,
         nsecStore: nsecStore,
+        identities: identityStore,
         coordinator: routingCoordinator
     )
 
@@ -86,7 +96,7 @@ enum AppBootstrap {
 
     @MainActor
     static func makeKeysViewModel() -> KeysViewModel {
-        KeysViewModel(identityStore: identityStore, nsecStore: nsecStore)
+        KeysViewModel(identityStore: identityStore, nsecStore: nsecStore, profileLookup: profileLookup)
     }
 
     @MainActor

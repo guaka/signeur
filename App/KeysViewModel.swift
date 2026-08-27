@@ -15,10 +15,20 @@ public final class KeysViewModel: ObservableObject {
 
     private let identityStore: IdentityStore
     private let nsecStore: NsecStoring
+    private let profileLookup: any NostrProfileLookingUp
+    private let revealDuration: Duration
+    private var revealTasks: [String: Task<Void, Never>] = [:]
 
-    public init(identityStore: IdentityStore, nsecStore: NsecStoring) {
+    public init(
+        identityStore: IdentityStore,
+        nsecStore: NsecStoring,
+        profileLookup: any NostrProfileLookingUp = NoopNostrProfileLookup(),
+        revealDuration: Duration = .seconds(30)
+    ) {
         self.identityStore = identityStore
         self.nsecStore = nsecStore
+        self.profileLookup = profileLookup
+        self.revealDuration = revealDuration
     }
 
     public var canSave: Bool {
@@ -40,6 +50,10 @@ public final class KeysViewModel: ObservableObject {
     }
 
     public func addKey() async {
+        await saveKey(lookupProfile: true)
+    }
+
+    private func saveKey(lookupProfile: Bool) async {
         guard !isSaving else { return }
         statusMessage = nil
 
@@ -72,9 +86,18 @@ public final class KeysViewModel: ObservableObject {
         defer { isSaving = false }
 
         let typedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
+        var suggestedName: String?
+        if lookupProfile && typedName.isEmpty,
+           let pubkey = try? NostrKeyDeriver.derivePublicKeyHex(fromNsec: value) {
+            statusMessage = "Looking up this key's profile…"
+            suggestedName = await profileLookup.lookup(pubkey: pubkey)?.suggestedName
+            statusMessage = nil
+        }
         let identity = Identity(
             id: UUID().uuidString,
-            displayName: typedName.isEmpty ? "Key \(identities.count + 1)" : typedName,
+            displayName: typedName.isEmpty
+                ? (suggestedName ?? "Key \(identities.count + 1)")
+                : typedName,
             npub: npub
         )
 
@@ -103,7 +126,7 @@ public final class KeysViewModel: ObservableObject {
         guard !isSaving else { return }
         do {
             nsec = try NostrKeyDeriver.generateNsec()
-            await addKey()
+            await saveKey(lookupProfile: false)
         } catch {
             nsec = ""
             statusMessage = nil
@@ -119,6 +142,7 @@ public final class KeysViewModel: ObservableObject {
     public func toggleReveal(_ identity: Identity) async {
         if revealedNsecs[identity.id] != nil {
             revealedNsecs.removeValue(forKey: identity.id)
+            revealTasks.removeValue(forKey: identity.id)?.cancel()
             return
         }
         do {
@@ -127,6 +151,15 @@ public final class KeysViewModel: ObservableObject {
                 return
             }
             revealedNsecs[identity.id] = stored
+            revealTasks.removeValue(forKey: identity.id)?.cancel()
+            revealTasks[identity.id] = Task { [weak self] in
+                try? await Task.sleep(for: revealDuration)
+                guard !Task.isCancelled else { return }
+                await MainActor.run {
+                    self?.revealedNsecs.removeValue(forKey: identity.id)
+                    self?.revealTasks.removeValue(forKey: identity.id)
+                }
+            }
             errorMessage = nil
         } catch {
             errorMessage = Self.message(for: error)
@@ -134,12 +167,20 @@ public final class KeysViewModel: ObservableObject {
     }
 
     public func deleteIdentity(_ identity: Identity) async {
+        revealTasks.removeValue(forKey: identity.id)?.cancel()
         revealedNsecs.removeValue(forKey: identity.id)
         await identityStore.delete(identityID: identity.id)
         await nsecStore.deleteNsec(for: identity.id)
         errorMessage = nil
         statusMessage = "Deleted \(identity.displayName)."
         await refresh()
+    }
+
+    public func hideAllRevealedKeys() {
+        revealTasks.values.forEach { $0.cancel() }
+        revealTasks.removeAll()
+        revealedNsecs.removeAll()
+        nsec = ""
     }
 
     public func applyPastedValue(_ value: String?) {

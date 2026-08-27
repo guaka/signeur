@@ -109,6 +109,10 @@ public final class PairingViewModel: ObservableObject {
                 return "This request does not say whose key to encrypt to."
             case let .unsupportedCompression(kind):
                 return "This request is \(kind)-compressed, which Signstr cannot read yet."
+            case .invalidCallback:
+                return "This request contains an unsafe callback address."
+            case .payloadTooLarge:
+                return "This signing request is too large to process safely."
             }
         }
 
@@ -121,6 +125,14 @@ public final class PairingViewModel: ObservableObject {
             return "This link does not name a relay to answer on."
         case .missingSecret:
             return "This link is missing its pairing secret."
+        case .invalidClientPubkey:
+            return "This link contains an invalid app public key."
+        case .invalidRelay:
+            return "This link uses an insecure or invalid relay. Signstr requires WSS except for local development."
+        case .invalidSecret:
+            return "This link contains an invalid or oversized pairing secret."
+        case .invalidMetadata:
+            return "This link contains unsafe or oversized app metadata."
         case nil:
             return "This link could not be read."
         }

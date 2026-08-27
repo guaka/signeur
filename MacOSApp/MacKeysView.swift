@@ -56,6 +56,16 @@ struct MacKeysView: View {
                     .disabled(!viewModel.canSave)
                 }
 
+                Button {
+                    focusedField = nil
+                    Task { await viewModel.generateKey() }
+                } label: {
+                    Label("Generate New Key", systemImage: "key.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .disabled(viewModel.isSaving)
+
                 if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .foregroundStyle(.red)
@@ -72,7 +82,7 @@ struct MacKeysView: View {
                     ContentUnavailableView(
                         "No keys yet",
                         systemImage: "key",
-                        description: Text("Paste an nsec above to start signing on this Mac.")
+                        description: Text("Import an nsec or generate a new key above to start signing on this Mac.")
                     )
                 } else {
                     ForEach(viewModel.identities) { identity in
@@ -84,6 +94,10 @@ struct MacKeysView: View {
         .formStyle(.grouped)
         .padding()
         .task { await viewModel.refresh() }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didResignActiveNotification)) { _ in
+            showNsecInput = false
+            viewModel.hideAllRevealedKeys()
+        }
     }
 
     private func identityRow(_ identity: Identity) -> some View {

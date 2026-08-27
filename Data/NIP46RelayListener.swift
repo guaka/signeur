@@ -10,21 +10,27 @@ public actor NIP46RelayListener {
     private let pool: NostrRelayPool
     private let connections: ConnectionStore
     private let nsecStore: NsecStoring
+    private let identities: IdentityStore
     private let coordinator: RequestRoutingCoordinator
     private let logger: RedactedLogger
+    private let now: @Sendable () -> Date
 
     public init(
         pool: NostrRelayPool,
         connections: ConnectionStore,
         nsecStore: NsecStoring,
+        identities: IdentityStore,
         coordinator: RequestRoutingCoordinator,
-        logger: RedactedLogger = RedactedLogger()
+        logger: RedactedLogger = RedactedLogger(),
+        now: @escaping @Sendable () -> Date = { Date() }
     ) {
         self.pool = pool
         self.connections = connections
         self.nsecStore = nsecStore
+        self.identities = identities
         self.coordinator = coordinator
         self.logger = logger
+        self.now = now
     }
 
     /// Subscribes on every relay of every approved connection.
@@ -37,39 +43,45 @@ public actor NIP46RelayListener {
 
     public func resubscribe() async {
         for connection in await connections.approved() {
-            guard
-                let nsec = try? await nsecStore.loadNsec(for: connection.identityID),
-                let pubkey = try? NostrKeyDeriver.derivePublicKeyHex(fromNsec: nsec)
-            else {
+            guard let pubkey = await identities.publicKeyHex(for: connection.identityID) else {
                 continue
             }
             await pool.subscribe(
                 subscriptionID: "nip46-\(connection.appPubkey.prefix(8))",
                 recipientPubkey: pubkey,
-                on: connection.relayURLs
+                on: connection.relayURLs,
+                since: Int(now().addingTimeInterval(-10 * 60).timeIntervalSince1970)
             )
         }
     }
 
     /// Also used when a pairing is approved, so the app is heard immediately.
     public func listen(to connection: AppConnection) async {
-        guard
-            let nsec = try? await nsecStore.loadNsec(for: connection.identityID),
-            let pubkey = try? NostrKeyDeriver.derivePublicKeyHex(fromNsec: nsec)
-        else {
+        guard let pubkey = await identities.publicKeyHex(for: connection.identityID) else {
             return
         }
         await pool.subscribe(
             subscriptionID: "nip46-\(connection.appPubkey.prefix(8))",
             recipientPubkey: pubkey,
-            on: connection.relayURLs
+            on: connection.relayURLs,
+            since: Int(now().addingTimeInterval(-10 * 60).timeIntervalSince1970)
         )
     }
 
     func handle(_ event: NostrEvent) async {
         guard event.kind == NIP46RelayTransport.nip46Kind else { return }
-        guard let connection = await connections.connection(forAppPubkey: event.pubkey) else {
+        guard (try? event.validate(now: now())) != nil else {
+            logger.log(event: "nip46.request.invalidEvent", metadata: ["app": event.pubkey])
+            return
+        }
+        guard let connection = await connections.connection(forAppPubkey: event.pubkey), connection.isApproved else {
             logger.log(event: "nip46.request.unknownApp", metadata: ["app": event.pubkey])
+            return
+        }
+        guard let signerPubkey = await identities.publicKeyHex(for: connection.identityID),
+              event.tags.contains(where: { $0.count >= 2 && $0[0] == "p" && $0[1] == signerPubkey })
+        else {
+            logger.log(event: "nip46.request.misaddressed", metadata: ["app": event.pubkey])
             return
         }
 
@@ -113,6 +125,7 @@ public actor NIP46RelayListener {
     static func request(fromJSONRPC json: String, event: NostrEvent, connection: AppConnection) -> NIP46Request? {
         guard
             let data = json.data(using: .utf8),
+            data.count <= SecurityPolicy.maxRequestPayloadBytes,
             let object = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
             let id = object["id"] as? String,
             let methodName = object["method"] as? String,
@@ -121,7 +134,9 @@ public actor NIP46RelayListener {
             return nil
         }
 
-        let params = (object["params"] as? [Any])?.map { value -> String in
+        let rawParams = object["params"] as? [Any] ?? []
+        guard rawParams.count <= 32 else { return nil }
+        let params = rawParams.map { value -> String in
             if let text = value as? String { return text }
             if let nested = try? JSONSerialization.data(withJSONObject: value, options: [.fragmentsAllowed]) {
                 return String(decoding: nested, as: UTF8.self)
@@ -138,7 +153,8 @@ public actor NIP46RelayListener {
             appPubkey: event.pubkey,
             requestedAt: Date(timeIntervalSince1970: TimeInterval(event.createdAt)),
             correlationID: event.id,
-            rawPayloadPreview: Self.preview(method: method, params: params)
+            rawPayloadPreview: SecurityPolicy.truncatedPreview(Self.preview(method: method, params: params)),
+            origin: .relay
         )
     }
 

@@ -17,7 +17,12 @@ public actor PermissionRuleStore: ConnectedAppsProviding, PermissionRuleEvaluati
 
     public func listRules() throws -> [PermissionRule] {
         guard let data = defaults.data(forKey: key) else { return [] }
-        return try JSONDecoder().decode([PermissionRule].self, from: data)
+        let decoded = try JSONDecoder().decode([PermissionRule].self, from: data)
+        let safe = decoded.filter(Self.isSafeRule)
+        if safe.count != decoded.count {
+            defaults.set(try JSONEncoder().encode(safe), forKey: key)
+        }
+        return safe
     }
 
     public func rememberAppName(_ name: String, pubkey: String) {
@@ -53,6 +58,12 @@ public actor PermissionRuleStore: ConnectedAppsProviding, PermissionRuleEvaluati
     }
 
     public func shouldAutoApprove(request: NIP46Request) async -> Bool {
+        guard request.origin.hasCryptographicAppIdentity,
+              request.method != .nip04Encrypt,
+              request.method != .nip04Decrypt
+        else {
+            return false
+        }
         guard let rules = try? listRules() else { return false }
         let requestedKind = Self.extractKindIfAny(request: request)
         return rules.contains(where: { rule in
@@ -67,6 +78,12 @@ public actor PermissionRuleStore: ConnectedAppsProviding, PermissionRuleEvaluati
     }
 
     public func saveRememberRule(for request: NIP46Request) async {
+        guard request.origin.hasCryptographicAppIdentity,
+              request.method != .nip04Encrypt,
+              request.method != .nip04Decrypt
+        else {
+            return
+        }
         let rule = PermissionRule(
             appPubkey: request.appPubkey,
             method: request.method.rawValue,
@@ -88,5 +105,11 @@ public actor PermissionRuleStore: ConnectedAppsProviding, PermissionRuleEvaluati
             return nil
         }
         return kind
+    }
+
+    private static func isSafeRule(_ rule: PermissionRule) -> Bool {
+        SecurityPolicy.isCanonicalPublicKey(rule.appPubkey)
+            && rule.method != NIP46Method.nip04Encrypt.rawValue
+            && rule.method != NIP46Method.nip04Decrypt.rawValue
     }
 }

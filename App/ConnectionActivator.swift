@@ -25,8 +25,7 @@ public struct ConnectionActivator: ConnectionRegistering {
                 appURL: pairing.appURL,
                 relays: pairing.relays,
                 requestedPermissions: pairing.requestedPerms,
-                identityID: identityID,
-                secret: pairing.secret
+                identityID: identityID
             )
         )
     }

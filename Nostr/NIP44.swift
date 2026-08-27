@@ -9,6 +9,7 @@ public enum NIP44Error: Error, Equatable {
     case malformedPayload
     case invalidMAC
     case invalidPadding
+    case randomGenerationFailed(OSStatus)
 }
 
 /// NIP-44 v2 payload encryption: HKDF-derived keys, ChaCha20, HMAC-SHA256 over the nonce.
@@ -50,7 +51,7 @@ public enum NIP44 {
 
     public static func encrypt(plaintext: String, conversationKey: [UInt8], nonce: [UInt8]? = nil) throws -> String {
         let padded = try pad(plaintext)
-        let nonce = nonce ?? randomBytes(nonceByteCount)
+        let nonce = try nonce ?? randomBytes(nonceByteCount)
         let keys = messageKeys(conversationKey: conversationKey, nonce: nonce)
 
         let ciphertext = ChaCha20.apply(key: keys.chachaKey, nonce: keys.chachaNonce, to: padded)
@@ -74,7 +75,7 @@ public enum NIP44 {
         let mac = Array(raw.suffix(macByteCount))
 
         let keys = messageKeys(conversationKey: conversationKey, nonce: nonce)
-        guard hmac(key: keys.hmacKey, aad: nonce, message: ciphertext) == mac else {
+        guard isValidMAC(mac, key: keys.hmacKey, aad: nonce, message: ciphertext) else {
             throw NIP44Error.invalidMAC
         }
 
@@ -141,12 +142,28 @@ public enum NIP44 {
         return Array(HMAC<SHA256>.authenticationCode(for: authenticated, using: SymmetricKey(data: key)))
     }
 
-    static func randomBytes(_ count: Int) -> [UInt8] {
-        var bytes = [UInt8](repeating: 0, count: count)
-        let status = SecRandomCopyBytes(kSecRandomDefault, count, &bytes)
-        guard status == errSecSuccess else {
-            fatalError("SecRandomCopyBytes failed with status \(status)")
+    private static func isValidMAC(_ mac: [UInt8], key: [UInt8], aad: [UInt8], message: [UInt8]) -> Bool {
+        var authenticated = Data(aad)
+        authenticated.append(contentsOf: message)
+        return HMAC<SHA256>.isValidAuthenticationCode(
+            mac,
+            authenticating: authenticated,
+            using: SymmetricKey(data: key)
+        )
+    }
+
+    static func randomBytes(
+        _ count: Int,
+        using fill: (Int, UnsafeMutableRawPointer) -> OSStatus = { count, buffer in
+            SecRandomCopyBytes(kSecRandomDefault, count, buffer)
         }
+    ) throws -> [UInt8] {
+        var bytes = [UInt8](repeating: 0, count: count)
+        let status = bytes.withUnsafeMutableBytes { buffer in
+            guard let baseAddress = buffer.baseAddress else { return errSecParam }
+            return fill(count, baseAddress)
+        }
+        guard status == errSecSuccess else { throw NIP44Error.randomGenerationFailed(status) }
         return bytes
     }
 }

@@ -5,7 +5,7 @@ public protocol NIP46RespondingTransport: Sendable {
 }
 
 public protocol RequestAuthorization: Sendable {
-    func canSign(session: NIP46Session) -> Bool
+    func canExecute(session: NIP46Session) -> Bool
 }
 
 public actor NIP46SessionManager {
@@ -87,7 +87,10 @@ public actor NIP46SessionManager {
 
     /// Whether a previously remembered permission covers this request.
     public func shouldAutoApprove(requestID: String) async -> Bool {
-        guard let session = sessionsByRequestID[requestID], let permissionEvaluator else {
+        guard let session = sessionsByRequestID[requestID],
+              session.stateMachine.state == .requestReceived,
+              let permissionEvaluator
+        else {
             return false
         }
         return await permissionEvaluator.shouldAutoApprove(request: session.request)
@@ -96,13 +99,24 @@ public actor NIP46SessionManager {
     public func handleApprove(requestID: String, identityID: String, rememberChoice: Bool = false) async -> SessionState {
         guard var session = sessionsByRequestID[requestID] else { return .completedError(.invalidProtocol) }
         guard session.expiresAt > Date() else { return expireSession(requestID) }
+        guard session.stateMachine.state == .requestReceived else {
+            return session.stateMachine.state
+        }
+        guard SecurityPolicy.validateIdentifier(identityID) else {
+            return .completedError(.unauthorizedSigningAttempt)
+        }
 
+        session.identityID = identityID
         _ = session.stateMachine.transition(on: .onApprove)
         _ = session.stateMachine.transition(on: .onApprove)
+        // Commit the in-flight state before the first await. Actor reentrancy must not
+        // allow a second click, timeout, or rejection to execute the request twice.
+        sessionsByRequestID[requestID] = session
 
-        guard authorizationGuard.canSign(session: session) else {
+        guard authorizationGuard.canExecute(session: session) else {
             _ = session.stateMachine.transition(on: .onSignComplete(.failure(SessionFailureReason.unauthorizedSigningAttempt)))
             sessionsByRequestID[requestID] = session
+            finishSession(session.id)
             return .completedError(.unauthorizedSigningAttempt)
         }
 
@@ -120,6 +134,7 @@ public actor NIP46SessionManager {
 
         do {
             _ = session.stateMachine.transition(on: .onSignComplete(.success(Data(result.utf8))))
+            sessionsByRequestID[requestID] = session
             let response = NIP46Response(id: requestID, result: result, error: nil)
             try await transport.sendResponse(response, to: session.request.appPubkey)
             _ = session.stateMachine.transition(on: .onSendComplete(.success(())))
@@ -137,7 +152,11 @@ public actor NIP46SessionManager {
 
     public func handleReject(requestID: String) async -> SessionState {
         guard var session = sessionsByRequestID[requestID] else { return .completedError(.invalidProtocol) }
+        guard session.stateMachine.state == .requestReceived || session.stateMachine.state == .awaitingUserDecision else {
+            return session.stateMachine.state
+        }
         _ = session.stateMachine.transition(on: .onReject)
+        sessionsByRequestID[requestID] = session
 
         let response = NIP46Response(
             id: requestID,
@@ -162,6 +181,9 @@ public actor NIP46SessionManager {
     @discardableResult
     private func expireSession(_ requestID: String) -> SessionState {
         guard var session = sessionsByRequestID[requestID] else { return .completedError(.invalidProtocol) }
+        guard session.stateMachine.state == .requestReceived || session.stateMachine.state == .awaitingUserDecision else {
+            return session.stateMachine.state
+        }
         _ = session.stateMachine.transition(on: .onTimeout)
         sessionsByRequestID[requestID] = session
         finishSession(session.id)

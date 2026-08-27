@@ -99,6 +99,10 @@ struct KeysView: View {
         .task {
             await viewModel.refresh()
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+            showNsecInput = false
+            viewModel.hideAllRevealedKeys()
+        }
     }
 
     private func identityRow(_ identity: Identity) -> some View {

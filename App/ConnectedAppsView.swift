@@ -139,7 +139,7 @@ private struct ConnectedAppRow: View {
                     .font(.headline)
                 Spacer()
                 if let lastUsedAt = app.lastUsedAt {
-                    Text(lastUsedAt, style: .relative)
+                    Text(activityLabel(for: lastUsedAt))
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 } else {
@@ -175,6 +175,18 @@ private struct ConnectedAppRow: View {
         return app.methods.first == "asks you every time"
             ? "Asks before every action"
             : app.methods.map(permissionDisplayName).joined(separator: ", ")
+    }
+
+    private func activityLabel(for date: Date) -> String {
+        let calendar = Calendar.current
+        let time = date.formatted(date: .omitted, time: .shortened)
+        if calendar.isDateInToday(date) {
+            return "Today, \(time)"
+        }
+        if calendar.isDateInYesterday(date) {
+            return "Yesterday, \(time)"
+        }
+        return date.formatted(date: .abbreviated, time: .shortened)
     }
 }
 

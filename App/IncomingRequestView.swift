@@ -98,6 +98,22 @@ public struct IncomingRequestView: View {
                         requestSummary(request)
                     }
 
+                    if request.method == .nip04Encrypt || request.method == .nip04Decrypt {
+                        Label(
+                            "Legacy NIP-04 encryption is not authenticated. Review this request carefully; Signstr will never approve it automatically.",
+                            systemImage: "exclamationmark.triangle.fill"
+                        )
+                        .foregroundStyle(.orange)
+                        .font(.callout)
+                    } else if request.origin == .localSigner {
+                        Label(
+                            "This local app identity cannot be verified cryptographically, so Signstr will always ask before acting.",
+                            systemImage: "exclamationmark.shield.fill"
+                        )
+                        .foregroundStyle(.secondary)
+                        .font(.callout)
+                    }
+
                     DisclosureGroup("Technical details", isExpanded: $showDetails) {
                         VStack(alignment: .leading, spacing: 12) {
                             detailRow("App public key", value: request.appPubkey, monospaced: true)
@@ -133,6 +149,9 @@ public struct IncomingRequestView: View {
                 approveTitle: isConnection ? "Approve Connection" : "Approve",
                 rejectTitle: isConnection ? "Decline" : "Reject",
                 showsRememberChoice: !isConnection
+                    && request.origin.hasCryptographicAppIdentity
+                    && request.method != .nip04Encrypt
+                    && request.method != .nip04Decrypt
             )
             .padding()
             .background(.bar)

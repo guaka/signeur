@@ -6,7 +6,7 @@ public struct NIP46Session: Identifiable, Sendable {
     public var stateMachine: NIP46SessionStateMachine
     public let createdAt: Date
     public let expiresAt: Date
-    public let identityID: String?
+    public var identityID: String?
 
     public init(
         id: String = UUID().uuidString,

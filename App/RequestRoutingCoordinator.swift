@@ -53,11 +53,15 @@ public actor RequestRoutingCoordinator {
     public func routeSignerURL(_ url: URL) async throws -> SessionState {
         let signerRequest = try SignerURLRequest.parse(url)
         let request = signerRequest.makeNIP46Request()
-        await callbackTransport?.register(
-            requestID: request.id,
-            callbackURL: signerRequest.callbackURL,
-            returnType: signerRequest.returnType
-        )
-        return await sessionManager.onRequestArrived(request)
+        let state = await sessionManager.onRequestArrived(request)
+        if state == .requestReceived {
+            await callbackTransport?.register(
+                requestID: request.id,
+                callbackURL: signerRequest.callbackURL,
+                returnType: signerRequest.returnType,
+                method: signerRequest.method
+            )
+        }
+        return state
     }
 }

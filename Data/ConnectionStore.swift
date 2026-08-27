@@ -77,7 +77,23 @@ public actor ConnectionStore {
         else {
             return
         }
-        connections = Dictionary(uniqueKeysWithValues: stored.map { ($0.appPubkey, $0) })
+        let sanitized = stored.compactMap { connection -> AppConnection? in
+            guard SecurityPolicy.isCanonicalPublicKey(connection.appPubkey),
+                  SecurityPolicy.validateIdentifier(connection.identityID)
+            else { return nil }
+            var value = connection
+            value.appName = connection.appName.flatMap { SecurityPolicy.validateMetadataText($0) ? $0 : nil }
+            value.appURL = connection.appURL.flatMap { try? SecurityPolicy.canonicalMetadataURL($0) }
+            value.relays = SecurityPolicy.validRelays(from: connection.relays)
+            value.requestedPermissions = Array((connection.requestedPermissions ?? []).prefix(32))
+                .filter(SecurityPolicy.validateMetadataText)
+            return value
+        }
+        connections = Dictionary(uniqueKeysWithValues: sanitized.map { ($0.appPubkey, $0) })
+        // Rewrites legacy records without their obsolete pairing secret and strips unsafe relays.
+        if !stored.isEmpty {
+            persist()
+        }
     }
 
     private func persist() {

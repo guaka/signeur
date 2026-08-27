@@ -13,6 +13,7 @@ public actor NIP55CallbackTransport: NIP46RespondingTransport {
     private struct Pending {
         let callbackURL: URL?
         let returnType: SignerURLRequest.ReturnType
+        let method: NIP46Method
     }
 
     private let openURL: @Sendable (URL) async -> Bool
@@ -27,8 +28,13 @@ public actor NIP55CallbackTransport: NIP46RespondingTransport {
         self.copyToClipboard = copyToClipboard
     }
 
-    public func register(requestID: String, callbackURL: URL?, returnType: SignerURLRequest.ReturnType) {
-        pending[requestID] = Pending(callbackURL: callbackURL, returnType: returnType)
+    public func register(
+        requestID: String,
+        callbackURL: URL?,
+        returnType: SignerURLRequest.ReturnType,
+        method: NIP46Method = .signEvent
+    ) {
+        pending[requestID] = Pending(callbackURL: callbackURL, returnType: returnType, method: method)
     }
 
     public func handles(requestID: String) -> Bool {
@@ -51,14 +57,27 @@ public actor NIP55CallbackTransport: NIP46RespondingTransport {
             throw NIP55CallbackError.noWayToReturnResult
         }
 
-        let encoded = payload.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? payload
-        guard let target = URL(string: callbackURL.absoluteString + encoded) else {
+        guard let target = Self.callbackTarget(callbackURL, payload: payload) else {
             throw NIP55CallbackError.callbackRefused
         }
         guard await openURL(target) else {
             copyToClipboard(payload)
             throw NIP55CallbackError.callbackRefused
         }
+    }
+
+    static func callbackTarget(_ callbackURL: URL, payload: String) -> URL? {
+        guard var components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false) else {
+            return nil
+        }
+        var items = components.queryItems ?? []
+        if let index = items.lastIndex(where: { ($0.value ?? "").isEmpty }) {
+            items[index].value = payload
+        } else {
+            items.append(URLQueryItem(name: "result", value: payload))
+        }
+        components.queryItems = items
+        return components.url
     }
 
     /// Apps asking for `returnType=signature` want the signature alone, not the event.

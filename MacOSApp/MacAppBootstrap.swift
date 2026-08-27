@@ -9,6 +9,7 @@ enum MacAppBootstrap {
     static let connectionStore = ConnectionStore()
     static let executor = NIP46MethodExecutor(nsecStore: nsecStore)
     static let relayPool = NostrRelayPool()
+    static let profileLookup = RelayNostrProfileLookup()
 
     static let relayTransport = NIP46RelayTransport(
         pool: relayPool,
@@ -24,6 +25,11 @@ enum MacAppBootstrap {
             Task { @MainActor in
                 NSPasteboard.general.clearContents()
                 NSPasteboard.general.setString(value, forType: .string)
+                Task { @MainActor in
+                    try? await Task.sleep(for: .seconds(120))
+                    guard NSPasteboard.general.string(forType: .string) == value else { return }
+                    NSPasteboard.general.clearContents()
+                }
             }
         }
     )
@@ -40,6 +46,7 @@ enum MacAppBootstrap {
         pool: relayPool,
         connections: connectionStore,
         nsecStore: nsecStore,
+        identities: identityStore,
         coordinator: routingCoordinator
     )
 
@@ -83,7 +90,7 @@ enum MacAppBootstrap {
 
     @MainActor
     static func makeKeysViewModel() -> KeysViewModel {
-        KeysViewModel(identityStore: identityStore, nsecStore: nsecStore)
+        KeysViewModel(identityStore: identityStore, nsecStore: nsecStore, profileLookup: profileLookup)
     }
 
     @MainActor

@@ -27,8 +27,10 @@ public actor NsecKeychainStore: NsecStoring {
     public init() {}
 
     public func saveNsec(_ nsec: String, for identityID: String) throws {
-        let trimmed = nsec.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed.hasPrefix("nsec"), !identityID.isEmpty else {
+        let trimmed = nsec.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+        guard SecurityPolicy.validateIdentifier(identityID),
+              (try? NostrKeyDeriver.derivePublicKeyHex(fromNsec: trimmed)) != nil
+        else {
             throw NsecStoreError.invalidInput
         }
         guard let data = trimmed.data(using: .utf8) else {
@@ -88,15 +90,14 @@ public actor NsecKeychainStore: NsecStoring {
             return nil
         }
         guard status == errSecSuccess else {
-            if status == errSecAuthFailed || status == errSecUserCanceled {
-                authenticationContext = Self.makeAuthenticationContext()
-            }
+            authenticationContext = Self.makeAuthenticationContext()
             throw NsecStoreError.unexpectedStatus(status)
         }
         guard
             let data = result as? Data,
             let nsec = String(data: data, encoding: .utf8)
         else {
+            authenticationContext = Self.makeAuthenticationContext()
             throw NsecStoreError.invalidInput
         }
         return nsec
@@ -114,7 +115,7 @@ public actor NsecKeychainStore: NsecStoring {
     private static func makeAuthenticationContext() -> LAContext {
         let context = LAContext()
         context.localizedReason = "Unlock your Nostr key to sign or decrypt a request."
-        context.touchIDAuthenticationAllowableReuseDuration = 60
+        context.touchIDAuthenticationAllowableReuseDuration = 120
         return context
     }
 }

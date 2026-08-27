@@ -6,6 +6,8 @@ public enum SignerURLParseError: Error, Equatable {
     case missingPayload
     case missingPeerPubkey
     case unsupportedCompression(String)
+    case invalidCallback
+    case payloadTooLarge
 }
 
 /// What a NIP-55 `nostrsigner:` URL is asking for, and how to answer the app that sent it.
@@ -32,6 +34,9 @@ public struct SignerURLRequest: Equatable, Sendable {
 
     public static func parse(_ text: String) throws -> SignerURLRequest {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard trimmed.utf8.count <= SecurityPolicy.maxRequestPayloadBytes + SecurityPolicy.maxRelayURLBytes else {
+            throw SignerURLParseError.payloadTooLarge
+        }
         guard trimmed.lowercased().hasPrefix("nostrsigner:") else {
             throw SignerURLParseError.invalidScheme
         }
@@ -50,12 +55,21 @@ public struct SignerURLRequest: Equatable, Sendable {
         let payload = encodedPayload.removingPercentEncoding ?? encodedPayload
         let typeName = items["type"] ?? (payload.isEmpty ? "get_public_key" : "sign_event")
         let method = try method(for: typeName)
+        let callbackURL: URL?
+        if let rawCallback = items["callbackUrl"] {
+            guard let validated = validatedCallback(rawCallback) else {
+                throw SignerURLParseError.invalidCallback
+            }
+            callbackURL = validated
+        } else {
+            callbackURL = nil
+        }
 
         return SignerURLRequest(
             method: method,
             params: try params(for: method, payload: payload, items: items),
             appName: items["appName"],
-            callbackURL: items["callbackUrl"].flatMap(URL.init(string:)),
+            callbackURL: callbackURL,
             returnType: ReturnType(rawValue: items["returnType"] ?? "") ?? .event,
             requestedPermissions: permissions(from: items["permissions"]),
             appIdentifier: appIdentifier(name: items["appName"], callback: items["callbackUrl"])
@@ -84,7 +98,9 @@ public struct SignerURLRequest: Equatable, Sendable {
             return [payload]
         case .nip04Encrypt, .nip04Decrypt, .nip44Encrypt, .nip44Decrypt:
             guard !payload.isEmpty else { throw SignerURLParseError.missingPayload }
-            guard let peer = items["pubkey"], !peer.isEmpty else { throw SignerURLParseError.missingPeerPubkey }
+            guard let peer = items["pubkey"], SecurityPolicy.isCanonicalPublicKey(peer) else {
+                throw SignerURLParseError.missingPeerPubkey
+            }
             return [peer, payload]
         case .connect, .switchRelays, .logout:
             throw SignerURLParseError.unsupportedType(method.rawValue)
@@ -116,6 +132,21 @@ public struct SignerURLRequest: Equatable, Sendable {
         return "nostrsigner:\(name ?? "unknown")"
     }
 
+    private static func validatedCallback(_ value: String) -> URL? {
+        guard value.utf8.count <= SecurityPolicy.maxRelayURLBytes,
+              let components = URLComponents(string: value),
+              let scheme = components.scheme?.lowercased(),
+              scheme.range(of: #"^[a-z][a-z0-9+.-]*$"#, options: .regularExpression) != nil,
+              !["http", "https", "file", "data", "javascript", "signstr", "nostrsigner", "nostrconnect"].contains(scheme),
+              components.user == nil,
+              components.password == nil,
+              components.fragment == nil
+        else {
+            return nil
+        }
+        return components.url
+    }
+
     private static func queryItems(_ query: String) -> [String: String] {
         var components = URLComponents()
         components.percentEncodedQuery = query
@@ -137,7 +168,8 @@ public struct SignerURLRequest: Equatable, Sendable {
             requestedPermissions: requestedPermissions,
             requestedAt: requestedAt,
             correlationID: id,
-            rawPayloadPreview: preview
+            rawPayloadPreview: SecurityPolicy.truncatedPreview(preview),
+            origin: .localSigner
         )
     }
 
