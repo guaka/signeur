@@ -48,7 +48,7 @@ public struct IncomingRequestView: View {
         }
     }
 
-    private var idleContent: some View {
+    var idleContent: some View {
         VStack(alignment: idleHorizontalAlignment, spacing: 14) {
             Image(systemName: "checkmark.shield")
                 .font(.system(size: 44))
@@ -83,7 +83,7 @@ public struct IncomingRequestView: View {
         .padding()
     }
 
-    private var idleHorizontalAlignment: HorizontalAlignment {
+    var idleHorizontalAlignment: HorizontalAlignment {
 #if os(macOS)
         .leading
 #else
@@ -91,7 +91,7 @@ public struct IncomingRequestView: View {
 #endif
     }
 
-    private var idleTextAlignment: TextAlignment {
+    var idleTextAlignment: TextAlignment {
 #if os(macOS)
         .leading
 #else
@@ -99,7 +99,7 @@ public struct IncomingRequestView: View {
 #endif
     }
 
-    private var idleFrameAlignment: Alignment {
+    var idleFrameAlignment: Alignment {
 #if os(macOS)
         .topLeading
 #else
@@ -107,7 +107,7 @@ public struct IncomingRequestView: View {
 #endif
     }
 
-    private func approvalContent(for session: NIP46Session) -> some View {
+    func approvalContent(for session: NIP46Session) -> some View {
         let request = session.request
         let isConnection = request.method == .connect
 
@@ -190,7 +190,7 @@ public struct IncomingRequestView: View {
         }
     }
 
-    private func requestHeader(_ request: NIP46Request, isConnection: Bool) -> some View {
+    func requestHeader(_ request: NIP46Request, isConnection: Bool) -> some View {
         HStack(alignment: .top, spacing: 14) {
             Image(systemName: isConnection ? "link.circle.fill" : "signature")
                 .font(.system(size: 38))
@@ -212,7 +212,7 @@ public struct IncomingRequestView: View {
         }
     }
 
-    private func connectionSummary(_ request: NIP46Request) -> some View {
+    func connectionSummary(_ request: NIP46Request) -> some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("What you’re approving")
                 .font(.headline)
@@ -253,7 +253,7 @@ public struct IncomingRequestView: View {
         .background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
     }
 
-    private func requestSummary(_ request: NIP46Request) -> some View {
+    func requestSummary(_ request: NIP46Request) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Requested action")
                 .font(.headline)
@@ -268,7 +268,7 @@ public struct IncomingRequestView: View {
         .background(.secondary.opacity(0.08), in: RoundedRectangle(cornerRadius: 14))
     }
 
-    private func detailRow(_ title: String, value: String, monospaced: Bool = false) -> some View {
+    func detailRow(_ title: String, value: String, monospaced: Bool = false) -> some View {
         VStack(alignment: .leading, spacing: 3) {
             Text(title)
                 .font(.caption.weight(.semibold))
@@ -279,7 +279,7 @@ public struct IncomingRequestView: View {
         }
     }
 
-    private func permissionLabel(_ permission: String) -> String {
+    func permissionLabel(_ permission: String) -> String {
         let method = permission.split(separator: ":", maxSplits: 1).first.map(String.init) ?? permission
         let suffix = permission.contains(":") ? " (\(permission.split(separator: ":", maxSplits: 1)[1]))" : ""
         switch method {
@@ -297,7 +297,7 @@ public struct IncomingRequestView: View {
         }
     }
 
-    private func permissionIcon(_ permission: String) -> String {
+    func permissionIcon(_ permission: String) -> String {
         let method = permission.split(separator: ":", maxSplits: 1).first.map(String.init) ?? permission
         switch method {
         case "sign_event": return "signature"

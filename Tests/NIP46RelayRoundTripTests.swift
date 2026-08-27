@@ -540,6 +540,80 @@ final class NIP46RelayListenerTests: XCTestCase {
         XCTAssertNil(NIP46RelayListener.request(fromJSONRPC: request, event: event, connection: connection))
     }
 
+    func testRequestCanOmitParamsAndStillParse() {
+        let connection = AppConnection(appPubkey: TestVectors.otherNpub, relays: [], identityID: "id-1")
+        let event = NostrEvent(
+            id: "e1",
+            pubkey: "app",
+            createdAt: 1_700_000_000,
+            kind: 24133,
+            tags: [["p", TestVectors.otherPubkeyHex]],
+            content: "",
+            sig: ""
+        )
+        let request = NIP46RelayListener.request(
+            fromJSONRPC: #"{"id":"r","method":"ping"}"#,
+            event: event,
+            connection: connection
+        )
+
+        XCTAssertEqual(request?.params, [])
+        XCTAssertEqual(request?.rawPayloadPreview, "ping")
+    }
+
+    func testDecodeRejectsUndecryptablePayload() async throws {
+        let setup = try await makeListener()
+        let event = try NostrEventFactory.sign(
+            UnsignedNostrEvent(
+                createdAt: 1_700_000_000,
+                kind: NIP46RelayTransport.nip46Kind,
+                tags: [["p", TestVectors.pubkeyHex]],
+                content: "not encrypted"
+            ),
+            privateKey: try NostrKeyDeriver.secretKeyBytes(fromNsec: appNsec)
+        )
+        let connection = AppConnection(
+            appPubkey: setup.appPubkey,
+            appName: "Amethyst",
+            relays: ["wss://relay.one"],
+            identityID: "id-1"
+        )
+
+        let decoded = await setup.listener.decode(event: event, for: connection)
+
+        XCTAssertNil(decoded)
+    }
+
+    func testStartHandlerForwardsIncomingEventsIntoPendingSessions() async throws {
+        let relay = URL(string: "wss://relay.one")!
+        let sockets = SocketRegistry()
+        let setup = try await makeListener(socketFactory: { sockets.socket(for: $0) })
+        let subscription = String(setup.appPubkey.prefix(8))
+
+        await setup.listener.start()
+
+        let event = try makeNIP46Event(
+            body: #"{"id":"through-start","method":"ping","params":[]}"#,
+            senderNsec: appNsec,
+            recipientPubkeyHex: TestVectors.pubkeyHex
+        )
+        let eventPayload = try NostrEventFactory.json(for: event)
+        let socket = sockets.socket(for: relay)
+        await socket.deliver(
+            "[\"EVENT\",\"nip46-\(subscription)\",\(eventPayload)]"
+        )
+
+        var pending: [NIP46Session] = []
+        for _ in 0..<30 {
+            pending = await setup.manager.pendingSessions()
+            if pending.count == 1 { break }
+            try await Task.sleep(for: .milliseconds(10))
+        }
+
+        XCTAssertEqual(pending.count, 1)
+        XCTAssertEqual(pending.first?.request.id, "through-start")
+    }
+
     func testStartSubscribesToApprovedConnections() async throws {
         let relay = URL(string: "wss://relay.one")!
         let sockets = SocketRegistry()

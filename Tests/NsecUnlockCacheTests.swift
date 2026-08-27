@@ -149,6 +149,14 @@ final class NsecUnlockCacheTests: XCTestCase {
         XCTAssertNil(cache.value(for: "identity", now: start))
     }
 
+    func testNegativeDurationIsClampedToZero() {
+        let start = Date(timeIntervalSince1970: 1_000)
+        var cache = NsecUnlockCache(duration: -120)
+        cache.insert("nsec", for: "identity", now: start)
+
+        XCTAssertNil(cache.value(for: "identity", now: start))
+    }
+
     func testReinsertingAKeyReplacesItsValueAndRestartsExpiry() {
         let start = Date(timeIntervalSince1970: 1_000)
         var cache = NsecUnlockCache(duration: 120)
