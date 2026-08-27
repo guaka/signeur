@@ -1,0 +1,501 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		2FC25B35CB9CA1766C9FF9B6 /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2493B00260209BF73ABED587 /* AppBootstrap.swift */; };
+		693224F8539BD50AAB880C6C /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5828E017BF2141ADAC636001 /* QRScannerView.swift */; };
+		75526CF33D96A82C9A436864 /* SignstrApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EC48704DAA538A7A126386 /* SignstrApp.swift */; };
+		7643A9F4FBAAAAD519694943 /* KeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2979112A34823CCD9AC6E712 /* KeysView.swift */; };
+		830BEEB7C49D5AAACE6E7A42 /* ScanPairingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */; };
+		AAC546BFAF73EA492B069F79 /* SignstrCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SignstrCore */; };
+		CDB30EA3E1803BB82CE07D63 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E35BDB324C62DA47954D66 /* RootView.swift */; };
+		FE058444748D4F3D14BA3F09 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D6E5FCCD24114D1BBFE33E27 /* Assets.xcassets */; };
+		A10000000000000000000001 /* SignstrMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* SignstrMacApp.swift */; };
+		A10000000000000000000002 /* MacAppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* MacAppBootstrap.swift */; };
+		A10000000000000000000003 /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* MacRootView.swift */; };
+		A10000000000000000000004 /* MacKeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* MacKeysView.swift */; };
+		A10000000000000000000005 /* SignstrCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SignstrCore */; };
+		A10000000000000000000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		2493B00260209BF73ABED587 /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
+		2979112A34823CCD9AC6E712 /* KeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeysView.swift; sourceTree = "<group>"; };
+		44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPairingSheet.swift; sourceTree = "<group>"; };
+		454B407AFBBED585459D15E5 /* Signstr.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Signstr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		542DB560650D80632A1CCD72 /* signstr */ = {isa = PBXFileReference; lastKnownFileType = folder; name = signstr; path = .; sourceTree = SOURCE_ROOT; };
+		5828E017BF2141ADAC636001 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
+		87E35BDB324C62DA47954D66 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		AF6F95DF1B5E0A00D11B2045 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		D6E5FCCD24114D1BBFE33E27 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F5EC48704DAA538A7A126386 /* SignstrApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrApp.swift; sourceTree = "<group>"; };
+		A10000000000000000000011 /* SignstrMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrMacApp.swift; sourceTree = "<group>"; };
+		A10000000000000000000012 /* MacAppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAppBootstrap.swift; sourceTree = "<group>"; };
+		A10000000000000000000013 /* MacRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacRootView.swift; sourceTree = "<group>"; };
+		A10000000000000000000014 /* MacKeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacKeysView.swift; sourceTree = "<group>"; };
+		A10000000000000000000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		A10000000000000000000016 /* Signstr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Signstr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000018 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A10000000000000000000019 /* SignstrMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SignstrMac.entitlements; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		8A5DAEC1B9E8AAA6C89B89E1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAC546BFAF73EA492B069F79 /* SignstrCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000021 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000005 /* SignstrCore in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0813DBA9B3A3492E18699102 /* iOSApp */ = {
+			isa = PBXGroup;
+			children = (
+				2493B00260209BF73ABED587 /* AppBootstrap.swift */,
+				D6E5FCCD24114D1BBFE33E27 /* Assets.xcassets */,
+				AF6F95DF1B5E0A00D11B2045 /* Info.plist */,
+				2979112A34823CCD9AC6E712 /* KeysView.swift */,
+				5828E017BF2141ADAC636001 /* QRScannerView.swift */,
+				87E35BDB324C62DA47954D66 /* RootView.swift */,
+				44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */,
+				F5EC48704DAA538A7A126386 /* SignstrApp.swift */,
+			);
+			path = iOSApp;
+			sourceTree = "<group>";
+		};
+		09BC7F761975EFEAC4E1A1EB = {
+			isa = PBXGroup;
+			children = (
+				0813DBA9B3A3492E18699102 /* iOSApp */,
+				A10000000000000000000017 /* MacOSApp */,
+				F7490F3E7937D1E861469E1A /* Packages */,
+				CA31E179C1F5B8BEE2F8878A /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		CA31E179C1F5B8BEE2F8878A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				454B407AFBBED585459D15E5 /* Signstr.app */,
+				A10000000000000000000016 /* Signstr.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A10000000000000000000017 /* MacOSApp */ = {
+			isa = PBXGroup;
+			children = (
+				A10000000000000000000012 /* MacAppBootstrap.swift */,
+				A10000000000000000000014 /* MacKeysView.swift */,
+				A10000000000000000000013 /* MacRootView.swift */,
+				A10000000000000000000011 /* SignstrMacApp.swift */,
+				A10000000000000000000018 /* Assets.xcassets */,
+				A10000000000000000000015 /* Info.plist */,
+				A10000000000000000000019 /* SignstrMac.entitlements */,
+			);
+			path = MacOSApp;
+			sourceTree = "<group>";
+		};
+		F7490F3E7937D1E861469E1A /* Packages */ = {
+			isa = PBXGroup;
+			children = (
+				542DB560650D80632A1CCD72 /* signstr */,
+			);
+			name = Packages;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7FEF835F801865554B1CB876 /* Signstr */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signstr" */;
+			buildPhases = (
+				1D123076BD61D92936CD0C14 /* Sources */,
+				64F1EE3EFA2EE7BFAD82675D /* Resources */,
+				8A5DAEC1B9E8AAA6C89B89E1 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Signstr;
+			packageProductDependencies = (
+				54DD18EB4CAA374E35D8FBFF /* SignstrCore */,
+			);
+			productName = Signstr;
+			productReference = 454B407AFBBED585459D15E5 /* Signstr.app */;
+			productType = "com.apple.product-type.application";
+		};
+		A10000000000000000000031 /* SignstrMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = A10000000000000000000041 /* Build configuration list for PBXNativeTarget "SignstrMac" */;
+			buildPhases = (
+				A10000000000000000000022 /* Sources */,
+				A10000000000000000000023 /* Resources */,
+				A10000000000000000000021 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SignstrMac;
+			packageProductDependencies = (
+				54DD18EB4CAA374E35D8FBFF /* SignstrCore */,
+			);
+			productName = Signstr;
+			productReference = A10000000000000000000016 /* Signstr.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1DBE78AD74E32221A74B783B /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+					7FEF835F801865554B1CB876 = {
+						DevelopmentTeam = SUJ594N47C;
+						ProvisioningStyle = Automatic;
+					};
+					A10000000000000000000031 = {
+						DevelopmentTeam = SUJ594N47C;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signstr" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 09BC7F761975EFEAC4E1A1EB;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				24643C6B0519A9D1E5F689A5 /* XCLocalSwiftPackageReference "." */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CA31E179C1F5B8BEE2F8878A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7FEF835F801865554B1CB876 /* Signstr */,
+				A10000000000000000000031 /* SignstrMac */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		64F1EE3EFA2EE7BFAD82675D /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FE058444748D4F3D14BA3F09 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000023 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000006 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1D123076BD61D92936CD0C14 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2FC25B35CB9CA1766C9FF9B6 /* AppBootstrap.swift in Sources */,
+				7643A9F4FBAAAAD519694943 /* KeysView.swift in Sources */,
+				693224F8539BD50AAB880C6C /* QRScannerView.swift in Sources */,
+				CDB30EA3E1803BB82CE07D63 /* RootView.swift in Sources */,
+				830BEEB7C49D5AAACE6E7A42 /* ScanPairingSheet.swift in Sources */,
+				75526CF33D96A82C9A436864 /* SignstrApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		A10000000000000000000022 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A10000000000000000000002 /* MacAppBootstrap.swift in Sources */,
+				A10000000000000000000004 /* MacKeysView.swift in Sources */,
+				A10000000000000000000003 /* MacRootView.swift in Sources */,
+				A10000000000000000000001 /* SignstrMacApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		21869B48D031C360B9B69107 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SUJ594N47C;
+				INFOPLIST_FILE = iOSApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.k.signstr;
+				PRODUCT_NAME = Signstr;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.1;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		2CDCDDB3DA628E35039DA4D0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		2DAEFF806CD73F2B72471A2E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		8639B6A9FCBC61DF7796A811 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SUJ594N47C;
+				INFOPLIST_FILE = iOSApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.k.signstr;
+				PRODUCT_NAME = Signstr;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.1;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		A10000000000000000000051 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SUJ594N47C;
+				INFOPLIST_FILE = MacOSApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.k.signstr.mac;
+				PRODUCT_NAME = Signstr;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Debug;
+		};
+		A10000000000000000000052 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = SUJ594N47C;
+				INFOPLIST_FILE = MacOSApp/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.k.signstr.mac;
+				PRODUCT_NAME = Signstr;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.10;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signstr" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				21869B48D031C360B9B69107 /* Debug */,
+				8639B6A9FCBC61DF7796A811 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signstr" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				2DAEFF806CD73F2B72471A2E /* Debug */,
+				2CDCDDB3DA628E35039DA4D0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		A10000000000000000000041 /* Build configuration list for PBXNativeTarget "SignstrMac" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				A10000000000000000000051 /* Debug */,
+				A10000000000000000000052 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		24643C6B0519A9D1E5F689A5 /* XCLocalSwiftPackageReference "." */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = .;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		54DD18EB4CAA374E35D8FBFF /* SignstrCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SignstrCore;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 1DBE78AD74E32221A74B783B /* Project object */;
+}
