@@ -19,7 +19,7 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Run Swift tests
         run: swift test
@@ -31,6 +31,7 @@ jobs:
           -scheme SignstrMac
           -configuration Debug
           -destination 'platform=macOS'
+          -skipPackagePluginValidation
           CODE_SIGNING_ALLOWED=NO
           build
 
@@ -41,5 +42,6 @@ jobs:
           -scheme Signstr
           -configuration Debug
           -destination 'generic/platform=iOS Simulator'
+          -skipPackagePluginValidation
           CODE_SIGNING_ALLOWED=NO
           build
