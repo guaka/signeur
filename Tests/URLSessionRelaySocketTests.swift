@@ -16,6 +16,7 @@ private final class FakeRelayTask: RelayWebSocketTask, @unchecked Sendable {
 
     private var queue: [FakeMessage] = []
     private var continuation: CheckedContinuation<URLSessionWebSocketTask.Message, Error>?
+    private let receiveStarted = DispatchSemaphore(value: 0)
 
     func resume() {
         resumed = true
@@ -32,6 +33,7 @@ private final class FakeRelayTask: RelayWebSocketTask, @unchecked Sendable {
         if queue.isEmpty {
             return try await withCheckedThrowingContinuation { continuation in
                 self.continuation = continuation
+                receiveStarted.signal()
             }
         }
         return try popMessage()
@@ -59,6 +61,9 @@ private final class FakeRelayTask: RelayWebSocketTask, @unchecked Sendable {
     func deliveredCount() -> Int { receivedMessages.count }
     func didResume() -> Bool { resumed }
     func didClose() -> Bool { closed }
+    func waitUntilReceiving() -> Bool {
+        receiveStarted.wait(timeout: .now() + 1) == .success
+    }
 
     private func popMessage() throws -> URLSessionWebSocketTask.Message {
         let message = queue.removeFirst()
@@ -200,7 +205,7 @@ final class URLSessionRelaySocketTests: XCTestCase {
         let receiveTask = Task {
             try await socket.receive()
         }
-        await Task.yield()
+        XCTAssertTrue(task.waitUntilReceiving(), "receive should be pending before close")
         await socket.close()
 
         do {
