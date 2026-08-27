@@ -38,9 +38,29 @@ struct MacRootView: View {
 
     var body: some View {
         NavigationSplitView {
-            List(MacRootSection.allCases, selection: $section) { item in
-                Label(item.title, systemImage: item.icon)
-                    .tag(item)
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(spacing: 12) {
+                    Image(nsImage: NSApplication.shared.applicationIconImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 44, height: 44)
+                        .accessibilityHidden(true)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Signstr")
+                            .font(.headline)
+                        Text("Nostr signer")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 10)
+
+                List(MacRootSection.allCases, selection: $section) { item in
+                    Label(item.title, systemImage: item.icon)
+                        .tag(item)
+                }
             }
             .navigationTitle("Signstr")
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
