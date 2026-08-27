@@ -76,12 +76,20 @@ footer {
 
 nav { display: flex; gap: 28px; }
 nav a {
+    display: inline-flex;
+    align-items: center;
     color: var(--muted);
     font-size: 13px;
     text-decoration: none;
     transition: color 160ms ease;
 }
 nav a:hover { color: var(--text); }
+.github-icon-link {
+    width: 28px;
+    height: 28px;
+    justify-content: center;
+}
+.github-mark { width: 20px; height: 20px; fill: currentColor; }
 
 .hero {
     max-width: 900px;
