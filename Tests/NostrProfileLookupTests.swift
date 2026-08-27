@@ -1,4 +1,5 @@
 import XCTest
+import Foundation
 @testable import SignstrCore
 
 final class NostrProfileLookupTests: XCTestCase {
@@ -181,10 +182,11 @@ final class NostrProfileLookupTests: XCTestCase {
         await socket.deliver("[\"EOSE\",\"\(subscriptionID)\"]")
 
         let events = await request.value
+        let isClosed = await socket.closedYet()
 
         XCTAssertEqual(events.count, 1)
         XCTAssertEqual(events.first?.content, #"{"display_name":"Alice"}"#)
-        XCTAssertEqual(await socket.closedYet(), true)
+        XCTAssertTrue(isClosed)
     }
 
     func testWebSocketFetcherTimesOutWhenNoRelayReplies() async {
@@ -196,9 +198,10 @@ final class NostrProfileLookupTests: XCTestCase {
         )
 
         let events = await fetcher.fetchProfileEvents(pubkey: TestVectors.pubkeyHex, relays: [relay])
+        let isClosed = await socket.closedYet()
 
         XCTAssertEqual(events.count, 0)
-        XCTAssertTrue(await socket.closedYet())
+        XCTAssertTrue(isClosed)
     }
 
     func testNIP05VerifierRejectsMalformedNip05IdentifiersWithoutNetworking() async {
@@ -214,11 +217,69 @@ final class NostrProfileLookupTests: XCTestCase {
         XCTAssertFalse(bad)
     }
 
+    func testNIP05VerifierAcceptsMatchingNip05IdentifierFromServer() async throws {
+        try await withMockNIP05VerifierResponse(statusCode: 200, body: #"{"names":{"alice":"\#(TestVectors.pubkeyHex)"} }"#) { verifier in
+            let verified = await verifier.verify(identifier: "alice@example.com", pubkey: TestVectors.pubkeyHex)
+            XCTAssertTrue(verified)
+        }
+    }
+
+    func testNIP05VerifierRejectsNip05IdentifierThatDoesNotMatchServerName() async throws {
+        try await withMockNIP05VerifierResponse(statusCode: 200, body: #"{"names":{"alice":"\#(TestVectors.pubkeyHex.replacingOccurrences(of: "a", with: "b"))} }"#) { verifier in
+            let verified = await verifier.verify(identifier: "alice@example.com", pubkey: TestVectors.pubkeyHex)
+            XCTAssertFalse(verified)
+        }
+    }
+
+    func testNIP05VerifierRejectsNonSuccessfulHttpResponse() async throws {
+        try await withMockNIP05VerifierResponse(statusCode: 404, body: "{}") { verifier in
+            let verified = await verifier.verify(identifier: "alice@example.com", pubkey: TestVectors.pubkeyHex)
+            XCTAssertFalse(verified)
+        }
+    }
+
+    func testNIP05VerifierRejectsMalformedJsonPayload() async throws {
+        try await withMockNIP05VerifierResponse(statusCode: 200, body: "not json") { verifier in
+            let verified = await verifier.verify(identifier: "alice@example.com", pubkey: TestVectors.pubkeyHex)
+            XCTAssertFalse(verified)
+        }
+    }
+
+    func testNIP05VerifierRejectsOverlyLargePayload() async throws {
+        let hugeName = String(repeating: "x", count: SecurityPolicy.maxRequestPayloadBytes + 1)
+        try await withMockNIP05VerifierResponse(statusCode: 200, body: String(repeating: "x", count: hugeName.count)) { verifier in
+            let verified = await verifier.verify(identifier: "alice@example.com", pubkey: TestVectors.pubkeyHex)
+            XCTAssertFalse(verified)
+        }
+    }
+
     private func profileEvent(createdAt: Int, content: String, signerNsec: String = TestVectors.nsec) throws -> NostrEvent {
         try NostrEventFactory.sign(
             UnsignedNostrEvent(createdAt: createdAt, kind: 0, tags: [], content: content),
             privateKey: try NostrKeyDeriver.secretKeyBytes(fromNsec: signerNsec)
         )
+    }
+
+    private func withMockNIP05VerifierResponse(
+        statusCode: Int,
+        body: String,
+        operation: (URLSessionNIP05Verifier) async throws -> Void
+    ) async throws {
+        let payload = Data(body.utf8)
+        defer { VerifierURLProtocol.clear() }
+        VerifierURLProtocol.setResponse { request in
+            let response = HTTPURLResponse(
+                url: request.url!,
+                statusCode: statusCode,
+                httpVersion: "HTTP/1.1",
+                headerFields: ["Content-Type": "application/json"]
+            )!
+            return (response, payload)
+        }
+
+        let configuration = URLSessionConfiguration.ephemeral
+        configuration.protocolClasses = [VerifierURLProtocol.self]
+        try await operation(URLSessionNIP05Verifier(sessionConfiguration: configuration))
     }
 }
 
@@ -263,5 +324,57 @@ private actor StubNIP05Verifier: NIP05Verifying {
 
     func verify(identifier: String, pubkey: String) async -> Bool {
         validIdentifiers.contains(identifier)
+    }
+}
+
+private enum VerifierURLProtocolError: Error {
+    case missingResponseHandler
+}
+
+private final class VerifierURLProtocol: URLProtocol {
+    typealias ResponseHandler = (URLRequest) throws -> (HTTPURLResponse, Data)
+
+    private static let lock = NSLock()
+    private static var response: ResponseHandler?
+
+    static func setResponse(_ response: @escaping ResponseHandler) {
+        lock.lock()
+        self.response = response
+        lock.unlock()
+    }
+
+    static func clear() {
+        lock.lock()
+        response = nil
+        lock.unlock()
+    }
+
+    override class func canInit(with request: URLRequest) -> Bool {
+        request.url?.path == "/.well-known/nostr.json"
+    }
+
+    override class func canonicalRequest(for request: URLRequest) -> URLRequest {
+        request
+    }
+
+    override func startLoading() {
+        do {
+            let handler = try Self.responseValue()
+            let (response, data) = try handler(request)
+            client?.urlProtocol(self, didReceive: response, cacheStoragePolicy: .notAllowed)
+            client?.urlProtocol(self, didLoad: data)
+            client?.urlProtocolDidFinishLoading(self)
+        } catch {
+            client?.urlProtocol(self, didFailWithError: error)
+        }
+    }
+
+    override func stopLoading() {}
+
+    private static func responseValue() throws -> ResponseHandler {
+        lock.lock()
+        defer { lock.unlock() }
+        guard let response else { throw VerifierURLProtocolError.missingResponseHandler }
+        return response
     }
 }

@@ -255,7 +255,7 @@ final class NIP46RelayListenerTests: XCTestCase {
         registerApp: Bool = true,
         approved: Bool = true,
         connectionIdentityID: String = "id-1",
-        socketFactory: @escaping (URL) -> RelaySocketing = { _ in FakeRelaySocket() },
+        socketFactory: @escaping @Sendable (URL) -> RelaySocketing = { _ in FakeRelaySocket() },
         identitySeed: [Identity]? = nil,
         nsecStoreKeys: [String: String] = ["id-1": TestVectors.nsec]
     ) async throws -> (listener: NIP46RelayListener, manager: NIP46SessionManager, appPubkey: String) {
@@ -560,8 +560,8 @@ final class NIP46RelayListenerTests: XCTestCase {
         let sockets = SocketRegistry()
         let setup = try await makeListener(
             connectionIdentityID: "missing-id",
-            identitySeed: [],
-            socketFactory: { sockets.socket(for: $0) }
+            socketFactory: { sockets.socket(for: $0) },
+            identitySeed: []
         )
 
         await setup.listener.resubscribe()
@@ -593,8 +593,8 @@ final class NIP46RelayListenerTests: XCTestCase {
         let relay = URL(string: "wss://relay.one")!
         let sockets = SocketRegistry()
         let setup = try await makeListener(
-            identitySeed: [],
-            socketFactory: { sockets.socket(for: $0) }
+            socketFactory: { sockets.socket(for: $0) },
+            identitySeed: []
         )
         let connection = AppConnection(
             appPubkey: setup.appPubkey,
@@ -612,8 +612,8 @@ final class NIP46RelayListenerTests: XCTestCase {
 
     func testMissingNsecInStoreSkipsPendingSessionCreation() async throws {
         let setup = try await makeListener(
-            nsecStoreKeys: [:],
-            identitySeed: [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)]
+            identitySeed: [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)],
+            nsecStoreKeys: [:]
         )
         let event = try makeNIP46Event(
             body: #"{"id":"r","method":"ping","params":[]}"#,
