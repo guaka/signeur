@@ -3,6 +3,31 @@ import XCTest
 @testable import SignstrCore
 
 final class ConnectionActivatorTests: XCTestCase {
+    func testRegisterStoresPairingRequestsWithExpectedMetadata() async throws {
+        let appPubkey = try NostrKeyDeriver.derivePublicKeyHex(fromNsec: TestVectors.otherNsec)
+        let connections = ConnectionStore(defaults: makeEphemeralDefaults())
+        let activator = ConnectionActivator(connections: connections)
+        let pairing = DeepLinkRequest(
+            clientPubkey: appPubkey,
+            relays: ["wss://relay.one", "wss://relay.two"],
+            secret: "secret",
+            requestedPerms: ["sign_event", "nip44_encrypt"],
+            appName: "Nostrudel",
+            appURL: "https://nostrudel.app"
+        )
+
+        await activator.register(pairing: pairing, identityID: "id-1")
+
+        let connection = await connections.connection(forAppPubkey: appPubkey)
+        XCTAssertNotNil(connection)
+        XCTAssertEqual(connection?.isApproved, false)
+        XCTAssertEqual(connection?.appName, "Nostrudel")
+        XCTAssertEqual(connection?.appURL, "https://nostrudel.app")
+        XCTAssertEqual(connection?.requestedPermissions, ["sign_event", "nip44_encrypt"])
+        XCTAssertEqual(connection?.relays, ["wss://relay.one", "wss://relay.two"])
+        XCTAssertEqual(connection?.identityID, "id-1")
+    }
+
     func testActivateMarksAppAsApprovedAndStartsListeningWhenListenerIsConfigured() async throws {
         let appPubkey = try NostrKeyDeriver.derivePublicKeyHex(fromNsec: TestVectors.otherNsec)
         let sockets = SocketRegistry()
@@ -79,4 +104,3 @@ final class ConnectionActivatorTests: XCTestCase {
         XCTAssertEqual(connection?.isApproved, true)
     }
 }
-

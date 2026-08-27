@@ -14,19 +14,59 @@ public protocol RelaySocketing: Sendable {
     func close() async
 }
 
+protocol RelayWebSocketTask: Sendable {
+    func resume()
+    func send(_ message: URLSessionWebSocketTask.Message) async throws
+    func receive() async throws -> URLSessionWebSocketTask.Message
+    func cancel(with closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?)
+}
+
+extension URLSessionWebSocketTask: RelayWebSocketTask {}
+
+protocol RelayWebSocketTaskFactory: Sendable {
+    func makeTask(for url: URL) -> RelayWebSocketTask
+}
+
+struct DefaultRelayWebSocketTaskFactory: RelayWebSocketTaskFactory {
+    private let session: URLSession
+
+    init(session: URLSession) {
+        self.session = session
+    }
+
+    func makeTask(for url: URL) -> RelayWebSocketTask {
+        session.webSocketTask(with: url)
+    }
+}
+
 public actor URLSessionRelaySocket: RelaySocketing {
     private let url: URL
     private let session: URLSession
-    private var task: URLSessionWebSocketTask?
+    private let taskFactory: RelayWebSocketTaskFactory
+    private var task: RelayWebSocketTask?
 
-    public init(url: URL, session: URLSession = .shared) {
+    public init(
+        url: URL,
+        session: URLSession = .shared
+    ) {
         self.url = url
         self.session = session
+        self.taskFactory = DefaultRelayWebSocketTaskFactory(session: session)
+    }
+
+    init(
+        url: URL,
+        session: URLSession = .shared,
+        taskFactory: RelayWebSocketTaskFactory
+    ) {
+        self.url = url
+        self.session = session
+        self.taskFactory = taskFactory
     }
 
     public func connect() async throws {
         guard task == nil else { return }
-        let task = session.webSocketTask(with: url)
+        let task = taskFactory.makeTask(for: url)
         task.resume()
         self.task = task
     }

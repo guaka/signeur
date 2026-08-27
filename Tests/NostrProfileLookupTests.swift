@@ -217,6 +217,77 @@ final class NostrProfileLookupTests: XCTestCase {
         XCTAssertFalse(bad)
     }
 
+    func testSuggestedNameDropsLeadingAtPrefixFromVerifiedNip05() async throws {
+        let event = try profileEvent(
+            createdAt: 100,
+            content: #"{"nip05":"_@alice@example.com"}"#
+        )
+        let lookup = RelayNostrProfileLookup(
+            relays: [],
+            eventFetcher: StubProfileEventFetcher(events: [event]),
+            nip05Verifier: StubNIP05Verifier(validIdentifiers: ["_@alice@example.com"])
+        )
+
+        let profile = await lookup.lookup(pubkey: TestVectors.pubkeyHex)
+
+        XCTAssertEqual(profile?.displayName, nil)
+        XCTAssertEqual(profile?.nip05, "_@alice@example.com")
+        XCTAssertEqual(profile?.suggestedName, "alice@example.com")
+    }
+
+    func testNIP05VerifierRejectsUnsafeDomainsWithoutNetworking() async {
+        let verifier = URLSessionNIP05Verifier()
+        let cases = [
+            "alice@localhost.local",
+            "alice@-example.com",
+            "alice@example-.com",
+            "alice@example..com",
+            "alice@longlabel.aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.com",
+            "alice@localhost",
+            "alice@127.0.0.1",
+            "alice@foo.com:8080"
+        ]
+
+        for identifier in cases {
+            let result = await verifier.verify(identifier: identifier, pubkey: TestVectors.pubkeyHex)
+            XCTAssertFalse(result, "\(identifier) should be rejected by safety checks")
+        }
+    }
+
+    func testLookupUsesLowercasedNip05ValueForVerification() async throws {
+        let event = try profileEvent(
+            createdAt: 100,
+            content: #"{"display_name":"Alice","nip05":"AlIcE@ExAmPlE.CoM"}"#
+        )
+        let lookup = RelayNostrProfileLookup(
+            relays: [],
+            eventFetcher: StubProfileEventFetcher(events: [event]),
+            nip05Verifier: StubNIP05Verifier(validIdentifiers: ["alice@example.com"])
+        )
+
+        let profile = await lookup.lookup(pubkey: TestVectors.pubkeyHex)
+
+        XCTAssertEqual(profile?.displayName, "Alice")
+        XCTAssertEqual(profile?.nip05, "alice@example.com")
+    }
+
+    func testMetadataWithBlankDisplayNameFallsBackToMissingIfNoNameProvided() async throws {
+        let event = try profileEvent(
+            createdAt: 100,
+            content: #"{"display_name":"   "}"#
+        )
+        let lookup = RelayNostrProfileLookup(
+            relays: [],
+            eventFetcher: StubProfileEventFetcher(events: [event]),
+            nip05Verifier: StubNIP05Verifier(validIdentifiers: [])
+        )
+
+        let profile = await lookup.lookup(pubkey: TestVectors.pubkeyHex)
+
+        XCTAssertEqual(profile?.displayName, nil)
+        XCTAssertEqual(profile?.nip05, nil)
+    }
+
     func testNIP05VerifierAcceptsMatchingNip05IdentifierFromServer() async throws {
         try await withMockNIP05VerifierResponse(statusCode: 200, body: #"{"names":{"alice":"\#(TestVectors.pubkeyHex)"} }"#) { verifier in
             let verified = await verifier.verify(identifier: "alice@example.com", pubkey: TestVectors.pubkeyHex)

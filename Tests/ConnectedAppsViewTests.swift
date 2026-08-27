@@ -100,6 +100,68 @@ final class ConnectedAppsViewTests: XCTestCase {
         await MainActor.run { _ = ConnectedAppsView(viewModel: viewModel).body }
     }
 
+    func testConnectedAppPermissionHelpersCoverKnownUnknownAndQualifiedInputs() {
+        XCTAssertEqual(permissionDisplayName("get_public_key"), "Read public key")
+        XCTAssertEqual(permissionDisplayName("sign_event"), "Sign events")
+        XCTAssertEqual(permissionDisplayName("sign_event:22"), "Sign events (kind 22)")
+        XCTAssertEqual(permissionDisplayName("nip04_encrypt"), "NIP-04 encryption")
+        XCTAssertEqual(permissionDisplayName("nip04_decrypt"), "NIP-04 decryption")
+        XCTAssertEqual(permissionDisplayName("nip44_encrypt"), "NIP-44 encryption")
+        XCTAssertEqual(permissionDisplayName("nip44_decrypt"), "NIP-44 decryption")
+        XCTAssertEqual(permissionDisplayName("switch_relays"), "Change relays")
+        XCTAssertEqual(permissionDisplayName("ping"), "Signer availability")
+        XCTAssertEqual(permissionDisplayName("logout"), "Disconnect signer")
+        XCTAssertEqual(permissionDisplayName("mystery_permission"), "Mystery Permission")
+
+        XCTAssertEqual(permissionDisplayIcon("sign_event"), "signature")
+        XCTAssertEqual(permissionDisplayIcon("nip04_encrypt"), "lock.fill")
+        XCTAssertEqual(permissionDisplayIcon("nip44_encrypt"), "lock.fill")
+        XCTAssertEqual(permissionDisplayIcon("nip04_decrypt"), "lock.open.fill")
+        XCTAssertEqual(permissionDisplayIcon("nip44_decrypt"), "lock.open.fill")
+        XCTAssertEqual(permissionDisplayIcon("get_public_key"), "person.text.rectangle")
+        XCTAssertEqual(permissionDisplayIcon("switch_relays"), "network")
+        XCTAssertEqual(permissionDisplayIcon("sign_event:22"), "signature")
+        XCTAssertEqual(permissionDisplayIcon("mystery_permission"), "checkmark.circle")
+    }
+
+    func testConnectedAppRowAndDetailViewsExercisePermissionAndStatusBranches() async {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let requested = ConnectedAppItem(
+            appName: "Nostrudel",
+            appPubkey: TestVectors.otherPubkeyHex,
+            methods: ["sign_event", "logout"],
+            requestedPermissions: ["nip44_encrypt"],
+            appURL: "https://nostrudel.io",
+            relays: [],
+            identityName: "Main",
+            createdAt: now,
+            lastUsedAt: now.addingTimeInterval(120),
+            usesLegacyEncryption: true
+        )
+
+        let remembered = ConnectedAppItem(
+            appName: "Legacy App",
+            appPubkey: TestVectors.pubkeyHex,
+            methods: ["asks you every time"],
+            requestedPermissions: [],
+            appURL: nil,
+            relays: ["wss://relay.one", "wss://relay.two"],
+            identityName: nil,
+            createdAt: nil,
+            lastUsedAt: nil,
+            usesLegacyEncryption: false
+        )
+
+        await MainActor.run {
+            _ = ConnectedAppRow(app: requested).body
+            _ = ConnectedAppRow(app: remembered).body
+            _ = ConnectedAppDetailView(app: requested) {}
+                .body
+            _ = ConnectedAppDetailView(app: remembered) {}
+                .body
+        }
+    }
+
     func testLoadingSigningViewBuildsBody() {
         _ = LoadingSigningView().body
     }

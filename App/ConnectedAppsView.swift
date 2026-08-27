@@ -131,7 +131,7 @@ public struct ConnectedAppsView: View {
     }
 
 #if os(iOS)
-    private var deletionConfirmationIsPresented: Binding<Bool> {
+    var deletionConfirmationIsPresented: Binding<Bool> {
         Binding(
             get: { connectionPendingDeletion != nil },
             set: { if !$0 { connectionPendingDeletion = nil } }
@@ -140,7 +140,7 @@ public struct ConnectedAppsView: View {
 #endif
 }
 
-private struct ConnectedAppRow: View {
+struct ConnectedAppRow: View {
     let app: ConnectedAppItem
 
     var body: some View {
@@ -201,7 +201,7 @@ private struct ConnectedAppRow: View {
     }
 }
 
-private struct ConnectedAppDetailView: View {
+struct ConnectedAppDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let app: ConnectedAppItem
     let disconnect: () async -> Void
@@ -298,7 +298,7 @@ private struct ConnectedAppDetailView: View {
     }
 }
 
-private func permissionDisplayName(_ permission: String) -> String {
+func permissionDisplayName(_ permission: String) -> String {
     let parts = permission.split(separator: ":", maxSplits: 1).map(String.init)
     let method = parts.first ?? permission
     let qualifier = parts.count == 2 ? " (kind \(parts[1]))" : ""
@@ -316,7 +316,7 @@ private func permissionDisplayName(_ permission: String) -> String {
     }
 }
 
-private func permissionDisplayIcon(_ permission: String) -> String {
+func permissionDisplayIcon(_ permission: String) -> String {
     let method = permission.split(separator: ":", maxSplits: 1).first.map(String.init) ?? permission
     switch method {
     case "sign_event": return "signature"

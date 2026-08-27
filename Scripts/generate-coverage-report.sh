@@ -4,6 +4,7 @@ set -euo pipefail
 
 readonly output_dir="${1:-coverage-report}"
 readonly repository_root="$(git rev-parse --show-toplevel)"
+readonly coverage_assets="${repository_root}/Scripts/coverage-site"
 readonly coverage_json="$(find "${repository_root}/.build" -path '*/codecov/signstr.json' -type f -print -quit)"
 
 if [[ -z "${coverage_json}" ]]; then
@@ -31,6 +32,16 @@ xcrun llvm-cov show "${test_binary}" \
     -ignore-filename-regex='(/Tests/|/.build/)' \
     -show-instantiations=false \
     -show-line-counts-or-regions
+
+cp "${repository_root}/iOSApp/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png" \
+    "${output_dir}/signstr-icon.png"
+cp "${coverage_assets}/coverage.css" "${output_dir}/coverage.css"
+
+jq -r \
+    --arg root "${repository_root}/" \
+    --arg generated "$(date -u '+%Y-%m-%d %H:%M UTC')" \
+    -f "${coverage_assets}/index.jq" \
+    "${coverage_json}" > "${output_dir}/index.html"
 
 touch "${output_dir}/.nojekyll"
 

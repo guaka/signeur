@@ -5,6 +5,8 @@ import Security
 public enum NsecStoreError: Error, Equatable, LocalizedError {
     case invalidInput
     case protectionUnavailable
+    case authenticationFailed
+    case authenticationCanceled
     case unexpectedStatus(OSStatus)
 
     public var errorDescription: String? {
@@ -13,6 +15,10 @@ public enum NsecStoreError: Error, Equatable, LocalizedError {
             return "The key could not be read as a valid nsec."
         case .protectionUnavailable:
             return "This device could not create biometric Keychain protection."
+        case .authenticationFailed:
+            return "Face ID or device authentication did not succeed. Please try again."
+        case .authenticationCanceled:
+            return "Authentication was canceled."
         case .unexpectedStatus(let status):
             if status == -34010 {
                 return "Keychain could not create protected storage. Please try again. (error -34010)"
@@ -26,14 +32,40 @@ public enum NsecStoreError: Error, Equatable, LocalizedError {
     }
 }
 
+protocol NsecKeychainBackend: Sendable {
+    func delete(query: [String: Any]) -> OSStatus
+    func add(query: [String: Any]) -> OSStatus
+    func copyMatching(query: [String: Any], result: inout CFTypeRef?) -> OSStatus
+}
+
+struct DefaultNsecKeychainBackend: NsecKeychainBackend {
+    func delete(query: [String: Any]) -> OSStatus {
+        SecItemDelete(query as CFDictionary)
+    }
+
+    func add(query: [String: Any]) -> OSStatus {
+        SecItemAdd(query as CFDictionary, nil)
+    }
+
+    func copyMatching(query: [String: Any], result: inout CFTypeRef?) -> OSStatus {
+        SecItemCopyMatching(query as CFDictionary, &result)
+    }
+}
+
 public actor NsecKeychainStore: NsecStoring {
     public static let defaultUnlockDuration: TimeInterval = 5 * 60
     private let service = "com.k.signstr.nsec"
-    private var authenticationContext = NsecKeychainStore.makeAuthenticationContext()
+    private let keychain: NsecKeychainBackend
     private var unlockCache: NsecUnlockCache
 
     public init(unlockDuration: TimeInterval = NsecKeychainStore.defaultUnlockDuration) {
         unlockCache = NsecUnlockCache(duration: unlockDuration)
+        keychain = DefaultNsecKeychainBackend()
+    }
+
+    init(unlockDuration: TimeInterval, keychain: NsecKeychainBackend) {
+        unlockCache = NsecUnlockCache(duration: unlockDuration)
+        self.keychain = keychain
     }
 
     public func saveNsec(_ nsec: String, for identityID: String) throws {
@@ -49,7 +81,7 @@ public actor NsecKeychainStore: NsecStoring {
 
         unlockCache.removeValue(for: identityID)
         let query = Self.makeItemQuery(service: service, identityID: identityID)
-        SecItemDelete(query as CFDictionary)
+        _ = keychain.delete(query: query)
 
         var accessControlError: Unmanaged<CFError>?
         guard let accessControl = SecAccessControlCreateWithFlags(
@@ -64,7 +96,7 @@ public actor NsecKeychainStore: NsecStoring {
         var addQuery = query
         addQuery[kSecValueData as String] = data
         addQuery[kSecAttrAccessControl as String] = accessControl
-        let status = SecItemAdd(addQuery as CFDictionary, nil)
+        let status = keychain.add(query: addQuery)
         guard status == errSecSuccess else {
             throw NsecStoreError.unexpectedStatus(status)
         }
@@ -72,7 +104,8 @@ public actor NsecKeychainStore: NsecStoring {
 
     public func hasNsec(for identityID: String) -> Bool {
         let query = Self.makePresenceQuery(service: service, identityID: identityID)
-        let status = SecItemCopyMatching(query as CFDictionary, nil)
+        var ignoredResult: CFTypeRef? = nil
+        let status = keychain.copyMatching(query: query, result: &ignoredResult)
         return Self.indicatesPresence(status)
     }
 
@@ -81,25 +114,23 @@ public actor NsecKeychainStore: NsecStoring {
             return cached
         }
 
-        let query = Self.makeLoadQuery(
-            service: service,
-            identityID: identityID,
-            context: authenticationContext
-        )
-        var result: CFTypeRef?
-        let status = SecItemCopyMatching(query as CFDictionary, &result)
+        var response = loadNsec(identityID: identityID, context: Self.makeAuthenticationContext())
+        if response.status == errSecAuthFailed {
+            // App state and biometric changes can leave an LAContext unusable.
+            // Retry once with a new context so Keychain can present Face ID.
+            response = loadNsec(identityID: identityID, context: Self.makeAuthenticationContext())
+        }
+        let status = response.status
         if status == errSecItemNotFound {
             return nil
         }
         guard status == errSecSuccess else {
-            authenticationContext = Self.makeAuthenticationContext()
-            throw NsecStoreError.unexpectedStatus(status)
+            throw Self.error(for: status)
         }
         guard
-            let data = result as? Data,
+            let data = response.result as? Data,
             let nsec = String(data: data, encoding: .utf8)
         else {
-            authenticationContext = Self.makeAuthenticationContext()
             throw NsecStoreError.invalidInput
         }
         unlockCache.insert(nsec, for: identityID, now: Date())
@@ -109,14 +140,19 @@ public actor NsecKeychainStore: NsecStoring {
     public func deleteNsec(for identityID: String) {
         unlockCache.removeValue(for: identityID)
         let query = Self.makeItemQuery(service: service, identityID: identityID)
-        SecItemDelete(query as CFDictionary)
+        _ = keychain.delete(query: query)
     }
 
     /// Ends the short in-memory unlock window, such as when the app backgrounds.
     public func lock() {
         unlockCache.removeAll()
-        authenticationContext.invalidate()
-        authenticationContext = Self.makeAuthenticationContext()
+    }
+
+    private func loadNsec(identityID: String, context: LAContext) -> (status: OSStatus, result: CFTypeRef?) {
+        let query = Self.makeLoadQuery(service: service, identityID: identityID, context: context)
+        var result: CFTypeRef?
+        let status = keychain.copyMatching(query: query, result: &result)
+        return (status, result)
     }
 
     static func makeAuthenticationContext() -> LAContext {
@@ -162,6 +198,17 @@ public actor NsecKeychainStore: NsecStoring {
             return true
         default:
             return false
+        }
+    }
+
+    static func error(for status: OSStatus) -> NsecStoreError {
+        switch status {
+        case errSecAuthFailed:
+            return .authenticationFailed
+        case errSecUserCanceled:
+            return .authenticationCanceled
+        default:
+            return .unexpectedStatus(status)
         }
     }
 }
