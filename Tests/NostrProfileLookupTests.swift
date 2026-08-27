@@ -64,6 +64,69 @@ final class NostrProfileLookupTests: XCTestCase {
         XCTAssertEqual(filter["limit"] as? Int, 1)
     }
 
+    func testExtendedProfileRequestIncludesKind10390() throws {
+        let text = try RelayRequest.subscribeToProfile(
+            subscriptionID: "profile-extended",
+            authorPubkey: TestVectors.pubkeyHex,
+            kinds: [0, 10_390]
+        )
+        let data = try XCTUnwrap(text.data(using: .utf8))
+        let request = try XCTUnwrap(JSONSerialization.jsonObject(with: data) as? [Any])
+        let filter = try XCTUnwrap(request[2] as? [String: Any])
+
+        XCTAssertEqual(filter["kinds"] as? [Int], [0, 10_390])
+        XCTAssertEqual(filter["limit"] as? Int, 2)
+    }
+
+    func testOnlyTrustrootsRelaysRequestKind10390() {
+        XCTAssertEqual(
+            RelayNostrProfileLookup.profileKinds(for: URL(string: "wss://relay.nomadwiki.org")!),
+            [0, 10_390]
+        )
+        XCTAssertEqual(
+            RelayNostrProfileLookup.profileKinds(for: URL(string: "wss://relay.trustroots.org")!),
+            [0, 10_390]
+        )
+        XCTAssertEqual(
+            RelayNostrProfileLookup.profileKinds(for: URL(string: "wss://relay.damus.io")!),
+            [0]
+        )
+    }
+
+    func testKind10390SuppliesVerifiedTrustrootsNIP05() async throws {
+        let event = try trustrootsProfileEvent(username: "alice")
+        let lookup = RelayNostrProfileLookup(
+            relays: [],
+            eventFetcher: StubProfileEventFetcher(events: [event]),
+            nip05Verifier: StubNIP05Verifier(validIdentifiers: ["alice@trustroots.org"])
+        )
+
+        let profile = await lookup.lookup(pubkey: TestVectors.pubkeyHex)
+
+        XCTAssertEqual(profile?.nip05, "alice@trustroots.org")
+        XCTAssertEqual(profile?.suggestedName, "alice@trustroots.org")
+    }
+
+    func testKind10390RequiresTheNostrootsUsernameNamespaceAndNIP05Verification() async throws {
+        let wrongNamespace = try NostrEventFactory.sign(
+            UnsignedNostrEvent(
+                createdAt: 100,
+                kind: 10_390,
+                tags: [["L", "wrong"], ["l", "alice", "wrong"]],
+                content: ""
+            ),
+            privateKey: try NostrKeyDeriver.secretKeyBytes(fromNsec: TestVectors.nsec)
+        )
+        let lookup = RelayNostrProfileLookup(
+            relays: [],
+            eventFetcher: StubProfileEventFetcher(events: [wrongNamespace]),
+            nip05Verifier: StubNIP05Verifier(validIdentifiers: [])
+        )
+
+        let profile = await lookup.lookup(pubkey: TestVectors.pubkeyHex)
+        XCTAssertNil(profile)
+    }
+
     func testLookupSkipsFetchForInvalidPubkey() async throws {
         let fetcher = TrackingProfileEventFetcher(events: [])
         let lookup = RelayNostrProfileLookup(
@@ -225,13 +288,13 @@ final class NostrProfileLookupTests: XCTestCase {
         let lookup = RelayNostrProfileLookup(
             relays: [],
             eventFetcher: StubProfileEventFetcher(events: [event]),
-            nip05Verifier: StubNIP05Verifier(validIdentifiers: ["_@alice@example.com"])
+            nip05Verifier: StubNIP05Verifier(validIdentifiers: ["alice@example.com"])
         )
 
         let profile = await lookup.lookup(pubkey: TestVectors.pubkeyHex)
 
         XCTAssertEqual(profile?.displayName, nil)
-        XCTAssertEqual(profile?.nip05, "_@alice@example.com")
+        XCTAssertEqual(profile?.nip05, "alice@example.com")
         XCTAssertEqual(profile?.suggestedName, "alice@example.com")
     }
 
@@ -328,6 +391,21 @@ final class NostrProfileLookupTests: XCTestCase {
         try NostrEventFactory.sign(
             UnsignedNostrEvent(createdAt: createdAt, kind: 0, tags: [], content: content),
             privateKey: try NostrKeyDeriver.secretKeyBytes(fromNsec: signerNsec)
+        )
+    }
+
+    private func trustrootsProfileEvent(username: String) throws -> NostrEvent {
+        try NostrEventFactory.sign(
+            UnsignedNostrEvent(
+                createdAt: 100,
+                kind: 10_390,
+                tags: [
+                    ["L", "org.trustroots:username"],
+                    ["l", username, "org.trustroots:username"]
+                ],
+                content: ""
+            ),
+            privateKey: try NostrKeyDeriver.secretKeyBytes(fromNsec: TestVectors.nsec)
         )
     }
 

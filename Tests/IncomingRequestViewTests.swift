@@ -210,7 +210,7 @@ final class IncomingRequestViewTests: XCTestCase {
                 method: .signEvent,
                 appName: nil,
                 appURL: nil,
-                appPubkey: "nostrsigner:test-client",
+                appPubkey: "nostrsigner:local",
                 requestedPermissions: [],
                 relays: [],
                 rawPayloadPreview: "",

@@ -17,6 +17,7 @@ struct MacKeysView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 addKeyCard
+                keyStatus
 
                 VStack(alignment: .leading, spacing: 14) {
                     HStack {
@@ -38,6 +39,8 @@ struct MacKeysView: View {
                         .buttonStyle(.bordered)
                         .disabled(viewModel.identities.isEmpty || viewModel.isSyncing)
                     }
+
+                    relayList
 
                     if viewModel.identities.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
@@ -133,16 +136,6 @@ struct MacKeysView: View {
                     .disabled(!viewModel.canSave)
                 }
 
-                if let errorMessage = viewModel.errorMessage {
-                    Text(errorMessage)
-                        .foregroundStyle(.red)
-                        .font(.footnote)
-                } else if let statusMessage = viewModel.statusMessage {
-                    Text(statusMessage)
-                        .foregroundStyle(.green)
-                        .font(.footnote)
-                        .transition(.opacity)
-                }
             }
             .padding(8)
         } label: {
@@ -150,6 +143,30 @@ struct MacKeysView: View {
                 .font(.headline)
         }
         .frame(maxWidth: .infinity)
+    }
+
+    @ViewBuilder
+    private var keyStatus: some View {
+        if let errorMessage = viewModel.errorMessage {
+            Label(errorMessage, systemImage: "exclamationmark.triangle.fill")
+                .foregroundStyle(.red)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        } else if let statusMessage = viewModel.statusMessage {
+            Label(statusMessage, systemImage: "checkmark.circle.fill")
+                .foregroundStyle(.green)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .transition(.opacity)
+        }
+    }
+
+    @ViewBuilder
+    private var relayList: some View {
+        if !viewModel.syncRelayDescriptions.isEmpty {
+            Text("Relays: \(viewModel.syncRelayDescriptions.joined(separator: ", "))")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .textSelection(.enabled)
+        }
     }
 
     private func identityCard(_ identity: Identity) -> some View {

@@ -86,7 +86,7 @@ final class NsecKeychainStoreTests: XCTestCase {
 
     func testLoadNsecReturnsCachedValueAndSkipsSecondLookup() async throws {
         let backend = FakeNsecKeychainBackend(copyStatuses: [errSecSuccess], copyData: TestVectors.nsec.data(using: .utf8))
-        let store = NsecKeychainStore(unlockDuration: 60, keychain: backend)
+        let store = NsecKeychainStore(unlockDuration: 300, keychain: backend)
 
         let first = try await store.loadNsec(for: "identity")
         XCTAssertEqual(first, TestVectors.nsec)

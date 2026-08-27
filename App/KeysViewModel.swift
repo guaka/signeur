@@ -40,6 +40,20 @@ public final class KeysViewModel: ObservableObject {
         !isSaving && !nsec.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
     }
 
+    public var syncRelayHosts: [String] {
+        profileLookup.relayURLs.compactMap(\.host)
+    }
+
+    public var syncRelayDescriptions: [String] {
+        profileLookup.relayURLs.compactMap { relay in
+            guard let host = relay.host else { return nil }
+            let kinds = RelayNostrProfileLookup.profileKinds(for: relay)
+            return kinds.contains(RelayNostrProfileLookup.trustrootsProfileKind)
+                ? "\(host) (kinds 0, 10390)"
+                : "\(host) (kind 0)"
+        }
+    }
+
     public func refresh() async {
         identities = await identityStore.list()
         activeIdentityID = await identityStore.activeIdentityID()
@@ -154,7 +168,11 @@ public final class KeysViewModel: ObservableObject {
         statusTask = nil
         isSyncing = true
         errorMessage = nil
-        statusMessage = "Checking NIP-05 addresses…"
+        if syncRelayHosts.isEmpty {
+            statusMessage = "Checking NIP-05 addresses…"
+        } else {
+            statusMessage = "Checking NIP-05 via \(syncRelayHosts.joined(separator: ", "))…"
+        }
         defer { isSyncing = false }
 
         var foundCount = 0
