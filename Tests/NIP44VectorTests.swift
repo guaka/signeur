@@ -125,7 +125,7 @@ final class NIP44VectorTests: XCTestCase {
 
         for length in lengths {
             let plaintext = String(repeating: "a", count: length)
-            let conversationKey = NIP44.randomBytes(32)
+            let conversationKey = try NIP44.randomBytes(32)
             XCTAssertThrowsError(
                 try NIP44.encrypt(plaintext: plaintext, conversationKey: conversationKey),
                 "length \(length) must be rejected"
@@ -167,7 +167,7 @@ final class NIP44VectorTests: XCTestCase {
     }
 
     func testTamperedPayloadFailsAuthentication() throws {
-        let conversationKey = NIP44.randomBytes(32)
+        let conversationKey = try NIP44.randomBytes(32)
         let payload = try NIP44.encrypt(plaintext: "hello", conversationKey: conversationKey)
         var raw = Array(try XCTUnwrap(Data(base64Encoded: payload)))
         raw[raw.count - 1] ^= 0x01
@@ -180,7 +180,7 @@ final class NIP44VectorTests: XCTestCase {
     }
 
     func testRandomNoncesMeanRepeatEncryptionsDiffer() throws {
-        let conversationKey = NIP44.randomBytes(32)
+        let conversationKey = try NIP44.randomBytes(32)
         let first = try NIP44.encrypt(plaintext: "hello", conversationKey: conversationKey)
         let second = try NIP44.encrypt(plaintext: "hello", conversationKey: conversationKey)
 

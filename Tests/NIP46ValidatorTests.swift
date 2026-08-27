@@ -10,7 +10,7 @@ final class NIP46ValidatorTests: XCTestCase {
             params: ["{}"],
             appName: "Client",
             appURL: nil,
-            appPubkey: "pubkey",
+            appPubkey: TestVectors.pubkeyHex,
             correlationID: "c1",
             rawPayloadPreview: "{}"
         )
@@ -47,10 +47,10 @@ final class NIP46ValidatorTests: XCTestCase {
             (.switchRelays, []),
             (.logout, []),
             (.signEvent, ["{\"kind\":1}"]),
-            (.nip04Encrypt, ["peer-pubkey", "plaintext"]),
-            (.nip04Decrypt, ["peer-pubkey", "ciphertext"]),
-            (.nip44Encrypt, ["peer-pubkey", "plaintext"]),
-            (.nip44Decrypt, ["peer-pubkey", "ciphertext"])
+            (.nip04Encrypt, [TestVectors.otherPubkeyHex, "plaintext"]),
+            (.nip04Decrypt, [TestVectors.otherPubkeyHex, "ciphertext"]),
+            (.nip44Encrypt, [TestVectors.otherPubkeyHex, "plaintext"]),
+            (.nip44Decrypt, [TestVectors.otherPubkeyHex, "ciphertext"])
         ]
 
         for (method, params) in cases {
@@ -66,7 +66,7 @@ final class NIP46ValidatorTests: XCTestCase {
             params: [],
             appName: nil,
             appURL: nil,
-            appPubkey: "pubkey",
+            appPubkey: TestVectors.pubkeyHex,
             correlationID: "   ",
             rawPayloadPreview: ""
         )

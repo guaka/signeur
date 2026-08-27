@@ -19,7 +19,7 @@ final class NIP46FlowIntegrationTests: XCTestCase {
                 params: ["{\"kind\":1,\"content\":\"hello\"}"],
                 appName: "Client",
                 appURL: nil,
-                appPubkey: "pub",
+                appPubkey: TestVectors.pubkeyHex,
                 correlationID: "c1",
                 rawPayloadPreview: "{\"kind\":1,\"content\":\"hello\"}"
             )

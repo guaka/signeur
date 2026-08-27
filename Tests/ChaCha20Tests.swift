@@ -19,9 +19,9 @@ final class ChaCha20Tests: XCTestCase {
         XCTAssertEqual(ciphertext.map { String(format: "%02x", $0) }.joined(), expected)
     }
 
-    func testApplyingTheKeystreamTwiceRestoresTheInput() {
-        let key = NIP44.randomBytes(32)
-        let nonce = NIP44.randomBytes(12)
+    func testApplyingTheKeystreamTwiceRestoresTheInput() throws {
+        let key = try NIP44.randomBytes(32)
+        let nonce = try NIP44.randomBytes(12)
         let plaintext = Array("round trip me".utf8)
 
         let ciphertext = ChaCha20.apply(key: key, nonce: nonce, to: plaintext)
@@ -29,9 +29,9 @@ final class ChaCha20Tests: XCTestCase {
         XCTAssertEqual(ChaCha20.apply(key: key, nonce: nonce, to: ciphertext), plaintext)
     }
 
-    func testKeystreamSpansBlockBoundaries() {
-        let key = NIP44.randomBytes(32)
-        let nonce = NIP44.randomBytes(12)
+    func testKeystreamSpansBlockBoundaries() throws {
+        let key = try NIP44.randomBytes(32)
+        let nonce = try NIP44.randomBytes(12)
         // 200 bytes crosses the 64-byte block boundary three times.
         let plaintext = [UInt8](repeating: 0, count: 200)
 

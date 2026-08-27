@@ -3,6 +3,7 @@ import XCTest
 
 final class DeepLinkParsingTests: XCTestCase {
     private let handler = DeepLinkHandler()
+    private let clientPubkey = TestVectors.otherPubkeyHex
 
     private func url(_ string: String) throws -> URL {
         try XCTUnwrap(URL(string: string))
@@ -10,10 +11,10 @@ final class DeepLinkParsingTests: XCTestCase {
 
     func testParsesFullConnectLink() throws {
         let parsed = try handler.parse(try url(
-            "nostrconnect://clientpub?relay=wss://relay.one&relay=wss://relay.two&secret=s3cret&perms=sign_event,nip44_encrypt&name=Nostrudel&url=https://nostrudel.ninja"
+            "nostrconnect://\(clientPubkey)?relay=wss://relay.one&relay=wss://relay.two&secret=s3cret&perms=sign_event,nip44_encrypt&name=Nostrudel&url=https://nostrudel.ninja"
         ))
 
-        XCTAssertEqual(parsed.clientPubkey, "clientpub")
+        XCTAssertEqual(parsed.clientPubkey, clientPubkey)
         XCTAssertEqual(parsed.relays, ["wss://relay.one", "wss://relay.two"])
         XCTAssertEqual(parsed.secret, "s3cret")
         XCTAssertEqual(parsed.requestedPerms, ["sign_event", "nip44_encrypt"])
@@ -22,7 +23,7 @@ final class DeepLinkParsingTests: XCTestCase {
     }
 
     func testOptionalMetadataMayBeAbsent() throws {
-        let parsed = try handler.parse(try url("nostrconnect://clientpub?relay=wss://relay.one&secret=s3cret"))
+        let parsed = try handler.parse(try url("nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret"))
 
         XCTAssertTrue(parsed.requestedPerms.isEmpty)
         XCTAssertNil(parsed.appName)
@@ -42,23 +43,23 @@ final class DeepLinkParsingTests: XCTestCase {
     }
 
     func testRejectsMissingRelay() throws {
-        XCTAssertThrowsError(try handler.parse(try url("nostrconnect://clientpub?secret=s"))) { error in
+        XCTAssertThrowsError(try handler.parse(try url("nostrconnect://\(clientPubkey)?secret=s"))) { error in
             XCTAssertEqual(error as? DeepLinkParseError, .missingRelay)
         }
     }
 
     func testRejectsMissingOrEmptySecret() throws {
-        XCTAssertThrowsError(try handler.parse(try url("nostrconnect://clientpub?relay=wss://r"))) { error in
+        XCTAssertThrowsError(try handler.parse(try url("nostrconnect://\(clientPubkey)?relay=wss://r"))) { error in
             XCTAssertEqual(error as? DeepLinkParseError, .missingSecret)
         }
-        XCTAssertThrowsError(try handler.parse(try url("nostrconnect://clientpub?relay=wss://r&secret="))) { error in
+        XCTAssertThrowsError(try handler.parse(try url("nostrconnect://\(clientPubkey)?relay=wss://r&secret="))) { error in
             XCTAssertEqual(error as? DeepLinkParseError, .missingSecret)
         }
     }
 
     func testPayloadParserAcceptsScannedLink() throws {
-        let parsed = try PairingPayloadParser().parse("nostrconnect://clientpub?relay=wss://relay.one&secret=s3cret")
-        XCTAssertEqual(parsed.clientPubkey, "clientpub")
+        let parsed = try PairingPayloadParser().parse("nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret")
+        XCTAssertEqual(parsed.clientPubkey, clientPubkey)
         XCTAssertEqual(parsed.secret, "s3cret")
     }
 
@@ -69,28 +70,28 @@ final class DeepLinkParsingTests: XCTestCase {
     }
 
     func testPayloadParserIgnoresSurroundingWhitespaceAndNewlines() throws {
-        let parsed = try PairingPayloadParser().parse("\n  nostrconnect://clientpub?relay=wss://relay.one&secret=s3cret \n")
-        XCTAssertEqual(parsed.clientPubkey, "clientpub")
+        let parsed = try PairingPayloadParser().parse("\n  nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret \n")
+        XCTAssertEqual(parsed.clientPubkey, clientPubkey)
     }
 
     func testPayloadParserFindsLinkPastedWithSurroundingText() throws {
         let parsed = try PairingPayloadParser().parse(
-            "Connect your signer: nostrconnect://clientpub?relay=wss://relay.one&secret=s3cret (expires in 5 min)"
+            "Connect your signer: nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret (expires in 5 min)"
         )
-        XCTAssertEqual(parsed.clientPubkey, "clientpub")
+        XCTAssertEqual(parsed.clientPubkey, clientPubkey)
         XCTAssertEqual(parsed.secret, "s3cret")
     }
 
     func testPayloadParserAcceptsUppercasedScheme() throws {
-        let parsed = try PairingPayloadParser().parse("NOSTRCONNECT://clientpub?relay=wss://relay.one&secret=s3cret")
-        XCTAssertEqual(parsed.clientPubkey, "clientpub")
+        let parsed = try PairingPayloadParser().parse("NOSTRCONNECT://\(clientPubkey)?relay=wss://relay.one&secret=s3cret")
+        XCTAssertEqual(parsed.clientPubkey, clientPubkey)
     }
 
     func testPayloadParserUnwrapsOurOwnScheme() throws {
-        let wrapped = "nostrconnect://clientpub?relay=wss://relay.one&secret=s3cret"
+        let wrapped = "nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret"
             .addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
         let parsed = try PairingPayloadParser().parse("signstr://pair?uri=\(wrapped)")
-        XCTAssertEqual(parsed.clientPubkey, "clientpub")
+        XCTAssertEqual(parsed.clientPubkey, clientPubkey)
         XCTAssertEqual(parsed.secret, "s3cret")
     }
 
@@ -101,7 +102,7 @@ final class DeepLinkParsingTests: XCTestCase {
     }
 
     func testPayloadParserAcceptsAURLDirectly() throws {
-        let url = try XCTUnwrap(URL(string: "nostrconnect://clientpub?relay=wss://relay.one&secret=s3cret"))
-        XCTAssertEqual(try PairingPayloadParser().parse(url).clientPubkey, "clientpub")
+        let url = try XCTUnwrap(URL(string: "nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret"))
+        XCTAssertEqual(try PairingPayloadParser().parse(url).clientPubkey, clientPubkey)
     }
 }

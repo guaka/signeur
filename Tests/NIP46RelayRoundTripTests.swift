@@ -2,13 +2,12 @@ import XCTest
 @testable import SignstrCore
 
 final class ConnectionStoreTests: XCTestCase {
-    private func makeConnection(pubkey: String = "app-pub", approved: Bool = false) -> AppConnection {
+    private func makeConnection(pubkey: String = TestVectors.otherPubkeyHex, approved: Bool = false) -> AppConnection {
         AppConnection(
             appPubkey: pubkey,
             appName: "Amethyst",
             relays: ["wss://relay.one"],
             identityID: "id-1",
-            secret: "s3cret",
             isApproved: approved
         )
     }
@@ -26,21 +25,21 @@ final class ConnectionStoreTests: XCTestCase {
 
     func testOnlyApprovedConnectionsAreListenedTo() async {
         let store = ConnectionStore(defaults: makeEphemeralDefaults())
-        await store.upsert(makeConnection(pubkey: "pending-app"))
-        await store.upsert(makeConnection(pubkey: "approved-app", approved: true))
+        await store.upsert(makeConnection(pubkey: TestVectors.pubkeyHex))
+        await store.upsert(makeConnection(pubkey: TestVectors.otherPubkeyHex, approved: true))
 
         let approved = await store.approved()
 
-        XCTAssertEqual(approved.map(\.appPubkey), ["approved-app"])
+        XCTAssertEqual(approved.map(\.appPubkey), [TestVectors.otherPubkeyHex])
     }
 
     func testApprovingAPendingPairingKeepsItsDetails() async {
         let store = ConnectionStore(defaults: makeEphemeralDefaults())
         await store.upsert(makeConnection())
 
-        await store.approve(appPubkey: "app-pub")
+        await store.approve(appPubkey: TestVectors.otherPubkeyHex)
 
-        let connection = await store.connection(forAppPubkey: "app-pub")
+        let connection = await store.connection(forAppPubkey: TestVectors.otherPubkeyHex)
         XCTAssertEqual(connection?.isApproved, true)
         XCTAssertEqual(connection?.relays, ["wss://relay.one"])
         XCTAssertNotNil(connection?.lastUsedAt)
@@ -50,11 +49,11 @@ final class ConnectionStoreTests: XCTestCase {
         let store = ConnectionStore(defaults: makeEphemeralDefaults())
         await store.upsert(makeConnection(approved: true))
         let usedAt = Date(timeIntervalSince1970: 1_700_000_000)
-        await store.markUsed(appPubkey: "app-pub", at: usedAt)
+        await store.markUsed(appPubkey: TestVectors.otherPubkeyHex, at: usedAt)
 
         await store.upsert(makeConnection(approved: false))
 
-        let connection = await store.connection(forAppPubkey: "app-pub")
+        let connection = await store.connection(forAppPubkey: TestVectors.otherPubkeyHex)
         XCTAssertEqual(connection?.isApproved, true, "an existing approval must not be lost")
         XCTAssertEqual(connection?.lastUsedAt, usedAt, "rescanning must not erase activity metadata")
     }
@@ -63,9 +62,9 @@ final class ConnectionStoreTests: XCTestCase {
         let store = ConnectionStore(defaults: makeEphemeralDefaults())
         await store.upsert(makeConnection(approved: true))
 
-        await store.markUsed(appPubkey: "app-pub", legacyEncryption: true)
+        await store.markUsed(appPubkey: TestVectors.otherPubkeyHex, legacyEncryption: true)
 
-        let connection = await store.connection(forAppPubkey: "app-pub")
+        let connection = await store.connection(forAppPubkey: TestVectors.otherPubkeyHex)
         XCTAssertEqual(connection?.usesLegacyEncryption, true)
     }
 
@@ -73,7 +72,7 @@ final class ConnectionStoreTests: XCTestCase {
         let store = ConnectionStore(defaults: makeEphemeralDefaults())
         await store.upsert(makeConnection(approved: true))
 
-        await store.remove(appPubkey: "app-pub")
+        await store.remove(appPubkey: TestVectors.otherPubkeyHex)
 
         let all = await store.all()
         XCTAssertTrue(all.isEmpty)
@@ -83,8 +82,7 @@ final class ConnectionStoreTests: XCTestCase {
         let connection = AppConnection(
             appPubkey: "app",
             relays: ["wss://relay.one", ""],
-            identityID: "id-1",
-            secret: "s"
+            identityID: "id-1"
         )
 
         XCTAssertEqual(connection.relayURLs.map(\.absoluteString), ["wss://relay.one"])
@@ -111,7 +109,6 @@ final class NIP46RelayTransportTests: XCTestCase {
                 appName: "Amethyst",
                 relays: ["wss://relay.one"],
                 identityID: "id-1",
-                secret: "s3cret",
                 isApproved: true,
                 usesLegacyEncryption: legacy
             )
@@ -210,7 +207,7 @@ final class NIP46RelayTransportTests: XCTestCase {
         let appPubkey = try NostrKeyDeriver.derivePublicKeyHex(fromNsec: appNsec)
         let connections = ConnectionStore(defaults: makeEphemeralDefaults())
         await connections.upsert(
-            AppConnection(appPubkey: appPubkey, relays: ["wss://relay.one"], identityID: "id-gone", secret: "s", isApproved: true)
+            AppConnection(appPubkey: appPubkey, relays: ["wss://relay.one"], identityID: "id-gone", isApproved: true)
         )
         let transport = NIP46RelayTransport(
             pool: NostrRelayPool(socketFactory: { _ in FakeRelaySocket() }),
@@ -255,7 +252,8 @@ final class NIP46RelayListenerTests: XCTestCase {
 
     private func makeListener(
         legacy: Bool = false,
-        registerApp: Bool = true
+        registerApp: Bool = true,
+        approved: Bool = true
     ) async throws -> (listener: NIP46RelayListener, manager: NIP46SessionManager, appPubkey: String) {
         let appPubkey = try NostrKeyDeriver.derivePublicKeyHex(fromNsec: appNsec)
         let connections = ConnectionStore(defaults: makeEphemeralDefaults())
@@ -266,8 +264,7 @@ final class NIP46RelayListenerTests: XCTestCase {
                     appName: "Amethyst",
                     relays: ["wss://relay.one"],
                     identityID: "id-1",
-                    secret: "s3cret",
-                    isApproved: true,
+                    isApproved: approved,
                     usesLegacyEncryption: legacy
                 )
             )
@@ -278,12 +275,18 @@ final class NIP46RelayListenerTests: XCTestCase {
             transport: RecordingTransport(),
             authorizationGuard: AuthorizationGuard()
         )
+        let identities = IdentityStore(
+            defaults: makeEphemeralDefaults(),
+            seed: [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)]
+        )
         let listener = NIP46RelayListener(
             pool: NostrRelayPool(socketFactory: { _ in FakeRelaySocket() }),
             connections: connections,
             nsecStore: InMemoryNsecStore(keys: ["id-1": TestVectors.nsec]),
+            identities: identities,
             coordinator: RequestRoutingCoordinator(sessionManager: manager),
-            logger: RedactedLogger(emit: { _ in })
+            logger: RedactedLogger(emit: { _ in }),
+            now: { Date(timeIntervalSince1970: 1_700_000_000) }
         )
         return (listener, manager, appPubkey)
     }
@@ -335,6 +338,99 @@ final class NIP46RelayListenerTests: XCTestCase {
         XCTAssertTrue(pending.isEmpty, "only apps the user paired with can ask for anything")
     }
 
+    func testPendingConnectionCannotSendRequests() async throws {
+        let setup = try await makeListener(approved: false)
+        let event = try makeNIP46Event(
+            body: #"{"id":"pending","method":"ping","params":[]}"#,
+            senderNsec: appNsec,
+            recipientPubkeyHex: TestVectors.pubkeyHex
+        )
+
+        await setup.listener.handle(event)
+
+        let pending = await setup.manager.pendingSessions()
+        XCTAssertTrue(pending.isEmpty)
+    }
+
+    func testForgedEventIsRejectedBeforeDecryption() async throws {
+        let setup = try await makeListener()
+        let signed = try makeNIP46Event(
+            body: #"{"id":"forged","method":"ping","params":[]}"#,
+            senderNsec: appNsec,
+            recipientPubkeyHex: TestVectors.pubkeyHex
+        )
+        let forged = NostrEvent(
+            id: signed.id,
+            pubkey: signed.pubkey,
+            createdAt: signed.createdAt,
+            kind: signed.kind,
+            tags: signed.tags,
+            content: signed.content + "x",
+            sig: signed.sig
+        )
+
+        await setup.listener.handle(forged)
+
+        let pending = await setup.manager.pendingSessions()
+        XCTAssertTrue(pending.isEmpty)
+    }
+
+    func testStaleAndFutureDatedEventsAreRejected() async throws {
+        let setup = try await makeListener()
+        for timestamp in [1_699_999_399, 1_700_000_121] {
+            let event = try makeNIP46Event(
+                body: #"{"id":"time-\#(timestamp)","method":"ping","params":[]}"#,
+                senderNsec: appNsec,
+                recipientPubkeyHex: TestVectors.pubkeyHex,
+                createdAt: timestamp
+            )
+            await setup.listener.handle(event)
+        }
+
+        let pending = await setup.manager.pendingSessions()
+        XCTAssertTrue(pending.isEmpty)
+    }
+
+    func testCryptographicallyValidEventForAnotherSignerIsRejected() async throws {
+        let setup = try await makeListener()
+        let secret = try NostrKeyDeriver.secretKeyBytes(fromNsec: appNsec)
+        let signerPeer = try NostrEventFactory.hexBytes(TestVectors.pubkeyHex)
+        let content = try NIP44.encrypt(
+            plaintext: #"{"id":"wrong-signer","method":"ping","params":[]}"#,
+            privateKey: secret,
+            publicKeyXOnly: signerPeer
+        )
+        let event = try NostrEventFactory.sign(
+            UnsignedNostrEvent(
+                createdAt: 1_700_000_000,
+                kind: NIP46RelayTransport.nip46Kind,
+                tags: [["p", TestVectors.otherPubkeyHex]],
+                content: content
+            ),
+            privateKey: secret
+        )
+
+        await setup.listener.handle(event)
+
+        let pending = await setup.manager.pendingSessions()
+        XCTAssertTrue(pending.isEmpty)
+    }
+
+    func testReplayedRelayEventCreatesOnlyOneApproval() async throws {
+        let setup = try await makeListener()
+        let event = try makeNIP46Event(
+            body: #"{"id":"replay","method":"ping","params":[]}"#,
+            senderNsec: appNsec,
+            recipientPubkeyHex: TestVectors.pubkeyHex
+        )
+
+        await setup.listener.handle(event)
+        await setup.listener.handle(event)
+
+        let pending = await setup.manager.pendingSessions()
+        XCTAssertEqual(pending.count, 1)
+    }
+
     func testAnUndecryptableEventIsIgnored() async throws {
         let setup = try await makeListener()
         let event = try NostrEventFactory.sign(
@@ -376,7 +472,7 @@ final class NIP46RelayListenerTests: XCTestCase {
     }
 
     func testNonStringParametersAreCarriedThroughAsJSON() {
-        let connection = AppConnection(appPubkey: "app", relays: [], identityID: "id-1", secret: "s")
+        let connection = AppConnection(appPubkey: TestVectors.otherNpub, relays: [], identityID: "id-1")
         let event = NostrEvent(id: "e1", pubkey: "app", createdAt: 1, kind: 24133, tags: [], content: "", sig: "")
 
         let request = NIP46RelayListener.request(
@@ -390,7 +486,7 @@ final class NIP46RelayListenerTests: XCTestCase {
     }
 
     func testRequestWithoutAnIDIsRejected() {
-        let connection = AppConnection(appPubkey: "app", relays: [], identityID: "id-1", secret: "s")
+        let connection = AppConnection(appPubkey: TestVectors.otherNpub, relays: [], identityID: "id-1")
         let event = NostrEvent(id: "e1", pubkey: "app", createdAt: 1, kind: 24133, tags: [], content: "", sig: "")
 
         XCTAssertNil(

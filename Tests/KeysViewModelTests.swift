@@ -4,10 +4,19 @@ import XCTest
 @MainActor
 final class KeysViewModelTests: XCTestCase {
     private func makeViewModel(
-        nsecStore: InMemoryNsecStore = InMemoryNsecStore()
+        nsecStore: InMemoryNsecStore = InMemoryNsecStore(),
+        profileLookup: any NostrProfileLookingUp = NoopNostrProfileLookup()
     ) -> (KeysViewModel, IdentityStore, InMemoryNsecStore) {
         let identityStore = IdentityStore(defaults: makeEphemeralDefaults())
-        return (KeysViewModel(identityStore: identityStore, nsecStore: nsecStore), identityStore, nsecStore)
+        return (
+            KeysViewModel(
+                identityStore: identityStore,
+                nsecStore: nsecStore,
+                profileLookup: profileLookup
+            ),
+            identityStore,
+            nsecStore
+        )
     }
 
     func testSaveIsBlockedOnlyByMissingNsec() async {
@@ -96,6 +105,43 @@ final class KeysViewModelTests: XCTestCase {
         await viewModel.addKey()
 
         XCTAssertEqual(viewModel.identities.map(\.displayName), ["Key 1", "Key 2"])
+    }
+
+    func testImportedKeyUsesVerifiedNIP05AsSuggestedName() async {
+        let lookup = StubProfileLookup(
+            metadata: NostrProfileMetadata(displayName: "Kasper", nip05: "kasper@trustroots.org")
+        )
+        let (viewModel, _, _) = makeViewModel(profileLookup: lookup)
+        viewModel.nsec = TestVectors.nsec
+
+        await viewModel.addKey()
+
+        XCTAssertEqual(viewModel.identities.first?.displayName, "kasper@trustroots.org")
+        let lookedUpPubkeys = await lookup.lookedUpPubkeys()
+        XCTAssertEqual(lookedUpPubkeys, [TestVectors.pubkeyHex])
+    }
+
+    func testImportedKeyFallsBackToProfileNameWithoutNIP05() async {
+        let lookup = StubProfileLookup(metadata: NostrProfileMetadata(displayName: "Kasper"))
+        let (viewModel, _, _) = makeViewModel(profileLookup: lookup)
+        viewModel.nsec = TestVectors.nsec
+
+        await viewModel.addKey()
+
+        XCTAssertEqual(viewModel.identities.first?.displayName, "Kasper")
+    }
+
+    func testGeneratedKeyDoesNotPerformProfileLookup() async {
+        let lookup = StubProfileLookup(
+            metadata: NostrProfileMetadata(displayName: "Should not be used", nip05: "no@example.com")
+        )
+        let (viewModel, _, _) = makeViewModel(profileLookup: lookup)
+
+        await viewModel.generateKey()
+
+        XCTAssertEqual(viewModel.identities.first?.displayName, "Key 1")
+        let lookedUpPubkeys = await lookup.lookedUpPubkeys()
+        XCTAssertTrue(lookedUpPubkeys.isEmpty)
     }
 
     func testAcceptsPastedKeyWithWhitespaceAndCasing() async {

@@ -29,9 +29,9 @@ final class PermissionRuleStoreTests: XCTestCase {
 
     func testRememberedRuleDoesNotCoverOtherApps() async {
         let store = PermissionRuleStore(defaults: makeEphemeralDefaults())
-        await store.saveRememberRule(for: makeTestRequest(appPubkey: "app-a"))
+        await store.saveRememberRule(for: makeTestRequest(appPubkey: TestVectors.pubkeyHex))
 
-        let otherApp = makeTestRequest(id: "req-2", appPubkey: "app-b")
+        let otherApp = makeTestRequest(id: "req-2", appPubkey: TestVectors.otherPubkeyHex)
         let approved = await store.shouldAutoApprove(request: otherApp)
         XCTAssertFalse(approved)
     }
@@ -51,15 +51,15 @@ final class PermissionRuleStoreTests: XCTestCase {
 
     func testConnectedAppsGroupRulesByAppWithNames() async {
         let store = PermissionRuleStore(defaults: makeEphemeralDefaults())
-        await store.saveRememberRule(for: makeTestRequest(appName: "Nostrudel", appPubkey: "app-a", payload: "{\"kind\":1}"))
-        await store.saveRememberRule(for: makeTestRequest(id: "r2", appName: "Nostrudel", appPubkey: "app-a", payload: "{\"kind\":7}"))
-        await store.saveRememberRule(for: makeTestRequest(id: "r3", method: .ping, appName: "Amethyst", appPubkey: "app-b", payload: "{}"))
+        await store.saveRememberRule(for: makeTestRequest(appName: "Nostrudel", appPubkey: TestVectors.pubkeyHex, payload: "{\"kind\":1}"))
+        await store.saveRememberRule(for: makeTestRequest(id: "r2", appName: "Nostrudel", appPubkey: TestVectors.pubkeyHex, payload: "{\"kind\":7}"))
+        await store.saveRememberRule(for: makeTestRequest(id: "r3", method: .ping, appName: "Amethyst", appPubkey: TestVectors.otherPubkeyHex, payload: "{}"))
 
         let apps = await store.listConnectedApps()
 
         XCTAssertEqual(apps.map(\.appName), ["Amethyst", "Nostrudel"])
-        XCTAssertEqual(apps.first(where: { $0.appPubkey == "app-a" })?.methods, ["sign_event:1", "sign_event:7"])
-        XCTAssertEqual(apps.first(where: { $0.appPubkey == "app-b" })?.methods, ["ping"])
+        XCTAssertEqual(apps.first(where: { $0.appPubkey == TestVectors.pubkeyHex })?.methods, ["sign_event:1", "sign_event:7"])
+        XCTAssertEqual(apps.first(where: { $0.appPubkey == TestVectors.otherPubkeyHex })?.methods, ["ping"])
     }
 
     func testUnnamedAppsAreLabelled() async {
@@ -72,19 +72,19 @@ final class PermissionRuleStoreTests: XCTestCase {
 
     func testRevokeRemovesOnlyThatAppsRules() async {
         let store = PermissionRuleStore(defaults: makeEphemeralDefaults())
-        let keptRequest = makeTestRequest(id: "r2", appPubkey: "app-b")
-        await store.saveRememberRule(for: makeTestRequest(appPubkey: "app-a"))
+        let keptRequest = makeTestRequest(id: "r2", appPubkey: TestVectors.otherPubkeyHex)
+        await store.saveRememberRule(for: makeTestRequest(appPubkey: TestVectors.pubkeyHex))
         await store.saveRememberRule(for: keptRequest)
 
-        await store.revoke(appPubkey: "app-a")
+        await store.revoke(appPubkey: TestVectors.pubkeyHex)
 
-        let revokedApproved = await store.shouldAutoApprove(request: makeTestRequest(appPubkey: "app-a"))
+        let revokedApproved = await store.shouldAutoApprove(request: makeTestRequest(appPubkey: TestVectors.pubkeyHex))
         let keptApproved = await store.shouldAutoApprove(request: keptRequest)
         let apps = await store.listConnectedApps()
 
         XCTAssertFalse(revokedApproved)
         XCTAssertTrue(keptApproved)
-        XCTAssertEqual(apps.map(\.appPubkey), ["app-b"])
+        XCTAssertEqual(apps.map(\.appPubkey), [TestVectors.otherPubkeyHex])
     }
 
     func testMalformedEventPayloadIsRememberedWithoutKind() async {

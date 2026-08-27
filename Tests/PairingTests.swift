@@ -3,7 +3,7 @@ import XCTest
 
 final class PairingRequestFactoryTests: XCTestCase {
     private let pairing = DeepLinkRequest(
-        clientPubkey: "client-pub",
+        clientPubkey: TestVectors.otherPubkeyHex,
         relays: ["wss://relay.one", "wss://relay.two"],
         secret: "s3cret",
         requestedPerms: ["sign_event", "nip44_encrypt"],
@@ -16,7 +16,7 @@ final class PairingRequestFactoryTests: XCTestCase {
 
         XCTAssertEqual(request.id, "fixed-id")
         XCTAssertEqual(request.method, .connect)
-        XCTAssertEqual(request.appPubkey, "client-pub")
+        XCTAssertEqual(request.appPubkey, TestVectors.otherPubkeyHex)
         XCTAssertEqual(request.appName, "Nostrudel")
         XCTAssertEqual(request.appURL, "https://nostrudel.ninja")
         XCTAssertEqual(request.params, ["s3cret"])
@@ -44,7 +44,7 @@ final class PairingRequestFactoryTests: XCTestCase {
             appURL: nil
         )
         let otherApp = DeepLinkRequest(
-            clientPubkey: "different-client",
+            clientPubkey: TestVectors.pubkeyHex,
             relays: pairing.relays,
             secret: pairing.secret,
             requestedPerms: [],
@@ -60,7 +60,7 @@ final class PairingRequestFactoryTests: XCTestCase {
         let preview = PairingRequestFactory().makeConnectRequest(from: pairing).rawPayloadPreview
 
         XCTAssertTrue(preview.contains("Nostrudel"))
-        XCTAssertTrue(preview.contains("client-pub"))
+        XCTAssertTrue(preview.contains(TestVectors.otherPubkeyHex))
         XCTAssertTrue(preview.contains("wss://relay.one, wss://relay.two"))
         XCTAssertTrue(preview.contains("sign_event, nip44_encrypt"))
         XCTAssertFalse(preview.contains("s3cret"), "the pairing secret must not be rendered on screen")
@@ -68,7 +68,7 @@ final class PairingRequestFactoryTests: XCTestCase {
 
     func testPreviewHandlesMissingMetadata() {
         let sparse = DeepLinkRequest(
-            clientPubkey: "client-pub",
+            clientPubkey: TestVectors.otherPubkeyHex,
             relays: ["wss://relay.one"],
             secret: "s3cret",
             requestedPerms: [],
@@ -104,7 +104,7 @@ final class RequestRoutingCoordinatorTests: XCTestCase {
         let (coordinator, manager) = makeCoordinator()
 
         let state = try await coordinator.routeScannedPayload(
-            "nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret&name=Amethyst"
+            "nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret&name=Amethyst"
         )
 
         let pending = await manager.pendingSessions()
@@ -115,7 +115,7 @@ final class RequestRoutingCoordinatorTests: XCTestCase {
     }
 
     func testDeepLinkAndQRCodeTakeTheSamePath() async throws {
-        let link = "nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret"
+        let link = "nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret"
         let (fromQR, qrManager) = makeCoordinator()
         let (fromLink, linkManager) = makeCoordinator()
 
@@ -144,7 +144,7 @@ final class RequestRoutingCoordinatorTests: XCTestCase {
 
     func testRescanningTheSameCodeDoesNotQueueTwice() async throws {
         let (coordinator, manager) = makeCoordinator()
-        let link = "nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret"
+        let link = "nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret"
 
         _ = try await coordinator.routeScannedPayload(link)
         _ = try await coordinator.routeScannedPayload(link)
@@ -170,7 +170,7 @@ final class PairingViewModelTests: XCTestCase {
         let (viewModel, manager) = makeViewModel()
 
         let paired = await viewModel.handleScannedPayload(
-            "nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret&name=Amethyst"
+            "nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret&name=Amethyst"
         )
 
         let pending = await manager.pendingSessions()
@@ -183,7 +183,7 @@ final class PairingViewModelTests: XCTestCase {
     func testAnonymousAppStillPairs() async {
         let (viewModel, _) = makeViewModel()
 
-        let paired = await viewModel.handleScannedPayload("nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret")
+        let paired = await viewModel.handleScannedPayload("nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret")
 
         XCTAssertTrue(paired)
         XCTAssertEqual(viewModel.pairedAppName, "the app")
@@ -202,10 +202,10 @@ final class PairingViewModelTests: XCTestCase {
     func testIncompleteCodesNameTheMissingPiece() async {
         let (viewModel, _) = makeViewModel()
 
-        _ = await viewModel.handleScannedPayload("nostrconnect://client-pub?secret=s3cret")
+        _ = await viewModel.handleScannedPayload("nostrconnect://\(TestVectors.otherPubkeyHex)?secret=s3cret")
         XCTAssertEqual(viewModel.errorMessage, "This link does not name a relay to answer on.")
 
-        _ = await viewModel.handleScannedPayload("nostrconnect://client-pub?relay=wss://relay.one")
+        _ = await viewModel.handleScannedPayload("nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one")
         XCTAssertEqual(viewModel.errorMessage, "This link is missing its pairing secret.")
 
         _ = await viewModel.handleScannedPayload("nostrconnect://?relay=wss://relay.one&secret=s3cret")
@@ -214,7 +214,7 @@ final class PairingViewModelTests: XCTestCase {
 
     func testDeepLinkPairsThroughTheSameViewModel() async {
         let (viewModel, manager) = makeViewModel()
-        let url = URL(string: "nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret&name=Nostrudel")!
+        let url = URL(string: "nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret&name=Nostrudel")!
 
         let paired = await viewModel.handleDeepLink(url)
 
@@ -228,7 +228,7 @@ final class PairingViewModelTests: XCTestCase {
         let (viewModel, manager) = makeViewModel()
 
         let paired = await viewModel.handlePastedText(
-            " nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret&name=Amethyst\n"
+            " nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret&name=Amethyst\n"
         )
 
         let pending = await manager.pendingSessions()
@@ -262,7 +262,7 @@ final class PairingViewModelTests: XCTestCase {
 
     func testFailedPairingClearsAnyEarlierSuccess() async {
         let (viewModel, _) = makeViewModel()
-        _ = await viewModel.handlePastedText("nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret&name=Amethyst")
+        _ = await viewModel.handlePastedText("nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret&name=Amethyst")
         XCTAssertNotNil(viewModel.pairedAppName)
 
         _ = await viewModel.handlePastedText("not a link")
@@ -273,7 +273,7 @@ final class PairingViewModelTests: XCTestCase {
 
     func testPairingOpenedByAnotherAppThroughOurScheme() async {
         let (viewModel, manager) = makeViewModel()
-        let wrapped = "nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret&name=Damus"
+        let wrapped = "nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret&name=Damus"
             .addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
         let url = URL(string: "signstr://pair?uri=\(wrapped)")!
 
@@ -299,7 +299,7 @@ final class PairingViewModelTests: XCTestCase {
         let (viewModel, _) = makeViewModel()
         _ = await viewModel.handleScannedPayload("https://example.com")
 
-        _ = await viewModel.handleScannedPayload("nostrconnect://client-pub?relay=wss://relay.one&secret=s3cret")
+        _ = await viewModel.handleScannedPayload("nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret")
 
         XCTAssertNil(viewModel.errorMessage)
     }

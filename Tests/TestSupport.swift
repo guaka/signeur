@@ -7,6 +7,7 @@ enum TestVectors {
     static let nsec = "nsec1vl029mgpspedva04g90vltkh6fvh240zqtv9k0t9af8935ke9laqsnlfe5"
     static let npub = "npub10elfcs4fr0l0r8af98jlmgdh9c8tcxjvz9qkw038js35mp4dma8qzvjptg"
     static let pubkeyHex = "7e7e9c42a91bfef19fa929e5fda1b72e0ebc1a4c1141673e2794234d86addf4e"
+    static let otherPubkeyHex = "c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5"
     static let secretHex = "67dea2ed018072d675f5415ecfaed7d2597555e202d85b3d65ea4e58d2d92ffa"
 
     /// A second valid nsec, so duplicate detection can be told apart from "any second key".
@@ -60,13 +61,30 @@ actor InMemoryNsecStore: NsecStoring {
     func storedCount() -> Int { keys.count }
 }
 
+actor StubProfileLookup: NostrProfileLookingUp {
+    private let metadata: NostrProfileMetadata?
+    private var pubkeys: [String] = []
+
+    init(metadata: NostrProfileMetadata?) {
+        self.metadata = metadata
+    }
+
+    func lookup(pubkey: String) async -> NostrProfileMetadata? {
+        pubkeys.append(pubkey)
+        return metadata
+    }
+
+    func lookedUpPubkeys() -> [String] { pubkeys }
+}
+
 func makeTestRequest(
     id: String = "req-1",
     method: NIP46Method = .signEvent,
     params: [String]? = nil,
     appName: String? = "Test App",
-    appPubkey: String = "app-pub",
-    payload: String = "{\"kind\":1,\"content\":\"hi\"}"
+    appPubkey: String = TestVectors.pubkeyHex,
+    payload: String = "{\"kind\":1,\"content\":\"hi\"}",
+    origin: NIP46RequestOrigin = .relay
 ) -> NIP46Request {
     NIP46Request(
         id: id,
@@ -76,7 +94,8 @@ func makeTestRequest(
         appURL: nil,
         appPubkey: appPubkey,
         correlationID: "corr-\(id)",
-        rawPayloadPreview: payload
+        rawPayloadPreview: payload,
+        origin: origin
     )
 }
 

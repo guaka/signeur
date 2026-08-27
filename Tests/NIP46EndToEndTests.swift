@@ -26,6 +26,10 @@ final class NIP46EndToEndTests: XCTestCase {
         let pool = NostrRelayPool(socketFactory: { url in sockets.socket(for: url) })
         let connections = ConnectionStore(defaults: makeEphemeralDefaults())
         let nsecStore = InMemoryNsecStore(keys: ["id-1": TestVectors.nsec])
+        let identities = IdentityStore(
+            defaults: makeEphemeralDefaults(),
+            seed: [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)]
+        )
 
         let manager = NIP46SessionManager(
             validator: NIP46Validator(),
@@ -49,8 +53,10 @@ final class NIP46EndToEndTests: XCTestCase {
             pool: pool,
             connections: connections,
             nsecStore: nsecStore,
+            identities: identities,
             coordinator: coordinator,
-            logger: RedactedLogger(emit: { _ in })
+            logger: RedactedLogger(emit: { _ in }),
+            now: { Date(timeIntervalSince1970: 1_700_000_000) }
         )
 
         return Harness(

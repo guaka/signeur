@@ -17,7 +17,7 @@ final class IncomingRequestViewSnapshotTests: XCTestCase {
                 params: ["{\"kind\":1,\"content\":\"fixture\"}"],
                 appName: "Fixture Client",
                 appURL: nil,
-                appPubkey: "pub",
+                appPubkey: TestVectors.pubkeyHex,
                 correlationID: "snap-c1",
                 rawPayloadPreview: "{\"kind\":1,\"content\":\"fixture\"}"
             )

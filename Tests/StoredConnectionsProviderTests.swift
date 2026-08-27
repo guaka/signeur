@@ -12,7 +12,6 @@ final class StoredConnectionsProviderTests: XCTestCase {
             appName: name,
             relays: ["wss://relay.one"],
             identityID: "id-1",
-            secret: "s",
             isApproved: approved
         )
     }
@@ -61,7 +60,6 @@ final class StoredConnectionsProviderTests: XCTestCase {
                 relays: ["wss://relay.one"],
                 requestedPermissions: ["sign_event", "nip44_decrypt"],
                 identityID: "id-1",
-                secret: "s",
                 isApproved: true,
                 usesLegacyEncryption: true,
                 createdAt: connectedAt,
