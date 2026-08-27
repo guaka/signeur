@@ -27,6 +27,12 @@ jobs:
       - name: Check out repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Install coverage-site dependencies
+        run: npm ci --prefix Scripts/coverage-site --ignore-scripts
+
+      - name: Test NIP-46 web client
+        run: npm test --prefix Scripts/coverage-site
+
       - name: Run Swift tests with coverage
         run: swift test --enable-code-coverage
 

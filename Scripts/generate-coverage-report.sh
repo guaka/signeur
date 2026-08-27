@@ -36,6 +36,15 @@ xcrun llvm-cov show "${test_binary}" \
 cp "${repository_root}/iOSApp/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png" \
     "${output_dir}/signstr-icon.png"
 cp "${coverage_assets}/coverage.css" "${output_dir}/coverage.css"
+"${coverage_assets}/node_modules/.bin/esbuild" \
+    "${coverage_assets}/nip46-tester.source.mjs" \
+    --bundle \
+    --platform=browser \
+    --format=esm \
+    --target=es2022 \
+    --minify \
+    --legal-comments=inline \
+    --outfile="${output_dir}/nip46-tester.mjs"
 
 jq -r \
     --arg root "${repository_root}/" \
