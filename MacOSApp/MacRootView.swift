@@ -6,6 +6,7 @@ private enum MacRootSection: String, CaseIterable, Identifiable {
     case requests
     case connected
     case keys
+    case help
 
     var id: String { rawValue }
 
@@ -14,6 +15,7 @@ private enum MacRootSection: String, CaseIterable, Identifiable {
         case .requests: return "Requests"
         case .connected: return "Connected Apps"
         case .keys: return "Keys"
+        case .help: return "Help"
         }
     }
 
@@ -22,6 +24,7 @@ private enum MacRootSection: String, CaseIterable, Identifiable {
         case .requests: return "signature"
         case .connected: return "link"
         case .keys: return "key.fill"
+        case .help: return "questionmark.circle"
         }
     }
 }
@@ -39,23 +42,24 @@ struct MacRootView: View {
     var body: some View {
         NavigationSplitView {
             VStack(alignment: .leading, spacing: 0) {
-                HStack(spacing: 12) {
+                HStack(alignment: .center, spacing: 12) {
                     Image(nsImage: NSApplication.shared.applicationIconImage)
                         .resizable()
                         .scaledToFit()
-                        .frame(width: 52, height: 52)
+                        .frame(width: 76, height: 76)
                         .accessibilityHidden(true)
 
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: 4) {
                         Text("Signstr")
-                            .font(.headline)
+                            .font(.title2.bold())
                         Text("Nostr signer")
-                            .font(.caption)
+                            .font(.body.weight(.medium))
                             .foregroundStyle(.secondary)
                     }
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
 
                 List(MacRootSection.allCases, selection: $section) { item in
                     NavigationLink(value: item) {
@@ -67,6 +71,8 @@ struct MacRootView: View {
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
         } detail: {
             content
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                .dynamicTypeSize(.large)
                 .navigationTitle(section.title)
                 .toolbar {
                     ToolbarItem(placement: .primaryAction) {
@@ -142,11 +148,54 @@ struct MacRootView: View {
             ConnectedAppsView(viewModel: connectedAppsVM)
         case .keys:
             MacKeysView(viewModel: keysVM)
+        case .help:
+            MacSignstrHelpView()
         }
     }
 
     private func showApprovedConnection() {
         section = .connected
         Task { await connectedAppsVM.refresh() }
+    }
+}
+
+private struct MacSignstrHelpView: View {
+    private let buildTime: String = {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "SignstrBuildTime") as? String,
+              !value.isEmpty,
+              !value.hasPrefix("$(")
+        else {
+            return "Development build"
+        }
+        return value
+    }()
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Group {
+                    Text("How to use Signstr")
+                        .font(.title2.bold())
+                    Text("1. In Keys, create a key or import an nsec.\n2. In your Nostr app, choose Nostr Connect or remote signer, then paste its connection link.\n3. Approve only requests you expect.")
+                }
+
+                Group {
+                    Text("Nostr and your keys")
+                        .font(.headline)
+                    Text("Nostr is an open network where apps exchange messages through relays. Your npub is your public, shareable identity. Your nsec is the private key that controls it: never share it or paste it into a website.")
+                    Text("Signstr keeps your private key on this device and uses it only when you approve a request.")
+                }
+
+                Divider()
+
+                Link("View Signstr on GitHub", destination: URL(string: "https://github.com/guaka/signstr")!)
+                Text("Build time: \(buildTime)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(24)
+        }
+        .accessibilityIdentifier("signstr-help")
     }
 }

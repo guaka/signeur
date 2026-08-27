@@ -200,6 +200,30 @@ final class NIP55CallbackTransportTests: XCTestCase {
         XCTAssertFalse(handles, "relay-connected apps must not be answered by URL")
     }
 
+    func testCallbackTargetFillsEmptyQueryValue() {
+        let callbackURL = URL(string: "damus://signed?event=")!
+
+        let resolved = NIP55CallbackTransport.callbackTarget(callbackURL, payload: "deadbeef")
+
+        XCTAssertEqual(
+            resolved,
+            URL(string: "damus://signed?event=deadbeef"),
+            "callback URLs with an empty query slot must fill that slot"
+        )
+    }
+
+    func testCallbackTargetAddsResultWhenNoEmptyQueryExists() {
+        let callbackURL = URL(string: "damus://signed?event=payload")!
+
+        let resolved = NIP55CallbackTransport.callbackTarget(callbackURL, payload: "deadbeef")
+
+        XCTAssertEqual(
+            resolved,
+            URL(string: "damus://signed?event=payload&result=deadbeef"),
+            "a missing slot should fall back to a result query key"
+        )
+    }
+
     func testEachRequestIsAnsweredOnce() async throws {
         let opened = Collector<URL>()
         let transport = NIP55CallbackTransport(openURL: { url in await opened.append(url); return true })
@@ -209,6 +233,12 @@ final class NIP55CallbackTransportTests: XCTestCase {
         let handlesAfter = await transport.handles(requestID: "r1")
 
         XCTAssertFalse(handlesAfter)
+    }
+
+    func testPayloadForSignatureFallsBackWhenResultMissingSigField() {
+        let result = NIP55CallbackTransport.payload(for: #"{"error":"missing"}"#, returnType: .signature)
+
+        XCTAssertEqual(result, #"{"error":"missing"}"#)
     }
 }
 

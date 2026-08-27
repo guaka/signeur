@@ -187,8 +187,16 @@ public struct WebSocketNostrProfileEventFetcher: NostrProfileEventFetching {
     }
 }
 
-public struct URLSessionNIP05Verifier: NIP05Verifying {
-    public init() {}
+public struct URLSessionNIP05Verifier: NIP05Verifying, @unchecked Sendable {
+    private let sessionConfiguration: URLSessionConfiguration
+
+    public init() {
+        sessionConfiguration = .ephemeral
+    }
+
+    init(sessionConfiguration: URLSessionConfiguration) {
+        self.sessionConfiguration = sessionConfiguration
+    }
 
     public func verify(identifier: String, pubkey: String) async -> Bool {
         guard let atIndex = identifier.lastIndex(of: "@"),
@@ -215,7 +223,7 @@ public struct URLSessionNIP05Verifier: NIP05Verifying {
         guard let url = components.url else { return false }
 
         let delegate = NoRedirectURLSessionDelegate()
-        let configuration = URLSessionConfiguration.ephemeral
+        let configuration = sessionConfiguration.copy() as? URLSessionConfiguration ?? .ephemeral
         configuration.timeoutIntervalForRequest = 5
         configuration.timeoutIntervalForResource = 5
         let session = URLSession(configuration: configuration, delegate: delegate, delegateQueue: nil)

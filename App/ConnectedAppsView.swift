@@ -73,11 +73,22 @@ public struct ConnectedAppsView: View {
     public var body: some View {
         List {
             if viewModel.apps.isEmpty {
+#if os(macOS)
+                VStack(alignment: .leading, spacing: 8) {
+                    Label("No connected apps", systemImage: "link")
+                        .font(.title2.bold())
+                    Text("Paste an app's connection link, then approve it. Connected apps appear here.")
+                        .font(.body)
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 12)
+#else
                 ContentUnavailableView(
                     "No connected apps",
                     systemImage: "link",
                     description: Text("Scan or paste an app's connection link, then approve it. Connected apps appear here.")
                 )
+#endif
             }
             ForEach(viewModel.apps) { app in
                 NavigationLink {

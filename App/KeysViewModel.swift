@@ -12,23 +12,28 @@ public final class KeysViewModel: ObservableObject {
     @Published public private(set) var errorMessage: String?
     @Published public private(set) var statusMessage: String?
     @Published public private(set) var isSaving = false
+    @Published public private(set) var isSyncing = false
 
     private let identityStore: IdentityStore
     private let nsecStore: NsecStoring
     private let profileLookup: any NostrProfileLookingUp
     private let revealDuration: Duration
+    private let statusDuration: Duration
     private var revealTasks: [String: Task<Void, Never>] = [:]
+    private var statusTask: Task<Void, Never>?
 
     public init(
         identityStore: IdentityStore,
         nsecStore: NsecStoring,
         profileLookup: any NostrProfileLookingUp = NoopNostrProfileLookup(),
-        revealDuration: Duration = .seconds(30)
+        revealDuration: Duration = .seconds(30),
+        statusDuration: Duration = .seconds(3)
     ) {
         self.identityStore = identityStore
         self.nsecStore = nsecStore
         self.profileLookup = profileLookup
         self.revealDuration = revealDuration
+        self.statusDuration = statusDuration
     }
 
     public var canSave: Bool {
@@ -50,11 +55,13 @@ public final class KeysViewModel: ObservableObject {
     }
 
     public func addKey() async {
-        await saveKey(lookupProfile: true)
+        await saveKey(origin: .imported)
     }
 
-    private func saveKey(lookupProfile: Bool) async {
+    private func saveKey(origin: IdentityOrigin) async {
         guard !isSaving else { return }
+        statusTask?.cancel()
+        statusTask = nil
         statusMessage = nil
 
         let value = nsec
@@ -86,19 +93,21 @@ public final class KeysViewModel: ObservableObject {
         defer { isSaving = false }
 
         let typedName = displayName.trimmingCharacters(in: .whitespacesAndNewlines)
-        var suggestedName: String?
-        if lookupProfile && typedName.isEmpty,
+        var profile: NostrProfileMetadata?
+        if origin == .imported && typedName.isEmpty,
            let pubkey = try? NostrKeyDeriver.derivePublicKeyHex(fromNsec: value) {
             statusMessage = "Looking up this key's profile…"
-            suggestedName = await profileLookup.lookup(pubkey: pubkey)?.suggestedName
+            profile = await profileLookup.lookup(pubkey: pubkey)
             statusMessage = nil
         }
         let identity = Identity(
             id: UUID().uuidString,
             displayName: typedName.isEmpty
-                ? (suggestedName ?? "Key \(identities.count + 1)")
+                ? (profile?.suggestedName ?? "Key \(identities.count + 1)")
                 : typedName,
-            npub: npub
+            npub: npub,
+            nip05: profile?.nip05,
+            origin: origin
         )
 
         // The key lands in storage before the identity is recorded, so a storage
@@ -118,7 +127,7 @@ public final class KeysViewModel: ObservableObject {
         displayName = ""
         nsec = ""
         errorMessage = nil
-        statusMessage = "Saved \(identity.displayName)."
+        showStatus("Saved \(identity.displayName).")
         await refresh()
     }
 
@@ -126,7 +135,7 @@ public final class KeysViewModel: ObservableObject {
         guard !isSaving else { return }
         do {
             nsec = try NostrKeyDeriver.generateNsec()
-            await saveKey(lookupProfile: false)
+            await saveKey(origin: .generated)
         } catch {
             nsec = ""
             statusMessage = nil
@@ -137,6 +146,32 @@ public final class KeysViewModel: ObservableObject {
     public func setActive(_ identity: Identity) async {
         await identityStore.setActive(identityID: identity.id)
         await refresh()
+    }
+
+    public func syncNIP05() async {
+        guard !isSyncing, !identities.isEmpty else { return }
+        statusTask?.cancel()
+        statusTask = nil
+        isSyncing = true
+        errorMessage = nil
+        statusMessage = "Checking NIP-05 addresses…"
+        defer { isSyncing = false }
+
+        var foundCount = 0
+        for identity in identities {
+            guard let pubkey = await identityStore.publicKeyHex(for: identity.id),
+                  let nip05 = await profileLookup.lookup(pubkey: pubkey)?.nip05
+            else {
+                continue
+            }
+            await identityStore.updateNIP05(nip05, for: identity.id)
+            foundCount += 1
+        }
+
+        await refresh()
+        let keyDescription = identities.count == 1 ? "key" : "keys"
+        let addressDescription = foundCount == 1 ? "address" : "addresses"
+        showStatus("Checked \(identities.count) \(keyDescription). Found \(foundCount) NIP-05 \(addressDescription).")
     }
 
     public func toggleReveal(_ identity: Identity) async {
@@ -152,8 +187,9 @@ public final class KeysViewModel: ObservableObject {
             }
             revealedNsecs[identity.id] = stored
             revealTasks.removeValue(forKey: identity.id)?.cancel()
+            let duration = revealDuration
             revealTasks[identity.id] = Task { [weak self] in
-                try? await Task.sleep(for: revealDuration)
+                try? await Task.sleep(for: duration)
                 guard !Task.isCancelled else { return }
                 await MainActor.run {
                     self?.revealedNsecs.removeValue(forKey: identity.id)
@@ -172,7 +208,7 @@ public final class KeysViewModel: ObservableObject {
         await identityStore.delete(identityID: identity.id)
         await nsecStore.deleteNsec(for: identity.id)
         errorMessage = nil
-        statusMessage = "Deleted \(identity.displayName)."
+        showStatus("Deleted \(identity.displayName).")
         await refresh()
     }
 
@@ -191,6 +227,20 @@ public final class KeysViewModel: ObservableObject {
         }
         nsec = trimmed
         errorMessage = nil
+    }
+
+    private func showStatus(_ message: String) {
+        statusTask?.cancel()
+        statusMessage = message
+        let duration = statusDuration
+        statusTask = Task { [weak self] in
+            try? await Task.sleep(for: duration)
+            guard !Task.isCancelled else { return }
+            withAnimation(.easeOut(duration: 0.35)) {
+                self?.statusMessage = nil
+            }
+            self?.statusTask = nil
+        }
     }
 
     private static func message(for error: Error) -> String {

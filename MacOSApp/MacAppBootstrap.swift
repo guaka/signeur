@@ -7,7 +7,7 @@ enum MacAppBootstrap {
     static let identityStore = IdentityStore(seed: [])
     static let nsecStore = NsecKeychainStore()
     static let connectionStore = ConnectionStore()
-    static let executor = NIP46MethodExecutor(nsecStore: nsecStore)
+    static let executor = NIP46MethodExecutor(nsecStore: nsecStore, identityStore: identityStore)
     static let relayPool = NostrRelayPool()
     static let profileLookup = RelayNostrProfileLookup()
 

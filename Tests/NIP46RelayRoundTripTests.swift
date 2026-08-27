@@ -253,7 +253,11 @@ final class NIP46RelayListenerTests: XCTestCase {
     private func makeListener(
         legacy: Bool = false,
         registerApp: Bool = true,
-        approved: Bool = true
+        approved: Bool = true,
+        connectionIdentityID: String = "id-1",
+        socketFactory: @escaping @Sendable (URL) -> RelaySocketing = { _ in FakeRelaySocket() },
+        identitySeed: [Identity]? = nil,
+        nsecStoreKeys: [String: String] = ["id-1": TestVectors.nsec]
     ) async throws -> (listener: NIP46RelayListener, manager: NIP46SessionManager, appPubkey: String) {
         let appPubkey = try NostrKeyDeriver.derivePublicKeyHex(fromNsec: appNsec)
         let connections = ConnectionStore(defaults: makeEphemeralDefaults())
@@ -263,7 +267,7 @@ final class NIP46RelayListenerTests: XCTestCase {
                     appPubkey: appPubkey,
                     appName: "Amethyst",
                     relays: ["wss://relay.one"],
-                    identityID: "id-1",
+                    identityID: connectionIdentityID,
                     isApproved: approved,
                     usesLegacyEncryption: legacy
                 )
@@ -277,12 +281,12 @@ final class NIP46RelayListenerTests: XCTestCase {
         )
         let identities = IdentityStore(
             defaults: makeEphemeralDefaults(),
-            seed: [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)]
+            seed: identitySeed ?? [Identity(id: connectionIdentityID, displayName: "Main", npub: TestVectors.npub)]
         )
         let listener = NIP46RelayListener(
-            pool: NostrRelayPool(socketFactory: { _ in FakeRelaySocket() }),
+            pool: NostrRelayPool(socketFactory: socketFactory),
             connections: connections,
-            nsecStore: InMemoryNsecStore(keys: ["id-1": TestVectors.nsec]),
+            nsecStore: InMemoryNsecStore(keys: nsecStoreKeys),
             identities: identities,
             coordinator: RequestRoutingCoordinator(sessionManager: manager),
             logger: RedactedLogger(emit: { _ in }),
@@ -492,5 +496,134 @@ final class NIP46RelayListenerTests: XCTestCase {
         XCTAssertNil(
             NIP46RelayListener.request(fromJSONRPC: #"{"method":"ping"}"#, event: event, connection: connection)
         )
+    }
+
+    func testRequestWithTooManyParametersIsRejected() {
+        let params = Array(0...32)
+        let payload = try! JSONSerialization.data(
+            withJSONObject: ["id": "r", "method": "ping", "params": params],
+            options: .sortedKeys
+        )
+        let connection = AppConnection(appPubkey: TestVectors.otherNpub, relays: [], identityID: "id-1")
+        let event = NostrEvent(
+            id: "e1",
+            pubkey: "app",
+            createdAt: 1_700_000_000,
+            kind: 24133,
+            tags: [["p", "requester"]],
+            content: "",
+            sig: ""
+        )
+        let request = String(decoding: payload, as: UTF8.self)
+
+        XCTAssertNil(NIP46RelayListener.request(fromJSONRPC: request, event: event, connection: connection))
+    }
+
+    func testRequestWithOversizedPayloadIsRejected() {
+        let huge = String(repeating: "x", count: SecurityPolicy.maxRequestPayloadBytes + 1)
+        let payload = try! JSONSerialization.data(
+            withJSONObject: ["id": "r", "method": "ping", "params": [huge]],
+            options: .sortedKeys
+        )
+        let connection = AppConnection(appPubkey: TestVectors.otherNpub, relays: [], identityID: "id-1")
+        let event = NostrEvent(
+            id: "e1",
+            pubkey: "app",
+            createdAt: 1_700_000_000,
+            kind: 24133,
+            tags: [["p", "requester"]],
+            content: "",
+            sig: ""
+        )
+        let request = String(decoding: payload, as: UTF8.self)
+
+        XCTAssertNil(NIP46RelayListener.request(fromJSONRPC: request, event: event, connection: connection))
+    }
+
+    func testStartSubscribesToApprovedConnections() async throws {
+        let relay = URL(string: "wss://relay.one")!
+        let sockets = SocketRegistry()
+        let setup = try await makeListener(socketFactory: { sockets.socket(for: $0) })
+
+        await setup.listener.start()
+
+        let frames = await sockets.socket(for: relay).frames()
+        let prefix = String(setup.appPubkey.prefix(8))
+        let hasSubscription = frames.contains { frame in
+            frame.hasPrefix("[\"REQ\",") && frame.contains("nip46-\(prefix)")
+        }
+        XCTAssertTrue(hasSubscription)
+    }
+
+    func testResubscribeSkipsConnectionsWithoutSignerIdentity() async throws {
+        let relay = URL(string: "wss://relay.one")!
+        let sockets = SocketRegistry()
+        let setup = try await makeListener(
+            connectionIdentityID: "missing-id",
+            socketFactory: { sockets.socket(for: $0) },
+            identitySeed: []
+        )
+
+        await setup.listener.resubscribe()
+
+        let frames = await sockets.socket(for: relay).frames()
+        XCTAssertTrue(frames.isEmpty)
+    }
+
+    func testListenSubscribesToConnectionRelay() async throws {
+        let relay = URL(string: "wss://relay.one")!
+        let sockets = SocketRegistry()
+        let setup = try await makeListener(socketFactory: { sockets.socket(for: $0) })
+        let connection = AppConnection(
+            appPubkey: setup.appPubkey,
+            appName: "Amethyst",
+            relays: ["wss://relay.one"],
+            identityID: "id-1",
+            isApproved: true
+        )
+
+        await setup.listener.listen(to: connection)
+
+        let frames = await sockets.socket(for: relay).frames()
+        XCTAssertEqual(frames.count, 1)
+        XCTAssertTrue(frames.first?.hasPrefix("[\"REQ\",") == true)
+    }
+
+    func testListenIsNoopWhenSignerIdentityIsUnknown() async throws {
+        let relay = URL(string: "wss://relay.one")!
+        let sockets = SocketRegistry()
+        let setup = try await makeListener(
+            socketFactory: { sockets.socket(for: $0) },
+            identitySeed: []
+        )
+        let connection = AppConnection(
+            appPubkey: setup.appPubkey,
+            appName: "Amethyst",
+            relays: ["wss://relay.one"],
+            identityID: "missing-id",
+            isApproved: true
+        )
+
+        await setup.listener.listen(to: connection)
+
+        let frames = await sockets.socket(for: relay).frames()
+        XCTAssertTrue(frames.isEmpty)
+    }
+
+    func testMissingNsecInStoreSkipsPendingSessionCreation() async throws {
+        let setup = try await makeListener(
+            identitySeed: [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)],
+            nsecStoreKeys: [:]
+        )
+        let event = try makeNIP46Event(
+            body: #"{"id":"r","method":"ping","params":[]}"#,
+            senderNsec: appNsec,
+            recipientPubkeyHex: TestVectors.pubkeyHex
+        )
+
+        await setup.listener.handle(event)
+
+        let pending = await setup.manager.pendingSessions()
+        XCTAssertTrue(pending.isEmpty)
     }
 }

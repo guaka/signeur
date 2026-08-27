@@ -5,6 +5,7 @@ enum RootSection: String, CaseIterable, Identifiable {
     case requests
     case connected
     case keys
+    case help
 
     var id: String { rawValue }
 
@@ -13,6 +14,7 @@ enum RootSection: String, CaseIterable, Identifiable {
         case .requests: return "Requests"
         case .connected: return "Connected"
         case .keys: return "Keys"
+        case .help: return "Help"
         }
     }
 
@@ -21,6 +23,7 @@ enum RootSection: String, CaseIterable, Identifiable {
         case .requests: return "signature"
         case .connected: return "link"
         case .keys: return "key.fill"
+        case .help: return "questionmark.circle"
         }
     }
 }
@@ -115,7 +118,7 @@ struct RootView: View {
                 }
             }
         }
-        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
             Task { await AppBootstrap.lockKeySession() }
         }
     }
@@ -171,11 +174,54 @@ struct RootView: View {
             ConnectedAppsView(viewModel: connectedAppsVM)
         case .keys:
             KeysView(viewModel: keysVM)
+        case .help:
+            SignstrHelpView()
         }
     }
 
     private func showApprovedConnection() {
         section = .connected
         Task { await connectedAppsVM.refresh() }
+    }
+}
+
+private struct SignstrHelpView: View {
+    private let buildTime: String = {
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "SignstrBuildTime") as? String,
+              !value.isEmpty,
+              !value.hasPrefix("$(")
+        else {
+            return "Development build"
+        }
+        return value
+    }()
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                Group {
+                    Text("How to use Signstr")
+                        .font(.title2.bold())
+                    Text("1. In Keys, create a key or import an nsec.\n2. In your Nostr app, choose Nostr Connect or remote signer, then scan its code or paste its link.\n3. Approve only requests you expect.")
+                }
+
+                Group {
+                    Text("Nostr and your keys")
+                        .font(.headline)
+                    Text("Nostr is an open network where apps exchange messages through relays. Your npub is your public, shareable identity. Your nsec is the private key that controls it: never share it or paste it into a website.")
+                    Text("Signstr keeps your private key on this device and uses it only when you approve a request.")
+                }
+
+                Divider()
+
+                Link("View Signstr on GitHub", destination: URL(string: "https://github.com/guaka/signstr")!)
+                Text("Build time: \(buildTime)")
+                    .font(.footnote)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding()
+        }
+        .accessibilityIdentifier("signstr-help")
     }
 }

@@ -166,6 +166,50 @@ final class PairingViewModelTests: XCTestCase {
         return (PairingViewModel(coordinator: RequestRoutingCoordinator(sessionManager: manager)), manager)
     }
 
+    func testIncomingSignerURLsQueueRequests() async {
+        let (viewModel, manager) = makeViewModel()
+        let queued = await viewModel.handleIncomingURL(
+            URL(string: "nostrsigner:?type=get_public_key&appName=Damus&callbackUrl=damus://signed?event=")!
+        )
+        let pending = await manager.pendingSessions()
+
+        XCTAssertTrue(queued)
+        XCTAssertNil(viewModel.pairedAppName)
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertEqual(pending.count, 1)
+        XCTAssertEqual(pending.first?.request.origin, .localSigner)
+        XCTAssertEqual(pending.first?.request.appPubkey, "nostrsigner:damus")
+    }
+
+    func testIncomingSignerURLsReportUnknownRequestTypes() async {
+        let (viewModel, manager) = makeViewModel()
+        let queued = await viewModel.handleIncomingURL(
+            URL(string: "nostrsigner:?type=decrypt_zap_event")!
+        )
+        let pending = await manager.pendingSessions()
+
+        XCTAssertFalse(queued)
+        XCTAssertEqual(
+            viewModel.errorMessage,
+            "This app asked for \"decrypt_zap_event\", which Signstr cannot do yet."
+        )
+        XCTAssertEqual(pending.count, 0)
+    }
+
+    func testNonSignerLinksStillRouteThroughPairingFlow() async {
+        let (viewModel, manager) = makeViewModel()
+        let queued = await viewModel.handleIncomingURL(
+            URL(
+                string: "nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret&name=Amethyst"
+            )!
+        )
+        let pending = await manager.pendingSessions()
+
+        XCTAssertTrue(queued)
+        XCTAssertEqual(viewModel.pairedAppName, "Amethyst")
+        XCTAssertEqual(pending.count, 1)
+    }
+
     func testSuccessfulScanReportsTheAppName() async {
         let (viewModel, manager) = makeViewModel()
 

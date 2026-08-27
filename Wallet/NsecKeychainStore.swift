@@ -14,6 +14,12 @@ public enum NsecStoreError: Error, Equatable, LocalizedError {
         case .protectionUnavailable:
             return "This device could not create biometric Keychain protection."
         case .unexpectedStatus(let status):
+            if status == -34010 {
+                return "Keychain could not create protected storage. Please try again. (error -34010)"
+            }
+            if status == errSecMissingEntitlement {
+                return "This build of Signstr is missing Keychain permission. (error \(status))"
+            }
             let detail = SecCopyErrorMessageString(status, nil) as String? ?? "unknown error"
             return "Keychain error \(status): \(detail)"
         }
@@ -21,11 +27,12 @@ public enum NsecStoreError: Error, Equatable, LocalizedError {
 }
 
 public actor NsecKeychainStore: NsecStoring {
+    public static let defaultUnlockDuration: TimeInterval = 5 * 60
     private let service = "com.k.signstr.nsec"
     private var authenticationContext = NsecKeychainStore.makeAuthenticationContext()
     private var unlockCache: NsecUnlockCache
 
-    public init(unlockDuration: TimeInterval = 120) {
+    public init(unlockDuration: TimeInterval = NsecKeychainStore.defaultUnlockDuration) {
         unlockCache = NsecUnlockCache(duration: unlockDuration)
     }
 
@@ -41,11 +48,7 @@ public actor NsecKeychainStore: NsecStoring {
         }
 
         unlockCache.removeValue(for: identityID)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: identityID
-        ]
+        let query = Self.makeItemQuery(service: service, identityID: identityID)
         SecItemDelete(query as CFDictionary)
 
         var accessControlError: Unmanaged<CFError>?
@@ -68,15 +71,9 @@ public actor NsecKeychainStore: NsecStoring {
     }
 
     public func hasNsec(for identityID: String) -> Bool {
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: identityID,
-            kSecReturnData as String: false,
-            kSecMatchLimit as String: kSecMatchLimitOne
-        ]
+        let query = Self.makePresenceQuery(service: service, identityID: identityID)
         let status = SecItemCopyMatching(query as CFDictionary, nil)
-        return status == errSecSuccess
+        return Self.indicatesPresence(status)
     }
 
     public func loadNsec(for identityID: String) throws -> String? {
@@ -84,14 +81,11 @@ public actor NsecKeychainStore: NsecStoring {
             return cached
         }
 
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: identityID,
-            kSecReturnData as String: true,
-            kSecMatchLimit as String: kSecMatchLimitOne,
-            kSecUseAuthenticationContext as String: authenticationContext
-        ]
+        let query = Self.makeLoadQuery(
+            service: service,
+            identityID: identityID,
+            context: authenticationContext
+        )
         var result: CFTypeRef?
         let status = SecItemCopyMatching(query as CFDictionary, &result)
         if status == errSecItemNotFound {
@@ -114,11 +108,7 @@ public actor NsecKeychainStore: NsecStoring {
 
     public func deleteNsec(for identityID: String) {
         unlockCache.removeValue(for: identityID)
-        let query: [String: Any] = [
-            kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: service,
-            kSecAttrAccount as String: identityID
-        ]
+        let query = Self.makeItemQuery(service: service, identityID: identityID)
         SecItemDelete(query as CFDictionary)
     }
 
@@ -129,11 +119,50 @@ public actor NsecKeychainStore: NsecStoring {
         authenticationContext = Self.makeAuthenticationContext()
     }
 
-    private static func makeAuthenticationContext() -> LAContext {
+    static func makeAuthenticationContext() -> LAContext {
         let context = LAContext()
         context.localizedReason = "Unlock your Nostr key to sign or decrypt a request."
-        context.touchIDAuthenticationAllowableReuseDuration = 120
+        context.touchIDAuthenticationAllowableReuseDuration = defaultUnlockDuration
         return context
+    }
+
+    static func makeItemQuery(service: String, identityID: String) -> [String: Any] {
+        [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: service,
+            kSecAttrAccount as String: identityID,
+            // macOS otherwise uses its legacy file-based Keychain, which does
+            // not support the iOS-style accessibility and user-presence policy
+            // attached to Signstr's private keys. iOS ignores this key.
+            kSecUseDataProtectionKeychain as String: true
+        ]
+    }
+
+    static func makePresenceQuery(service: String, identityID: String) -> [String: Any] {
+        let context = LAContext()
+        context.interactionNotAllowed = true
+        var query = makeItemQuery(service: service, identityID: identityID)
+        query[kSecReturnData as String] = false
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        query[kSecUseAuthenticationContext as String] = context
+        return query
+    }
+
+    static func makeLoadQuery(service: String, identityID: String, context: LAContext) -> [String: Any] {
+        var query = makeItemQuery(service: service, identityID: identityID)
+        query[kSecReturnData as String] = true
+        query[kSecMatchLimit as String] = kSecMatchLimitOne
+        query[kSecUseAuthenticationContext as String] = context
+        return query
+    }
+
+    static func indicatesPresence(_ status: OSStatus) -> Bool {
+        switch status {
+        case errSecSuccess, errSecInteractionNotAllowed, errSecAuthFailed:
+            return true
+        default:
+            return false
+        }
     }
 }
 
@@ -156,6 +185,10 @@ struct NsecUnlockCache {
             entries.removeValue(forKey: identityID)
             return nil
         }
+        entries[identityID] = Entry(
+            nsec: entry.nsec,
+            expiresAt: now.addingTimeInterval(duration)
+        )
         return entry.nsec
     }
 

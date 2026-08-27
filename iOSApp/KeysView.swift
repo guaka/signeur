@@ -76,10 +76,28 @@ struct KeysView: View {
                     Text(statusMessage)
                         .foregroundStyle(.green)
                         .font(.footnote)
+                        .transition(.opacity)
                 }
             }
 
             Section("Stored keys") {
+                Button {
+                    Task { await viewModel.syncNIP05() }
+                } label: {
+                    HStack {
+                        if viewModel.isSyncing {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("Checking NIP-05 addresses…")
+                        } else {
+                            Label("Sync NIP-05", systemImage: "arrow.triangle.2.circlepath")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .disabled(viewModel.identities.isEmpty || viewModel.isSyncing)
+
                 if viewModel.identities.isEmpty {
                     Text("No keys yet. Import an nsec or generate a new key above to start signing.")
                         .foregroundStyle(.secondary)
@@ -142,6 +160,28 @@ struct KeysView: View {
                 .font(.caption.monospaced())
                 .foregroundStyle(.secondary)
                 .textSelection(.enabled)
+
+            if let nip05 = identity.nip05, nip05 != identity.displayName {
+                Label(nip05, systemImage: "checkmark.seal.fill")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .textSelection(.enabled)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Label(
+                    "\(identity.origin == .generated ? "Created" : "Added") \(identity.createdAt.formatted(date: .abbreviated, time: .omitted))",
+                    systemImage: "calendar"
+                )
+                Label(
+                    identity.lastUsedAt.map {
+                        "Last used \($0.formatted(date: .abbreviated, time: .shortened))"
+                    } ?? "Not used yet",
+                    systemImage: "clock"
+                )
+            }
+            .font(.caption)
+            .foregroundStyle(.secondary)
 
             if let revealed = viewModel.revealedNsecs[identity.id] {
                 Text(revealed)

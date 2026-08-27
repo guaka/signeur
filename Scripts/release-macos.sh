@@ -20,6 +20,7 @@ archive_path="$release_root/Signstr.xcarchive"
 stage_path="$release_root/dmg"
 dmg_path="$release_root/Signstr-$version-macOS.dmg"
 checksum_path="$dmg_path.sha256"
+build_time="$(date -u '+%Y-%d-%m %H:%M UTC')"
 
 if [[ -e "$release_root" ]]; then
   echo "Release output already exists: $release_root" >&2
@@ -36,6 +37,7 @@ xcodebuild archive \
   -skipPackagePluginValidation \
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
   CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
+  SIGNSTR_BUILD_TIME="$build_time" \
   CODE_SIGN_STYLE=Manual \
   CODE_SIGN_IDENTITY="$signing_identity" \
   PROVISIONING_PROFILE_SPECIFIER="$MACOS_PROVISIONING_PROFILE_SPECIFIER" \
