@@ -1,21 +1,44 @@
 # Security Policy
 
+Signstr handles Nostr private keys and signing requests. Please report suspected
+vulnerabilities privately so they can be investigated before details become
+public.
+
 ## Supported Versions
 
-Use this section to tell people about which versions of your project are
-currently being supported with security updates.
+Signstr is currently pre-1.0. Before the first tagged release, security fixes
+are made on `main`. After releases begin, only the latest tagged release is
+supported; users may need to upgrade to receive a fix.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 5.1.x   | :white_check_mark: |
-| 5.0.x   | :x:                |
-| 4.0.x   | :white_check_mark: |
-| < 4.0   | :x:                |
+| Version | Supported |
+| --- | --- |
+| `main` before the first release | Yes |
+| Latest tagged release | Yes |
+| Earlier tagged releases | No |
 
 ## Reporting a Vulnerability
 
-Use this section to tell people how to report a vulnerability.
+Use [GitHub's private vulnerability reporting](https://github.com/guaka/signstr/security/advisories/new)
+to contact the maintainers. Do not open a public issue or discussion for a
+suspected vulnerability.
 
-Tell them where to go, how often they can expect to get an update on a
-reported vulnerability, what to expect if the vulnerability is accepted or
-declined, etc.
+Please include as much of the following as you can:
+
+- A description of the vulnerability and its potential impact.
+- The affected Signstr version or commit.
+- The device, operating system, and app target (iOS or macOS).
+- Reproduction steps or a minimal proof of concept.
+- Any known mitigations or workarounds.
+
+Never include a real Nostr private key (`nsec`), seed phrase, signing
+credential, authentication token, or private relay content. Use disposable test
+keys and redact logs and screenshots.
+
+We aim to acknowledge reports within seven days. We will investigate, keep the
+reporter informed of material progress, and coordinate a disclosure date when a
+fix is ready. If a report is not accepted as a vulnerability, we will explain
+why. Reporters will be credited in the advisory when appropriate unless they
+prefer to remain anonymous.
+
+For ordinary bugs and feature requests that do not have security implications,
+use the project's public issue tracker.
