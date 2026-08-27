@@ -8,6 +8,9 @@ Signstr is a Nostr signer for iPhone and Mac. Both apps share the same NIP-46,
 NIP-55, relay, permission, and signing core while using platform-native SwiftUI
 shells.
 
+[Browse the latest SignstrCore coverage report](https://guaka.github.io/signstr/),
+published from each successful `main` build with per-file annotated source.
+
 ## Run the apps
 
 Open `Signstr.xcodeproj` and select either the `Signstr` iOS scheme or the
