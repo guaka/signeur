@@ -21,7 +21,12 @@ public struct NostrProfileMetadata: Equatable, Sendable {
 }
 
 public protocol NostrProfileLookingUp: Sendable {
+    var relayURLs: [URL] { get }
     func lookup(pubkey: String) async -> NostrProfileMetadata?
+}
+
+public extension NostrProfileLookingUp {
+    var relayURLs: [URL] { [] }
 }
 
 public struct NoopNostrProfileLookup: NostrProfileLookingUp {
@@ -38,6 +43,12 @@ public protocol NIP05Verifying: Sendable {
 }
 
 public struct RelayNostrProfileLookup: NostrProfileLookingUp {
+    static let trustrootsProfileKind = 10_390
+    static let trustrootsUsernameNamespace = "org.trustroots:username"
+    static let extendedProfileRelayHosts: Set<String> = [
+        "relay.nomadwiki.org",
+        "relay.trustroots.org"
+    ]
     public static let defaultRelays = [
         "wss://relay.damus.io",
         "wss://nos.lol",
@@ -47,7 +58,7 @@ public struct RelayNostrProfileLookup: NostrProfileLookingUp {
         "wss://relay.trustroots.org"
     ].compactMap(URL.init(string:))
 
-    private let relays: [URL]
+    public let relayURLs: [URL]
     private let eventFetcher: any NostrProfileEventFetching
     private let nip05Verifier: any NIP05Verifying
 
@@ -56,37 +67,72 @@ public struct RelayNostrProfileLookup: NostrProfileLookingUp {
         eventFetcher: any NostrProfileEventFetching = WebSocketNostrProfileEventFetcher(),
         nip05Verifier: any NIP05Verifying = URLSessionNIP05Verifier()
     ) {
-        self.relays = relays
+        self.relayURLs = relays
         self.eventFetcher = eventFetcher
         self.nip05Verifier = nip05Verifier
     }
 
     public func lookup(pubkey: String) async -> NostrProfileMetadata? {
         guard SecurityPolicy.isCanonicalPublicKey(pubkey) else { return nil }
-        let events = await eventFetcher.fetchProfileEvents(pubkey: pubkey, relays: relays)
-        guard let event = events
-            .filter({ isValidProfileEvent($0, pubkey: pubkey) })
+        let events = await eventFetcher.fetchProfileEvents(pubkey: pubkey, relays: relayURLs)
+        let validEvents = events.filter { isValidProfileEvent($0, pubkey: pubkey) }
+        let metadata = validEvents
+            .filter { $0.kind == 0 }
+            .sorted(by: newestFirst)
+            .lazy
+            .compactMap { parseMetadata($0.content) }
+            .first
+
+        var nip05Candidates: [String] = []
+        if let identifier = metadata?.nip05 {
+            nip05Candidates.append(identifier)
+        }
+        if let trustrootsEvent = validEvents
+            .filter({ $0.kind == Self.trustrootsProfileKind })
             .sorted(by: newestFirst)
             .first,
-              let metadata = parseMetadata(event.content)
-        else {
-            return nil
+           let username = trustrootsUsername(from: trustrootsEvent) {
+            nip05Candidates.append("\(username.lowercased())@trustroots.org")
         }
 
-        let verifiedNIP05: String?
-        if let identifier = metadata.nip05,
-           await nip05Verifier.verify(identifier: identifier, pubkey: pubkey) {
-            verifiedNIP05 = identifier
-        } else {
-            verifiedNIP05 = nil
+        var verifiedNIP05: String?
+        for identifier in nip05Candidates where verifiedNIP05 == nil {
+            if await nip05Verifier.verify(identifier: identifier, pubkey: pubkey) {
+                verifiedNIP05 = identifier
+            }
         }
-        return NostrProfileMetadata(displayName: metadata.displayName, nip05: verifiedNIP05)
+
+        guard metadata != nil || verifiedNIP05 != nil else { return nil }
+        return NostrProfileMetadata(displayName: metadata?.displayName, nip05: verifiedNIP05)
     }
 
     private func isValidProfileEvent(_ event: NostrEvent, pubkey: String) -> Bool {
-        guard event.kind == 0, event.pubkey == pubkey else { return false }
+        guard [0, Self.trustrootsProfileKind].contains(event.kind), event.pubkey == pubkey else {
+            return false
+        }
         let eventDate = Date(timeIntervalSince1970: TimeInterval(event.createdAt))
         return (try? event.validate(now: eventDate, maxAge: 1, maxFutureSkew: 1)) != nil
+    }
+
+    private func trustrootsUsername(from event: NostrEvent) -> String? {
+        let namespace = Self.trustrootsUsernameNamespace
+        guard event.tags.contains(where: { $0.count == 2 && $0[0] == "L" && $0[1] == namespace }),
+              let label = event.tags.first(where: {
+                  $0.count == 3 && $0[0] == "l" && $0[2] == namespace
+              })
+        else {
+            return nil
+        }
+        let username = label[1].trimmingCharacters(in: .whitespacesAndNewlines)
+        guard username.count > 3, SecurityPolicy.validateMetadataText(username) else { return nil }
+        return username
+    }
+
+    static func profileKinds(for relay: URL) -> [Int] {
+        guard let host = relay.host?.lowercased(), extendedProfileRelayHosts.contains(host) else {
+            return [0]
+        }
+        return [0, trustrootsProfileKind]
     }
 
     private func newestFirst(_ lhs: NostrEvent, _ rhs: NostrEvent) -> Bool {
@@ -108,10 +154,17 @@ public struct RelayNostrProfileLookup: NostrProfileLookingUp {
             return trimmed
         }
 
-        return NostrProfileMetadata(
+            return NostrProfileMetadata(
             displayName: safeValue("display_name") ?? safeValue("name"),
-            nip05: safeValue("nip05")?.lowercased()
+            nip05: safeValue("nip05").map { canonicalNIP05($0.lowercased()) }
         )
+    }
+
+    private func canonicalNIP05(_ value: String) -> String {
+        guard value.hasPrefix("_@") else {
+            return value
+        }
+        return String(value.dropFirst(2))
     }
 }
 
@@ -153,7 +206,8 @@ public struct WebSocketNostrProfileEventFetcher: NostrProfileEventFetching {
                     try await socket.send(
                         try RelayRequest.subscribeToProfile(
                             subscriptionID: String(subscriptionID),
-                            authorPubkey: pubkey
+                            authorPubkey: pubkey,
+                            kinds: RelayNostrProfileLookup.profileKinds(for: relay)
                         )
                     )
                     var events: [NostrEvent] = []

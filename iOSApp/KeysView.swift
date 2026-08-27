@@ -98,6 +98,18 @@ struct KeysView: View {
                 .buttonStyle(.bordered)
                 .disabled(viewModel.identities.isEmpty || viewModel.isSyncing)
 
+                if !viewModel.syncRelayDescriptions.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Relays being checked")
+                            .font(.caption.weight(.semibold))
+                        ForEach(viewModel.syncRelayDescriptions, id: \.self) { relay in
+                            Text(relay)
+                                .font(.caption.monospaced())
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+
                 if viewModel.identities.isEmpty {
                     Text("No keys yet. Import an nsec or generate a new key above to start signing.")
                         .foregroundStyle(.secondary)

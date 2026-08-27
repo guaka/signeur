@@ -63,10 +63,12 @@ actor InMemoryNsecStore: NsecStoring {
 
 actor StubProfileLookup: NostrProfileLookingUp {
     private let metadata: NostrProfileMetadata?
+    nonisolated let relayURLs: [URL]
     private var pubkeys: [String] = []
 
-    init(metadata: NostrProfileMetadata?) {
+    init(metadata: NostrProfileMetadata?, relayURLs: [URL] = []) {
         self.metadata = metadata
+        self.relayURLs = relayURLs
     }
 
     func lookup(pubkey: String) async -> NostrProfileMetadata? {

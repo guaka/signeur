@@ -197,6 +197,29 @@ final class KeysViewModelTests: XCTestCase {
         XCTAssertEqual(lookedUpPubkeys, [TestVectors.pubkeyHex])
     }
 
+    func testSyncExposesTheRelaysBeingChecked() async {
+        let lookup = StubProfileLookup(
+            metadata: nil,
+            relayURLs: [
+                URL(string: "wss://relay.nomadwiki.org")!,
+                URL(string: "wss://relay.trustroots.org")!
+            ]
+        )
+        let (viewModel, _, _) = makeViewModel(profileLookup: lookup)
+
+        XCTAssertEqual(
+            viewModel.syncRelayHosts,
+            ["relay.nomadwiki.org", "relay.trustroots.org"]
+        )
+        XCTAssertEqual(
+            viewModel.syncRelayDescriptions,
+            [
+                "relay.nomadwiki.org (kinds 0, 10390)",
+                "relay.trustroots.org (kinds 0, 10390)"
+            ]
+        )
+    }
+
     func testSyncDoesNotReplaceExistingNIP05WhenLookupFindsNone() async {
         let lookup = StubProfileLookup(metadata: nil)
         let (viewModel, identityStore, _) = makeViewModel(profileLookup: lookup)
