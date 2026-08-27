@@ -64,6 +64,21 @@ struct RootView: View {
                         Label("Scan", systemImage: "qrcode.viewfinder")
                     }
                 }
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: 7) {
+                        if let icon = appIcon {
+                            Image(uiImage: icon)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 26, height: 26)
+                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        }
+                        Text("Signstr")
+                            .font(.headline)
+                    }
+                    .accessibilityElement(children: .combine)
+                    .accessibilityLabel("Signstr")
+                }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         pasteConnectionLink()
@@ -107,6 +122,19 @@ struct RootView: View {
             get: { pairingErrorMessage != nil },
             set: { if !$0 { pairingErrorMessage = nil } }
         )
+    }
+
+    /// App icons are emitted as bundle resources under the primary icon filename.
+    private var appIcon: UIImage? {
+        guard
+            let icons = Bundle.main.infoDictionary?["CFBundleIcons"] as? [String: Any],
+            let primary = icons["CFBundlePrimaryIcon"] as? [String: Any],
+            let files = primary["CFBundleIconFiles"] as? [String],
+            let filename = files.last
+        else {
+            return UIImage(named: "AppIcon")
+        }
+        return UIImage(named: filename) ?? UIImage(named: "AppIcon")
     }
 
     private func pasteConnectionLink() {
