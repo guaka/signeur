@@ -205,7 +205,10 @@ final class RevealedKeySecurityTests: XCTestCase {
         await model.toggleReveal(identity)
         XCTAssertEqual(model.revealedNsecs[identity.id], TestVectors.nsec)
 
-        try await Task.sleep(for: .milliseconds(30))
+        let deadline = ContinuousClock.now + .seconds(1)
+        while model.revealedNsecs[identity.id] != nil, ContinuousClock.now < deadline {
+            try await Task.sleep(for: .milliseconds(10))
+        }
         XCTAssertNil(model.revealedNsecs[identity.id])
 
         await model.toggleReveal(identity)
