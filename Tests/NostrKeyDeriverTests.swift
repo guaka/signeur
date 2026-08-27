@@ -10,6 +10,14 @@ final class NostrKeyDeriverTests: XCTestCase {
     private let pubkeyHex = "7e7e9c42a91bfef19fa929e5fda1b72e0ebc1a4c1141673e2794234d86addf4e"
     private let npub = "npub10elfcs4fr0l0r8af98jlmgdh9c8tcxjvz9qkw038js35mp4dma8qzvjptg"
 
+    func testGeneratedNsecIsAValidPrivateKey() throws {
+        let generated = try NostrKeyDeriver.generateNsec()
+
+        XCTAssertTrue(generated.hasPrefix("nsec1"))
+        XCTAssertEqual(try NostrKeyDeriver.secretKeyBytes(fromNsec: generated).count, 32)
+        XCTAssertTrue(try NostrKeyDeriver.deriveNpub(fromNsec: generated).hasPrefix("npub1"))
+    }
+
     func testSecretKeyBytesMatchNIP19Vector() throws {
         let bytes = try NostrKeyDeriver.secretKeyBytes(fromNsec: nsec)
         XCTAssertEqual(bytes.map { String(format: "%02x", $0) }.joined(), secretHex)

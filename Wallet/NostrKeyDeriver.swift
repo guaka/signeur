@@ -7,6 +7,11 @@ public enum NostrKeyDeriveError: Error, Equatable {
 }
 
 public enum NostrKeyDeriver {
+    public static func generateNsec() throws -> String {
+        let privateKey = try P256K.Signing.PrivateKey()
+        return try Bech32.encode(hrp: "nsec", bytes: Array(privateKey.dataRepresentation))
+    }
+
     public static func secretKeyBytes(fromNsec nsec: String) throws -> [UInt8] {
         let normalized = nsec.trimmingCharacters(in: .whitespacesAndNewlines)
         let raw = try Bech32.decode(normalized, expectedHRP: "nsec")

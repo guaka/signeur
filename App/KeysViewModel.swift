@@ -99,6 +99,18 @@ public final class KeysViewModel: ObservableObject {
         await refresh()
     }
 
+    public func generateKey() async {
+        guard !isSaving else { return }
+        do {
+            nsec = try NostrKeyDeriver.generateNsec()
+            await addKey()
+        } catch {
+            nsec = ""
+            statusMessage = nil
+            errorMessage = "A new key could not be generated. Please try again."
+        }
+    }
+
     public func setActive(_ identity: Identity) async {
         await identityStore.setActive(identityID: identity.id)
         await refresh()

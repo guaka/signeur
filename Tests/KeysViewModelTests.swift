@@ -44,6 +44,24 @@ final class KeysViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.activeIdentityID, active)
     }
 
+    func testGeneratingKeyStoresAValidNsecAndMakesTheFirstKeyActive() async {
+        let (viewModel, identityStore, store) = makeViewModel()
+        viewModel.displayName = "Generated"
+
+        await viewModel.generateKey()
+
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertEqual(viewModel.identities.first?.displayName, "Generated")
+        guard let identity = viewModel.identities.first else {
+            return XCTFail("Expected a generated identity")
+        }
+        let stored = try? await store.loadNsec(for: identity.id)
+        XCTAssertNotNil(stored)
+        XCTAssertNoThrow(try NostrKeyDeriver.deriveNpub(fromNsec: stored ?? ""))
+        let activeIdentityID = await identityStore.activeIdentityID()
+        XCTAssertEqual(activeIdentityID, identity.id)
+    }
+
     func testAddingSecondKeyLeavesFirstActive() async {
         let (viewModel, _, _) = makeViewModel()
         viewModel.nsec = TestVectors.nsec

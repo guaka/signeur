@@ -64,6 +64,7 @@ public final class ConnectedAppsViewModel: ObservableObject {
 
 public struct ConnectedAppsView: View {
     @ObservedObject private var viewModel: ConnectedAppsViewModel
+    @State private var connectionPendingDeletion: ConnectedAppItem?
 
     public init(viewModel: ConnectedAppsViewModel) {
         self.viewModel = viewModel
@@ -86,13 +87,46 @@ public struct ConnectedAppsView: View {
                 } label: {
                     ConnectedAppRow(app: app)
                 }
+#if os(iOS)
+                .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                    Button(role: .destructive) {
+                        connectionPendingDeletion = app
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                    }
+                }
+#endif
             }
         }
         .task {
             await viewModel.refresh()
         }
         .refreshable { await viewModel.refresh() }
+#if os(iOS)
+        .confirmationDialog(
+            "Delete connection to \(connectionPendingDeletion?.appName ?? "this app")?",
+            isPresented: deletionConfirmationIsPresented,
+            titleVisibility: .visible,
+            presenting: connectionPendingDeletion
+        ) { app in
+            Button("Delete Connection", role: .destructive) {
+                Task { await viewModel.revoke(app) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("Signstr will stop listening for this app and forget its remembered approvals.")
+        }
+#endif
     }
+
+#if os(iOS)
+    private var deletionConfirmationIsPresented: Binding<Bool> {
+        Binding(
+            get: { connectionPendingDeletion != nil },
+            set: { if !$0 { connectionPendingDeletion = nil } }
+        )
+    }
+#endif
 }
 
 private struct ConnectedAppRow: View {

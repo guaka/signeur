@@ -57,6 +57,16 @@ struct KeysView: View {
                     .disabled(!viewModel.canSave)
                 }
 
+                Button {
+                    focusedField = nil
+                    Task { await viewModel.generateKey() }
+                } label: {
+                    Label("Generate New Key", systemImage: "key.fill")
+                        .frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .disabled(viewModel.isSaving)
+
                 if let errorMessage = viewModel.errorMessage {
                     Text(errorMessage)
                         .foregroundStyle(.red)
@@ -70,7 +80,7 @@ struct KeysView: View {
 
             Section("Stored keys") {
                 if viewModel.identities.isEmpty {
-                    Text("No keys yet. Paste an nsec above to start signing.")
+                    Text("No keys yet. Import an nsec or generate a new key above to start signing.")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(viewModel.identities) { identity in
