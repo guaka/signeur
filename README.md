@@ -42,3 +42,7 @@ operation in memory only after the Keychain access check succeeds.
 ## Distribution
 
 Release preparation lives in [Distribution/README.md](Distribution/README.md). For the ordered 0.1.0 handoff, start with [Distribution/NEXT_STEPS.md](Distribution/NEXT_STEPS.md).
+
+## License
+
+Signstr is licensed under the [GNU Affero General Public License v3.0](LICENSE).
