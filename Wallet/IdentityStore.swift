@@ -1,17 +1,36 @@
 import Foundation
 import Security
 
+public enum IdentityOrigin: String, Codable, Equatable, Sendable {
+    case imported
+    case generated
+}
+
 public struct Identity: Codable, Equatable, Sendable, Identifiable {
     public let id: String
     public let displayName: String
     public let npub: String?
+    public let nip05: String?
+    public let origin: IdentityOrigin?
     public let createdAt: Date
+    public let lastUsedAt: Date?
 
-    public init(id: String, displayName: String, npub: String? = nil, createdAt: Date = Date()) {
+    public init(
+        id: String,
+        displayName: String,
+        npub: String? = nil,
+        nip05: String? = nil,
+        origin: IdentityOrigin? = nil,
+        createdAt: Date = Date(),
+        lastUsedAt: Date? = nil
+    ) {
         self.id = id
         self.displayName = displayName
         self.npub = npub
+        self.nip05 = nip05
+        self.origin = origin
         self.createdAt = createdAt
+        self.lastUsedAt = lastUsedAt
     }
 }
 
@@ -45,6 +64,36 @@ public actor IdentityStore {
             return
         }
         identities.append(identity)
+        persistIdentities()
+    }
+
+    public func updateNIP05(_ nip05: String, for identityID: String) {
+        guard let index = identities.firstIndex(where: { $0.id == identityID }) else { return }
+        let identity = identities[index]
+        identities[index] = Identity(
+            id: identity.id,
+            displayName: identity.displayName,
+            npub: identity.npub,
+            nip05: nip05,
+            origin: identity.origin,
+            createdAt: identity.createdAt,
+            lastUsedAt: identity.lastUsedAt
+        )
+        persistIdentities()
+    }
+
+    public func markUsed(identityID: String, at date: Date = Date()) {
+        guard let index = identities.firstIndex(where: { $0.id == identityID }) else { return }
+        let identity = identities[index]
+        identities[index] = Identity(
+            id: identity.id,
+            displayName: identity.displayName,
+            npub: identity.npub,
+            nip05: identity.nip05,
+            origin: identity.origin,
+            createdAt: identity.createdAt,
+            lastUsedAt: date
+        )
         persistIdentities()
     }
 

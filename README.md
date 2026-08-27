@@ -11,6 +11,21 @@ shells.
 [Browse the latest SignstrCore coverage report](https://guaka.github.io/signstr/),
 published from each successful `main` build with per-file annotated source.
 
+## How to use Signstr
+
+1. Open **Keys** and create a new key, or import an existing `nsec` private key.
+2. In a Nostr app, choose **Nostr Connect** or **remote signer**, then scan its
+   code on iPhone or paste its connection link on Mac.
+3. Read each request and approve only the actions you expect.
+
+**Nostr** is an open social network where apps exchange messages through relays.
+Your **public key** (`npub`) is your shareable identity. Your **private key**
+(`nsec`) controls that identity: keep it secret, and only import it into apps
+you trust. Signstr keeps the private key on your device and uses it when you
+approve a request.
+
+Source code: [github.com/guaka/signstr](https://github.com/guaka/signstr)
+
 ## Run the apps
 
 Open `Signstr.xcodeproj` and select either the `Signstr` iOS scheme or the

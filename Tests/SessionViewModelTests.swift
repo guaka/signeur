@@ -8,7 +8,8 @@ final class SessionViewModelTests: XCTestCase {
         transport: RecordingTransport = RecordingTransport(),
         permissionEvaluator: PermissionRuleEvaluating? = nil,
         identities: [Identity] = [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)],
-        activeIdentityID: String? = "id-1"
+        activeIdentityID: String? = "id-1",
+        connectionRegistry: ConnectionRegistering? = nil
     ) async -> (SessionViewModel, NIP46SessionManager) {
         let identityStore = IdentityStore(defaults: makeEphemeralDefaults(), seed: identities)
         if let activeIdentityID {
@@ -21,7 +22,14 @@ final class SessionViewModelTests: XCTestCase {
             authorizationGuard: AuthorizationGuard(),
             permissionEvaluator: permissionEvaluator
         )
-        return (SessionViewModel(sessionManager: manager, identityStore: identityStore), manager)
+        return (
+            SessionViewModel(
+                sessionManager: manager,
+                identityStore: identityStore,
+                connectionRegistry: connectionRegistry
+            ),
+            manager
+        )
     }
 
     func testIdleWhenNoRequestIsQueued() async {
@@ -173,4 +181,94 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(signCount, 0)
         XCTAssertEqual(viewModel.currentSession?.request.id, "a")
     }
+
+    func testApproveConnectionActivatesListenerWhenApproved() async {
+        let registry = SpyConnectionRegistry()
+        let executor = RecordingExecutor()
+        let (viewModel, manager) = await makeViewModel(
+            executor: executor,
+            connectionRegistry: registry
+        )
+        _ = await manager.onRequestArrived(
+            makeTestRequest(id: "connect", method: .connect, params: ["pairing-secret"])
+        )
+        await viewModel.refresh()
+
+        _ = await viewModel.approve()
+
+        let signCount = await executor.signCount()
+        let activated = await registry.activatedApps()
+        let forgotten = await registry.forgottenApps()
+        let registered = await registry.registeredApps()
+
+        XCTAssertEqual(signCount, 1)
+        XCTAssertEqual(activated, [TestVectors.pubkeyHex])
+        XCTAssertTrue(forgotten.isEmpty)
+        XCTAssertEqual(registered.count, 0)
+    }
+
+    func testRejectingAConnectionForgetsTheApp() async {
+        let registry = SpyConnectionRegistry()
+        let (viewModel, manager) = await makeViewModel(connectionRegistry: registry)
+        _ = await manager.onRequestArrived(
+            makeTestRequest(id: "connect", method: .connect, params: ["pairing-secret"])
+        )
+        await viewModel.refresh()
+
+        await viewModel.reject()
+
+        let forgotten = await registry.forgottenApps()
+        let activated = await registry.activatedApps()
+
+        XCTAssertEqual(forgotten, [TestVectors.pubkeyHex])
+        XCTAssertTrue(activated.isEmpty)
+    }
+
+    func testRememberedConnectionIsAutoApprovedAndActivated() async {
+        let registry = SpyConnectionRegistry()
+        let permissions = PermissionRuleStore(defaults: makeEphemeralDefaults())
+        await permissions.saveRememberRule(
+            for: makeTestRequest(id: "seed", method: .connect, params: ["pairing-secret"])
+        )
+        let executor = RecordingExecutor()
+        let (viewModel, manager) = await makeViewModel(
+            executor: executor,
+            permissionEvaluator: permissions,
+            connectionRegistry: registry
+        )
+        _ = await manager.onRequestArrived(
+            makeTestRequest(id: "connect-a", method: .connect, params: ["pairing-secret"])
+        )
+        await viewModel.refresh()
+
+        let signCount = await executor.signCount()
+        let activated = await registry.activatedApps()
+
+        XCTAssertEqual(signCount, 1)
+        XCTAssertEqual(activated, [TestVectors.pubkeyHex])
+        XCTAssertNil(viewModel.currentSession)
+        XCTAssertEqual(viewModel.sessionState, .idle)
+    }
+}
+
+private actor SpyConnectionRegistry: ConnectionRegistering {
+    private(set) var activatedApps: [String] = []
+    private(set) var forgottenApps: [String] = []
+    private(set) var registeredApps: [String] = []
+
+    func register(pairing: DeepLinkRequest, identityID: String) async {
+        registeredApps.append(pairing.clientPubkey)
+    }
+
+    func activate(appPubkey: String) async {
+        activatedApps.append(appPubkey)
+    }
+
+    func forget(appPubkey: String) async {
+        forgottenApps.append(appPubkey)
+    }
+
+    func registeredApps() async -> [String] { registeredApps }
+    func activatedApps() async -> [String] { activatedApps }
+    func forgottenApps() async -> [String] { forgottenApps }
 }

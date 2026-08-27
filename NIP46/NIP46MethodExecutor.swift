@@ -23,10 +23,16 @@ public protocol NIP46RequestExecuting: Sendable {
 /// a signed event JSON for `sign_event`, a pubkey for `get_public_key`, and so on.
 public actor NIP46MethodExecutor: NIP46RequestExecuting {
     private let nsecStore: NsecStoring
+    private let identityStore: IdentityStore?
     private let now: @Sendable () -> Date
 
-    public init(nsecStore: NsecStoring, now: @escaping @Sendable () -> Date = { Date() }) {
+    public init(
+        nsecStore: NsecStoring,
+        identityStore: IdentityStore? = nil,
+        now: @escaping @Sendable () -> Date = { Date() }
+    ) {
         self.nsecStore = nsecStore
+        self.identityStore = identityStore
         self.now = now
     }
 
@@ -108,7 +114,9 @@ public actor NIP46MethodExecutor: NIP46RequestExecuting {
             throw NIP46ExecutionError.noKeyStoredForIdentity
         }
         do {
-            return try NostrKeyDeriver.secretKeyBytes(fromNsec: nsec)
+            let secret = try NostrKeyDeriver.secretKeyBytes(fromNsec: nsec)
+            await identityStore?.markUsed(identityID: identityID, at: now())
+            return secret
         } catch {
             throw NIP46ExecutionError.invalidStoredKey
         }

@@ -36,6 +36,7 @@ final class KeysViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.errorMessage)
         XCTAssertEqual(viewModel.identities.count, 1)
         XCTAssertEqual(viewModel.identities.first?.npub, TestVectors.npub)
+        XCTAssertEqual(viewModel.identities.first?.origin, .imported)
         let identityID = viewModel.identities[0].id
         let stored = try? await store.loadNsec(for: identityID)
         XCTAssertEqual(stored, TestVectors.nsec)
@@ -61,6 +62,7 @@ final class KeysViewModelTests: XCTestCase {
 
         XCTAssertNil(viewModel.errorMessage)
         XCTAssertEqual(viewModel.identities.first?.displayName, "Generated")
+        XCTAssertEqual(viewModel.identities.first?.origin, .generated)
         guard let identity = viewModel.identities.first else {
             return XCTFail("Expected a generated identity")
         }
@@ -69,6 +71,24 @@ final class KeysViewModelTests: XCTestCase {
         XCTAssertNoThrow(try NostrKeyDeriver.deriveNpub(fromNsec: stored ?? ""))
         let activeIdentityID = await identityStore.activeIdentityID()
         XCTAssertEqual(activeIdentityID, identity.id)
+    }
+
+    func testProtectedStorageFailureDoesNotCreateGeneratedIdentity() async {
+        let identityStore = IdentityStore(defaults: makeEphemeralDefaults())
+        let viewModel = KeysViewModel(
+            identityStore: identityStore,
+            nsecStore: ProtectedStorageFailingNsecStore()
+        )
+
+        await viewModel.generateKey()
+
+        XCTAssertEqual(
+            viewModel.errorMessage,
+            "Keychain could not create protected storage. Please try again. (error -34010)"
+        )
+        XCTAssertTrue(viewModel.identities.isEmpty)
+        let persistedIdentities = await identityStore.list()
+        XCTAssertTrue(persistedIdentities.isEmpty)
     }
 
     func testAddingSecondKeyLeavesFirstActive() async {
@@ -95,6 +115,22 @@ final class KeysViewModelTests: XCTestCase {
         XCTAssertTrue(viewModel.displayName.isEmpty)
         XCTAssertEqual(viewModel.statusMessage, "Saved Main.")
         XCTAssertEqual(viewModel.identities.first?.displayName, "Main")
+    }
+
+    func testSavedStatusFadesAfterItsDisplayWindow() async {
+        let identityStore = IdentityStore(defaults: makeEphemeralDefaults())
+        let viewModel = KeysViewModel(
+            identityStore: identityStore,
+            nsecStore: InMemoryNsecStore(),
+            statusDuration: .milliseconds(10)
+        )
+        viewModel.nsec = TestVectors.nsec
+
+        await viewModel.addKey()
+        XCTAssertEqual(viewModel.statusMessage, "Saved Key 1.")
+
+        try? await Task.sleep(for: .milliseconds(30))
+        XCTAssertNil(viewModel.statusMessage)
     }
 
     func testUnnamedKeysGetGeneratedNames() async {
@@ -142,6 +178,42 @@ final class KeysViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.identities.first?.displayName, "Key 1")
         let lookedUpPubkeys = await lookup.lookedUpPubkeys()
         XCTAssertTrue(lookedUpPubkeys.isEmpty)
+    }
+
+    func testSyncChecksExistingKeysAndStoresVerifiedNIP05() async {
+        let lookup = StubProfileLookup(
+            metadata: NostrProfileMetadata(displayName: "Remote name", nip05: "kasper@trustroots.org")
+        )
+        let (viewModel, identityStore, _) = makeViewModel(profileLookup: lookup)
+        await identityStore.add(Identity(id: "known", displayName: "Personal", npub: TestVectors.npub))
+        await viewModel.refresh()
+
+        await viewModel.syncNIP05()
+
+        XCTAssertEqual(viewModel.identities.first?.displayName, "Personal")
+        XCTAssertEqual(viewModel.identities.first?.nip05, "kasper@trustroots.org")
+        XCTAssertEqual(viewModel.statusMessage, "Checked 1 key. Found 1 NIP-05 address.")
+        let lookedUpPubkeys = await lookup.lookedUpPubkeys()
+        XCTAssertEqual(lookedUpPubkeys, [TestVectors.pubkeyHex])
+    }
+
+    func testSyncDoesNotReplaceExistingNIP05WhenLookupFindsNone() async {
+        let lookup = StubProfileLookup(metadata: nil)
+        let (viewModel, identityStore, _) = makeViewModel(profileLookup: lookup)
+        await identityStore.add(
+            Identity(
+                id: "known",
+                displayName: "Personal",
+                npub: TestVectors.npub,
+                nip05: "existing@example.com"
+            )
+        )
+        await viewModel.refresh()
+
+        await viewModel.syncNIP05()
+
+        XCTAssertEqual(viewModel.identities.first?.nip05, "existing@example.com")
+        XCTAssertEqual(viewModel.statusMessage, "Checked 1 key. Found 0 NIP-05 addresses.")
     }
 
     func testAcceptsPastedKeyWithWhitespaceAndCasing() async {
@@ -262,4 +334,16 @@ final class KeysViewModelTests: XCTestCase {
         viewModel.applyPastedValue(nil)
         XCTAssertEqual(viewModel.errorMessage, "The clipboard is empty.")
     }
+}
+
+private actor ProtectedStorageFailingNsecStore: NsecStoring {
+    func saveNsec(_ nsec: String, for identityID: String) async throws {
+        throw NsecStoreError.unexpectedStatus(-34010)
+    }
+
+    func loadNsec(for identityID: String) async -> String? { nil }
+
+    func hasNsec(for identityID: String) async -> Bool { false }
+
+    func deleteNsec(for identityID: String) async {}
 }

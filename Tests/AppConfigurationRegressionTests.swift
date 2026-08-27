@@ -48,13 +48,23 @@ final class AppConfigurationRegressionTests: XCTestCase {
     func testMacSidebarLogoUsesEnlargedSize() throws {
         let source = try String(contentsOf: repositoryFile("MacOSApp/MacRootView.swift"))
 
-        XCTAssertTrue(source.contains(".frame(width: 52, height: 52)"))
+        XCTAssertTrue(source.contains(".frame(width: 76, height: 76)"))
+        XCTAssertTrue(source.contains(".font(.title2.bold())"))
+        XCTAssertTrue(source.contains(".font(.body.weight(.medium))"))
     }
 
     func testIOSNavigationLogoUsesEnlargedSize() throws {
         let source = try String(contentsOf: repositoryFile("iOSApp/RootView.swift"))
 
         XCTAssertTrue(source.contains(".frame(width: 30, height: 30)"))
+    }
+
+    func testIOSLocksKeySessionOnlyAfterEnteringBackground() throws {
+        let source = try String(contentsOf: repositoryFile("iOSApp/RootView.swift"))
+
+        XCTAssertTrue(source.contains("UIApplication.didEnterBackgroundNotification"))
+        XCTAssertFalse(source.contains("UIApplication.willResignActiveNotification"))
+        XCTAssertTrue(source.contains("await AppBootstrap.lockKeySession()"))
     }
 
     private func repositoryFile(_ relativePath: String) -> URL {

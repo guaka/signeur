@@ -22,6 +22,25 @@ final class NIP46MethodExecutorTests: XCTestCase {
         XCTAssertEqual(result, TestVectors.pubkeyHex)
     }
 
+    func testUsingPrivateKeyRecordsLastUsedTimestamp() async throws {
+        let usedAt = Date(timeIntervalSince1970: 1_700_000_000)
+        let identityStore = IdentityStore(defaults: makeEphemeralDefaults())
+        await identityStore.add(Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub))
+        let executor = NIP46MethodExecutor(
+            nsecStore: InMemoryNsecStore(keys: ["id-1": TestVectors.nsec]),
+            identityStore: identityStore,
+            now: { usedAt }
+        )
+
+        _ = try await executor.execute(
+            makeTestRequest(method: .getPublicKey, params: []),
+            identityID: "id-1"
+        )
+
+        let identity = await identityStore.list().first
+        XCTAssertEqual(identity?.lastUsedAt, usedAt)
+    }
+
     func testPingReturnsPong() async throws {
         let result = try await makeExecutor().execute(makeTestRequest(method: .ping, params: []), identityID: "id-1")
 

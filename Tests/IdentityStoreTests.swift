@@ -44,6 +44,46 @@ final class IdentityStoreTests: XCTestCase {
         XCTAssertEqual(identities.first?.displayName, "First")
     }
 
+    func testUpdatingNIP05PreservesIdentityDetailsAndPersists() async {
+        let defaults = makeEphemeralDefaults()
+        let createdAt = Date(timeIntervalSince1970: 123)
+        let store = IdentityStore(defaults: defaults)
+        await store.add(Identity(id: "a", displayName: "Personal", npub: TestVectors.npub, createdAt: createdAt))
+
+        await store.updateNIP05("kasper@trustroots.org", for: "a")
+
+        let reloaded = IdentityStore(defaults: defaults)
+        let identity = await reloaded.list().first
+        XCTAssertEqual(identity?.displayName, "Personal")
+        XCTAssertEqual(identity?.npub, TestVectors.npub)
+        XCTAssertEqual(identity?.nip05, "kasper@trustroots.org")
+        XCTAssertEqual(identity?.createdAt, createdAt)
+    }
+
+    func testMarkingIdentityUsedPersistsTimestampAndPreservesMetadata() async {
+        let defaults = makeEphemeralDefaults()
+        let createdAt = Date(timeIntervalSince1970: 123)
+        let usedAt = Date(timeIntervalSince1970: 456)
+        let store = IdentityStore(defaults: defaults)
+        await store.add(
+            Identity(
+                id: "a",
+                displayName: "Personal",
+                npub: TestVectors.npub,
+                nip05: "kasper@trustroots.org",
+                createdAt: createdAt
+            )
+        )
+
+        await store.markUsed(identityID: "a", at: usedAt)
+
+        let identity = await IdentityStore(defaults: defaults).list().first
+        XCTAssertEqual(identity?.displayName, "Personal")
+        XCTAssertEqual(identity?.nip05, "kasper@trustroots.org")
+        XCTAssertEqual(identity?.createdAt, createdAt)
+        XCTAssertEqual(identity?.lastUsedAt, usedAt)
+    }
+
     func testDeletingActiveIdentityPromotesAnother() async {
         let store = IdentityStore(defaults: makeEphemeralDefaults())
         await store.add(Identity(id: "a", displayName: "A"))

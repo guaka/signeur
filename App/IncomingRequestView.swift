@@ -49,16 +49,16 @@ public struct IncomingRequestView: View {
     }
 
     private var idleContent: some View {
-        VStack(spacing: 12) {
+        VStack(alignment: idleHorizontalAlignment, spacing: 14) {
             Image(systemName: "checkmark.shield")
                 .font(.system(size: 44))
                 .foregroundStyle(.secondary)
             Text("No pending requests")
-                .font(.headline)
+                .font(.title2.bold())
             Text("Signstr is ready. Approve requests here when an app asks you to sign.")
-                .font(.footnote)
+                .font(.body)
                 .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
+                .multilineTextAlignment(idleTextAlignment)
             if !connectActions.isEmpty {
                 VStack(spacing: 8) {
                     ForEach(connectActions) { item in
@@ -76,11 +76,35 @@ public struct IncomingRequestView: View {
                 Text(errorMessage)
                     .foregroundStyle(.red)
                     .font(.footnote)
-                    .multilineTextAlignment(.center)
+                    .multilineTextAlignment(idleTextAlignment)
             }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: idleFrameAlignment)
         .padding()
+    }
+
+    private var idleHorizontalAlignment: HorizontalAlignment {
+#if os(macOS)
+        .leading
+#else
+        .center
+#endif
+    }
+
+    private var idleTextAlignment: TextAlignment {
+#if os(macOS)
+        .leading
+#else
+        .center
+#endif
+    }
+
+    private var idleFrameAlignment: Alignment {
+#if os(macOS)
+        .topLeading
+#else
+        .center
+#endif
     }
 
     private func approvalContent(for session: NIP46Session) -> some View {
