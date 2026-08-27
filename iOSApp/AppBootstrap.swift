@@ -74,6 +74,10 @@ enum AppBootstrap {
         await relayListener.start()
     }
 
+    static func lockKeySession() async {
+        await nsecStore.lock()
+    }
+
     @MainActor
     static func makeSessionViewModel() -> SessionViewModel {
         SessionViewModel(

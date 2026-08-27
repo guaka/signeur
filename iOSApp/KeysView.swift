@@ -5,6 +5,7 @@ import SignstrCore
 struct KeysView: View {
     @ObservedObject var viewModel: KeysViewModel
     @State private var showNsecInput = false
+    @State private var identityPendingDeletion: Identity?
     @FocusState private var focusedField: Field?
 
     private enum Field: Hashable {
@@ -103,6 +104,19 @@ struct KeysView: View {
             showNsecInput = false
             viewModel.hideAllRevealedKeys()
         }
+        .confirmationDialog(
+            "Delete \(identityPendingDeletion?.displayName ?? "this key")?",
+            isPresented: deletionConfirmationIsPresented,
+            titleVisibility: .visible,
+            presenting: identityPendingDeletion
+        ) { identity in
+            Button("Delete Key", role: .destructive) {
+                Task { await viewModel.deleteIdentity(identity) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("This permanently removes the key and its nsec from this device. This cannot be undone.")
+        }
     }
 
     private func identityRow(_ identity: Identity) -> some View {
@@ -147,7 +161,7 @@ struct KeysView: View {
                     .font(.caption)
                 }
                 Button("Delete", role: .destructive) {
-                    Task { await viewModel.deleteIdentity(identity) }
+                    identityPendingDeletion = identity
                 }
                 .font(.caption)
             }
@@ -155,5 +169,12 @@ struct KeysView: View {
             .padding(.top, 2)
         }
         .padding(.vertical, 4)
+    }
+
+    private var deletionConfirmationIsPresented: Binding<Bool> {
+        Binding(
+            get: { identityPendingDeletion != nil },
+            set: { if !$0 { identityPendingDeletion = nil } }
+        )
     }
 }

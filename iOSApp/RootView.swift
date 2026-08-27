@@ -70,8 +70,8 @@ struct RootView: View {
                             Image(uiImage: icon)
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 26, height: 26)
-                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                .frame(width: 30, height: 30)
+                                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                         }
                         Text("Signstr")
                             .font(.headline)
@@ -114,6 +114,9 @@ struct RootView: View {
                     pairingErrorMessage = pairingVM.errorMessage
                 }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willResignActiveNotification)) { _ in
+            Task { await AppBootstrap.lockKeySession() }
         }
     }
 

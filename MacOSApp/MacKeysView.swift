@@ -5,6 +5,7 @@ import SwiftUI
 struct MacKeysView: View {
     @ObservedObject var viewModel: KeysViewModel
     @State private var showNsecInput = false
+    @State private var identityPendingDeletion: Identity?
     @FocusState private var focusedField: Field?
 
     private enum Field: Hashable {
@@ -98,6 +99,19 @@ struct MacKeysView: View {
             showNsecInput = false
             viewModel.hideAllRevealedKeys()
         }
+        .confirmationDialog(
+            "Delete \(identityPendingDeletion?.displayName ?? "this key")?",
+            isPresented: deletionConfirmationIsPresented,
+            titleVisibility: .visible,
+            presenting: identityPendingDeletion
+        ) { identity in
+            Button("Delete Key", role: .destructive) {
+                Task { await viewModel.deleteIdentity(identity) }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: { _ in
+            Text("This permanently removes the key and its nsec from this Mac. This cannot be undone.")
+        }
     }
 
     private func identityRow(_ identity: Identity) -> some View {
@@ -136,11 +150,18 @@ struct MacKeysView: View {
                     }
                 }
                 Button("Delete", role: .destructive) {
-                    Task { await viewModel.deleteIdentity(identity) }
+                    identityPendingDeletion = identity
                 }
             }
             .controlSize(.small)
         }
         .padding(.vertical, 6)
+    }
+
+    private var deletionConfirmationIsPresented: Binding<Bool> {
+        Binding(
+            get: { identityPendingDeletion != nil },
+            set: { if !$0 { identityPendingDeletion = nil } }
+        )
     }
 }
