@@ -1,0 +1,16 @@
+{
+  "name": "signstr-coverage-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "esbuild nip46-tester.source.mjs --bundle --platform=browser --format=esm --target=es2022 --minify --legal-comments=inline --outfile=nip46-tester.mjs",
+    "test": "node --test nip46-tester.test.mjs"
+  },
+  "dependencies": {
+    "nostr-tools": "2.25.0",
+    "qrcode": "1.5.4"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}
