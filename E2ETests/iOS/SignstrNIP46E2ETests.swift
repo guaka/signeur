@@ -26,12 +26,17 @@ final class SignstrNIP46E2ETests: XCTestCase {
         XCTAssertTrue(loadTestPage(in: safari, until: start), "Expected the published NIP-46 tester to load")
         scrollAndTap(start, in: webView)
 
-        let openInSignstr = webView.links["Open in Signstr"]
-        XCTAssertTrue(openInSignstr.waitForExistence(timeout: 30))
-        scrollAndTap(openInSignstr, in: webView)
-        confirmOpeningSignstrIfNeeded(in: safari)
+        let connectionLink = webView.textViews.firstMatch
+        XCTAssertTrue(connectionLink.waitForExistence(timeout: 30))
+        guard
+            let rawConnectionLink = connectionLink.value as? String,
+            let connectionURL = URL(string: rawConnectionLink)
+        else {
+            XCTFail("Expected the tester to expose a valid Nostr Connect link")
+            return
+        }
 
-        signstr.activate()
+        signstr.open(connectionURL)
         approve("Approve Connection", in: signstr)
 
         // iOS may suspend Safari while Signstr is foregrounded. Bring it back so the
@@ -60,28 +65,6 @@ final class SignstrNIP46E2ETests: XCTestCase {
             if element.waitForExistence(timeout: 20) { return true }
         }
         return false
-    }
-
-    private func confirmOpeningSignstrIfNeeded(in safari: XCUIApplication) {
-        let confirmationDialog = safari.otherElements["SFDialogView"]
-        if confirmationDialog.waitForExistence(timeout: 3) {
-            let confirmationButton = confirmationDialog.buttons.element(boundBy: 1)
-            if confirmationButton.exists {
-                confirmationButton.tap()
-                return
-            }
-        }
-
-        let safariOpen = safari.buttons["Open"]
-        if safariOpen.waitForExistence(timeout: 3) {
-            safariOpen.tap()
-            return
-        }
-        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
-        let systemOpen = springboard.buttons["Open"]
-        if systemOpen.waitForExistence(timeout: 3) {
-            systemOpen.tap()
-        }
     }
 
     private func approve(_ title: String, in app: XCUIApplication) {

@@ -65,19 +65,16 @@ jobs:
 
       - name: Run live NIP-46 E2E on macOS
         id: e2e_macos
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: Scripts/run-nip46-e2e.sh macos
 
       - name: Run live NIP-46 E2E on iOS
         id: e2e_ios
-        if: github.event_name != 'pull_request'
         continue-on-error: true
         run: Scripts/run-nip46-e2e.sh ios
 
       - name: Generate coverage and E2E report
         env:
-          SIGNSTR_E2E_GENERATED: ${{ github.event_name == 'pull_request' && 'Not run on pull requests' || '' }}
           SIGNSTR_E2E_IOS_STATUS: ${{ steps.e2e_ios.outcome }}
           SIGNSTR_E2E_MACOS_STATUS: ${{ steps.e2e_macos.outcome }}
         run: |
@@ -107,8 +104,7 @@ jobs:
 
       - name: Fail when a live E2E platform failed
         if: >-
-          github.event_name != 'pull_request' &&
-          (steps.e2e_ios.outcome == 'failure' || steps.e2e_macos.outcome == 'failure')
+          steps.e2e_ios.outcome == 'failure' || steps.e2e_macos.outcome == 'failure'
         run: exit 1
 
   deploy-coverage:
