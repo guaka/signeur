@@ -14,10 +14,13 @@ run_ios() {
         echo "No available iPhone simulator was found." >&2
         exit 1
     fi
+    xcrun simctl boot "${destination_id}" 2>/dev/null || true
+    xcrun simctl bootstatus "${destination_id}" -b
     xcodebuild \
         -project "${repository_root}/Signstr.xcodeproj" \
         -scheme Signstr \
         -destination "platform=iOS Simulator,id=${destination_id}" \
+        -parallel-testing-enabled NO \
         -skipPackagePluginValidation \
         -only-testing:SignstrE2ETests \
         test
