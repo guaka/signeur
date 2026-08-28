@@ -51,6 +51,15 @@ final class SignstrNIP46E2ETests: XCTestCase {
     }
 
     private func confirmOpeningSignstrIfNeeded(in safari: XCUIApplication) {
+        let confirmationDialog = safari.otherElements["SFDialogView"]
+        if confirmationDialog.waitForExistence(timeout: 3) {
+            let confirmationButton = confirmationDialog.buttons.element(boundBy: 1)
+            if confirmationButton.exists {
+                confirmationButton.tap()
+                return
+            }
+        }
+
         let safariOpen = safari.buttons["Open"]
         if safariOpen.waitForExistence(timeout: 3) {
             safariOpen.tap()
