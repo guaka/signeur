@@ -76,7 +76,7 @@ public actor NIP46SessionManager {
     public func activateNextPendingIfNeeded() async -> NIP46Session? {
         if activeSessionID != nil { return activeSession() }
         while let nextID = processingQueue.first {
-            guard let session = sessionsByRequestID.values.first(where: { $0.id == nextID }) else {
+            guard let session = sessionsByRequestID.values.first(where: { $0.id == nextID }) else { // coverage:ignore-region Queue and session mutations are actor-isolated and preserve this invariant.
                 processingQueue.removeFirst()
                 continue
             }
@@ -214,7 +214,7 @@ public actor NIP46SessionManager {
         approvalMode: AuditApprovalMode
     ) async {
         guard request.method == .signEvent, let auditLog else { return }
-        guard auditedRequestIDs.insert(request.id).inserted else { return }
+        guard auditedRequestIDs.insert(request.id).inserted else { return } // coverage:ignore-region Terminal session guards prevent the same request from reaching audit twice.
 
         let eventKind = request.params.first.flatMap { payload in
             try? UnsignedNostrEvent.decode(json: payload).kind

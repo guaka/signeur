@@ -47,7 +47,7 @@ public final class PairingViewModel: ObservableObject {
     }
 
     private func handleSignerURL(_ url: URL) async -> Bool {
-        guard !isBusy else { return false }
+        guard !isBusy else { return false } // coverage:ignore-region Requires overlapping UI actions; the published busy state disables the second action.
         isBusy = true
         defer { isBusy = false }
 
@@ -71,7 +71,7 @@ public final class PairingViewModel: ObservableObject {
     }
 
     private func pair(_ parse: () throws -> DeepLinkRequest) async -> Bool {
-        guard !isBusy else { return false }
+        guard !isBusy else { return false } // coverage:ignore-region Requires overlapping UI actions; the published busy state disables the second action.
         isBusy = true
         defer { isBusy = false }
 

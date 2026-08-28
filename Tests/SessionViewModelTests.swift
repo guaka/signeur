@@ -42,6 +42,15 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.sessionState, .idle)
     }
 
+    func testIdleApprovalAndRejectionAreNoOps() async {
+        let (viewModel, _) = await makeViewModel()
+
+        let approved = await viewModel.approve()
+        XCTAssertFalse(approved)
+        await viewModel.reject()
+        XCTAssertEqual(viewModel.sessionState, .idle)
+    }
+
     func testRefreshPresentsQueuedRequestAndActiveIdentity() async {
         let (viewModel, manager) = await makeViewModel()
         _ = await manager.onRequestArrived(makeTestRequest(id: "a"))

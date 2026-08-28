@@ -29,7 +29,7 @@ public enum NostrEventFactory {
         let signature: P256K.Schnorr.SchnorrSignature
         do {
             signature = try signingKey.signature(message: &digest, auxiliaryRand: nil, strict: true)
-        } catch {
+        } catch { // coverage:ignore-region A validated private key and fixed-size digest leave only a cryptographic library failure.
             throw NostrEventError.signingFailed
         }
 

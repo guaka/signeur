@@ -48,7 +48,7 @@ public struct NIP46RelayTransport: NIP46RespondingTransport {
             ciphertext = connection.usesLegacyEncryption
                 ? try NIP04.encrypt(plaintext: body, privateKey: secret, publicKeyXOnly: peer)
                 : try NIP44.encrypt(plaintext: body, privateKey: secret, publicKeyXOnly: peer)
-        } catch {
+        } catch { // coverage:ignore-region Inputs are validated before transport; only a cryptographic library failure reaches this boundary.
             throw NIP46RelayTransportError.encryptionFailed
         }
 

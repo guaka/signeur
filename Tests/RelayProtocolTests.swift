@@ -43,6 +43,7 @@ final class RelayFrameTests: XCTestCase {
         XCTAssertNil(RelayFrame.decode("{\"not\":\"an array\"}"))
         XCTAssertNil(RelayFrame.decode("[\"WAT\",\"x\"]"))
         XCTAssertNil(RelayFrame.decode("[\"OK\"]"))
+        XCTAssertNil(RelayFrame.decode("[\"CLOSED\"]"))
         XCTAssertNil(RelayFrame.decode("[\"EVENT\",\"sub-1\",{\"kind\":1}]"), "an event missing id/sig is not usable")
     }
 
@@ -237,6 +238,25 @@ final class NostrRelayPoolTests: XCTestCase {
 
         let items = await received.items()
         XCTAssertEqual(items.count, 1, "relays echo each other; the user must be asked once")
+        await pool.stop()
+    }
+
+    func testSeenEventWindowEvictsItsOldestEntry() async throws {
+        let sockets = SocketRegistry()
+        let pool = NostrRelayPool(socketFactory: { url in sockets.socket(for: url) }, seenEventLimit: 1)
+        let received = Collector<NostrEvent>()
+        await pool.setEventHandler { event in await received.append(event) }
+        await pool.subscribe(subscriptionID: "sub-1", recipientPubkey: TestVectors.pubkeyHex, on: [relayA])
+
+        for content in ["first", "second", "first"] {
+            let event = try makeEvent(content: content)
+            let frame = "[\"EVENT\",\"sub-1\"," + (try NostrEventFactory.json(for: event)) + "]"
+            await sockets.socket(for: relayA).deliver(frame)
+            try await Task.sleep(for: .milliseconds(20))
+        }
+
+        let items = await received.items()
+        XCTAssertEqual(items.map(\.content), ["first", "second", "first"])
         await pool.stop()
     }
 

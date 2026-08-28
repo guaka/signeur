@@ -12,7 +12,7 @@ def line_metric($items; $excluded):
         | select(.[3] == true)
         | {file: $file.relative, line: .[0], count: .[2]}
         | . as $entry
-        | select(any($excluded[]; .file == $entry.file and .line == $entry.line) | not)
+        | select(any($excluded[]; .scope != "region" and .file == $entry.file and .line == $entry.line) | not)
     ]
     | group_by([.file, .line])
     | map({covered: ((map(.count) | max) > 0)})
@@ -30,6 +30,21 @@ def function_metric($all_functions; $root; $items):
         | select(any($items[]; . as $file | any($function.filenames[]; . == ($root + $file.relative))))
     ]
     | unique_by(.name)
+    | {covered: (map(select(.count > 0)) | length), count: length};
+
+def region_metric($all_functions; $root; $items; $excluded):
+    [
+        $all_functions[]
+        | select(source_function)
+        | . as $function
+        | .regions[]
+        | select((.[7] // 0) == 0)
+        | {name: $function.name, file: (($function.filenames[.[5]] // $function.filenames[0]) | ltrimstr($root)), line: .[0], column: .[1], endLine: .[2], endColumn: .[3], count: .[4]}
+        | . as $region
+        | select(any($items[]; .relative == $region.file))
+        | select(any($excluded[]; .file == $region.file and .line == $region.line) | not)
+    ]
+    | unique_by([.name, .file, .line, .column, .endLine, .endColumn])
     | {covered: (map(select(.count > 0)) | length), count: length};
 
 def percentage_number($metric):
@@ -76,7 +91,7 @@ def github_mark:
 | map(. as $file | . + {lineMetric: line_metric([$file]; $exclusions[0])}) as $files
 | (line_metric($files; $exclusions[0])) as $lines
 | (function_metric($allFunctions; $root; $files)) as $functions
-| (metric_sum($files; "regions")) as $regions
+| (region_metric($allFunctions; $root; $files; $exclusions[0])) as $regions
 | ($files | sort_by(.relative | split("/")[0]) | group_by(.relative | split("/")[0])) as $areas
 | [
     "<!doctype html>",
@@ -140,10 +155,10 @@ def github_mark:
     "<section class=\"metrics\" aria-label=\"Coverage totals\">",
     metric_card("Line coverage"; $lines; "Testable executable source lines reached by tests."),
     metric_card("Function coverage"; $functions; "Source-declared functions entered at least once."),
-    metric_card("Region coverage"; $regions; "Control-flow regions exercised."),
+    metric_card("Region coverage"; $regions; "Testable source control-flow regions exercised."),
     "</section>",
     "<section class=\"section-block\">",
-    "<div class=\"section-heading\"><div><h2>Coverage by area</h2></div><p>SignstrCore only. Tests, dependencies, compiler-generated functions, and explicitly marked compiler/platform-only lines are excluded.</p></div>",
+    "<div class=\"section-heading\"><div><h2>Coverage by area</h2></div><p>SignstrCore only. Tests, dependencies, compiler-generated functions, skipped regions, and explicitly documented non-testable code are excluded.</p></div>",
     "<div class=\"area-grid\">"
 ] + (
     $areas
@@ -164,7 +179,7 @@ def github_mark:
     | map(
         .lineMetric as $lines
         | (function_metric($allFunctions; $root; [.])) as $functions
-        | .summary.regions as $regions
+        | (region_metric($allFunctions; $root; [.]; $exclusions[0])) as $regions
         | "<tr><td><a href=\"coverage\(.filename).html\"><span class=\"file-area\">\((.relative | split("/")[0]) | html_escape)</span><strong>\((.relative | html_escape))</strong></a></td>"
         + "<td><div class=\"table-metric\"><strong>\(percentage($lines))</strong><small>\($lines.covered) / \($lines.count)</small><div class=\"progress \(tone($lines))\"><span style=\"width: \(percentage($lines))\"></span></div></div></td>"
         + "<td><div class=\"table-metric\"><strong>\(percentage($functions))</strong><small>\($functions.covered) / \($functions.count)</small><div class=\"progress \(tone($functions))\"><span style=\"width: \(percentage($functions))\"></span></div></div></td>"

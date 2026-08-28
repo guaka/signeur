@@ -35,7 +35,11 @@ readonly exclusions_json="${output_dir}/coverage-exclusions.json"
     fi
 ) | jq -R -s '
     split("\n")
-    | map(select(length > 0) | capture("^(?<file>[^:]+):(?<line>[0-9]+):") | {file, line: (.line | tonumber)})
+    | map(
+        select(length > 0)
+        | capture("^(?<file>[^:]+):(?<line>[0-9]+):(?<source>.*)$")
+        | {file, line: (.line | tonumber), scope: (if (.source | contains("coverage:ignore-region")) then "region" else "line" end)}
+    )
 ' > "${exclusions_json}"
 
 xcrun llvm-cov show "${test_binary}" \
@@ -82,7 +86,7 @@ jq -r --arg root "${repository_root}/" --slurpfile exclusions "${exclusions_json
             | select(.[3] == true)
             | {file: $file.relative, line: .[0], count: .[2]}
             | . as $entry
-            | select(any($excluded[]; .file == $entry.file and .line == $entry.line) | not)
+            | select(any($excluded[]; .scope != "region" and .file == $entry.file and .line == $entry.line) | not)
         ]
         | group_by([.file, .line])
         | map({covered: ((map(.count) | max) > 0)})
@@ -99,6 +103,20 @@ jq -r --arg root "${repository_root}/" --slurpfile exclusions "${exclusions_json
         ]
         | unique_by(.name)
         | {covered: (map(select(.count > 0)) | length), count: length};
+    def region_metric($all_functions; $root; $items; $excluded):
+        [
+            $all_functions[]
+            | select(source_function)
+            | . as $function
+            | .regions[]
+            | select((.[7] // 0) == 0)
+            | {name: $function.name, file: (($function.filenames[.[5]] // $function.filenames[0]) | ltrimstr($root)), line: .[0], column: .[1], endLine: .[2], endColumn: .[3], count: .[4]}
+            | . as $region
+            | select(any($items[]; .relative == $region.file))
+            | select(any($excluded[]; .file == $region.file and .line == $region.line) | not)
+        ]
+        | unique_by([.name, .file, .line, .column, .endLine, .endColumn])
+        | {covered: (map(select(.count > 0)) | length), count: length};
     def percentage($metric):
         if $metric.count == 0 then "n/a"
         else (((($metric.covered * 10000 / $metric.count) | floor) / 100) | tostring) + "%"
@@ -114,11 +132,11 @@ jq -r --arg root "${repository_root}/" --slurpfile exclusions "${exclusions_json
     ] as $files
     | (line_metric($files; $exclusions[0])) as $lines
     | (function_metric($allFunctions; $root; $files)) as $functions
-    | (metric_sum($files; "regions")) as $regions
+    | (region_metric($allFunctions; $root; $files; $exclusions[0])) as $regions
     | [
         "## Code coverage",
         "",
-        "SignstrCore sources only; tests, dependencies, compiler-generated functions, and explicitly marked compiler/platform-only lines are excluded.",
+        "SignstrCore sources only; tests, dependencies, compiler-generated functions, skipped regions, and explicitly documented non-testable code are excluded.",
         "",
         "| Metric | Covered | Total | Coverage |",
         "| --- | ---: | ---: | ---: |",

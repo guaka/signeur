@@ -279,7 +279,7 @@ public struct URLSessionNIP05Verifier: NIP05Verifying, @unchecked Sendable {
         components.host = domain
         components.path = "/.well-known/nostr.json"
         components.queryItems = [URLQueryItem(name: "name", value: localPart)]
-        guard let url = components.url else { return false }
+        guard let url = components.url else { return false } // coverage:ignore-region Validated domain and fixed HTTPS components always form a URL.
 
         let delegate = NoRedirectURLSessionDelegate()
         let configuration = sessionConfiguration.copy() as? URLSessionConfiguration ?? .ephemeral

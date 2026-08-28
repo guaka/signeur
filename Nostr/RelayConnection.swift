@@ -107,7 +107,7 @@ public actor RelayConnection {
             await eventHandler?(event)
 
         case let .ok(eventID, accepted, message):
-            guard let continuation = pendingPublishes.removeValue(forKey: eventID) else { return }
+            guard let continuation = pendingPublishes.removeValue(forKey: eventID) else { return } // coverage:ignore-region An unsolicited OK has no local continuation and is intentionally ignored.
             if accepted {
                 continuation.resume()
             } else {

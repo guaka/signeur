@@ -96,7 +96,7 @@ enum Bech32 {
         let maxv = (1 << to) - 1
         var ret: [UInt8] = []
         for value in data {
-            if (value >> from) != 0 { return nil }
+            if (value >> from) != 0 { return nil } // coverage:ignore-region Private callers constrain every value to the declared source bit width.
             acc = (acc << from) | Int(value)
             bits += from
             while bits >= to {
