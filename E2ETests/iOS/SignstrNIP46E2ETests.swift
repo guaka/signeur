@@ -36,8 +36,7 @@ final class SignstrNIP46E2ETests: XCTestCase {
             return
         }
 
-        signstr.open(connectionURL)
-        approve("Approve Connection", in: signstr)
+        openConnection(connectionURL, in: signstr)
 
         // iOS may suspend Safari while Signstr is foregrounded. Bring it back so the
         // browser can receive the connect response and publish `get_public_key`, then
@@ -71,6 +70,21 @@ final class SignstrNIP46E2ETests: XCTestCase {
         let button = app.buttons[title]
         XCTAssertTrue(button.waitForExistence(timeout: 30), "Expected \(title) in Signstr")
         button.tap()
+    }
+
+    private func openConnection(_ url: URL, in app: XCUIApplication) {
+        let approveConnection = app.buttons["Approve Connection"]
+        app.open(url)
+        if !approveConnection.waitForExistence(timeout: 15) {
+            // A resource-constrained hosted simulator can cold-launch the app without
+            // delivering the first URL to SwiftUI. Once launched, delivery is reliable.
+            app.open(url)
+        }
+        XCTAssertTrue(
+            approveConnection.waitForExistence(timeout: 30),
+            "Expected Approve Connection in Signstr"
+        )
+        approveConnection.tap()
     }
 
     private func scrollAndTap(_ element: XCUIElement, in webView: XCUIElement) {
