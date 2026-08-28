@@ -66,6 +66,106 @@ final class NIP46SessionManagerTests: XCTestCase {
         XCTAssertEqual(identities, ["identity-a"])
     }
 
+    func testInvalidRequestsAreRejectedAsProtocolErrors() async {
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: MockTransport(),
+            authorizationGuard: AuthorizationGuard()
+        )
+        let invalid = NIP46Request(
+            id: "invalid",
+            method: .signEvent,
+            params: ["{\"kind\":1}"],
+            appName: "App",
+            appURL: nil,
+            appPubkey: "bad",
+            correlationID: "corr-invalid",
+            rawPayloadPreview: "{\"kind\":1}"
+        )
+        let state = await manager.onRequestArrived(invalid)
+
+        XCTAssertEqual(state, SessionState.completedError(.invalidProtocol))
+    }
+
+    func testShouldAutoApproveUsesPermissionEvaluator() async {
+        let evaluator = PermissionDecisionEngine(shouldApprove: true)
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: MockTransport(),
+            authorizationGuard: AuthorizationGuard(),
+            permissionEvaluator: evaluator
+        )
+        _ = await manager.onRequestArrived(Self.request(id: "remember-me"))
+
+        let result = await manager.shouldAutoApprove(requestID: "remember-me")
+
+        XCTAssertTrue(result)
+        let decisionCount = await evaluator.decisionCount()
+        XCTAssertEqual(decisionCount, 1)
+    }
+
+    func testAutoApprovalChoiceIsSavedAfterApprovedRequest() async {
+        let evaluator = PermissionDecisionEngine()
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: MockTransport(),
+            authorizationGuard: AuthorizationGuard(),
+            permissionEvaluator: evaluator
+        )
+        _ = await manager.onRequestArrived(Self.request(id: "remember"))
+        _ = await manager.activateNextPendingIfNeeded()
+
+        let state = await manager.handleApprove(requestID: "remember", identityID: "identity-a", rememberChoice: true)
+        let saved = await evaluator.savedCount()
+
+        XCTAssertEqual(state, .completedSuccess)
+        XCTAssertEqual(saved, 1)
+    }
+
+    func testRejectingUnknownRequestIDReturnsProtocolError() async {
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: MockTransport(),
+            authorizationGuard: AuthorizationGuard()
+        )
+        let state = await manager.handleReject(requestID: "missing")
+        XCTAssertEqual(state, SessionState.completedError(.invalidProtocol))
+    }
+
+    func testExecuteFailureReturnsSigningFailedState() async {
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(shouldThrow: true),
+            transport: MockTransport(),
+            authorizationGuard: AuthorizationGuard()
+        )
+        _ = await manager.onRequestArrived(Self.request(id: "failing"))
+        _ = await manager.activateNextPendingIfNeeded()
+
+        let state = await manager.handleApprove(requestID: "failing", identityID: "identity-a")
+
+        XCTAssertEqual(state, .completedError(.signingFailed))
+    }
+
+    func testHandleApproveRejectsBadIdentity() async {
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: MockTransport(),
+            authorizationGuard: AuthorizationGuard()
+        )
+        _ = await manager.onRequestArrived(Self.request(id: "identity"))
+        _ = await manager.activateNextPendingIfNeeded()
+
+        let state = await manager.handleApprove(requestID: "identity", identityID: "\n")
+
+        XCTAssertEqual(state, SessionState.completedError(.unauthorizedSigningAttempt))
+    }
+
     func testAuthorizationRequiresExactSigningStateAndBoundIdentity() {
         let guardUnderTest = AuthorizationGuard()
         var machine = NIP46SessionStateMachine()
@@ -120,6 +220,28 @@ private actor SuspendingExecutor: NIP46RequestExecuting {
 
     func callCount() -> Int { calls }
     func identities() -> [String] { identityIDs }
+}
+
+private actor PermissionDecisionEngine: PermissionRuleEvaluating {
+    private(set) var decisions = 0
+    private var shouldApprove = false
+    private(set) var savedRequests: [NIP46Request] = []
+
+    init(shouldApprove: Bool = false) {
+        self.shouldApprove = shouldApprove
+    }
+
+    func shouldAutoApprove(request: NIP46Request) async -> Bool {
+        decisions += 1
+        return shouldApprove
+    }
+
+    func saveRememberRule(for request: NIP46Request) async {
+        savedRequests.append(request)
+    }
+
+    func decisionCount() -> Int { decisions }
+    func savedCount() -> Int { savedRequests.count }
 }
 
 private actor MockTransport: NIP46RespondingTransport {

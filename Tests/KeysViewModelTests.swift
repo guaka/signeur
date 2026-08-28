@@ -360,6 +360,38 @@ final class KeysViewModelTests: XCTestCase {
         viewModel.applyPastedValue(nil)
         XCTAssertEqual(viewModel.errorMessage, "The clipboard is empty.")
     }
+
+    func testPasteWithOnlyWhitespaceIsRejected() {
+        let (viewModel, _, _) = makeViewModel()
+
+        viewModel.applyPastedValue("   \n  ")
+
+        XCTAssertEqual(viewModel.errorMessage, "The clipboard is empty.")
+        XCTAssertEqual(viewModel.nsec, "")
+    }
+
+    func testHideAllRevealedKeysClearsState() async {
+        let (viewModel, _, _) = makeViewModel()
+        viewModel.nsec = TestVectors.nsec
+        await viewModel.addKey()
+        let identity = viewModel.identities[0]
+
+        await viewModel.toggleReveal(identity)
+        viewModel.hideAllRevealedKeys()
+
+        XCTAssertTrue(viewModel.revealedNsecs.isEmpty)
+        XCTAssertEqual(viewModel.nsec, "")
+    }
+
+    func testSyncNIP05SkipsWhenNoIdentitiesAreLoaded() async {
+        let (viewModel, _, _) = makeViewModel(profileLookup: StubProfileLookup(metadata: nil))
+        await viewModel.refresh()
+
+        await viewModel.syncNIP05()
+
+        XCTAssertNil(viewModel.statusMessage)
+        XCTAssertEqual(viewModel.identities.count, 0)
+    }
 }
 
 private actor ProtectedStorageFailingNsecStore: NsecStoring {

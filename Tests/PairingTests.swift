@@ -347,4 +347,40 @@ final class PairingViewModelTests: XCTestCase {
 
         XCTAssertNil(viewModel.errorMessage)
     }
+
+    func testIncomingSignerURLMissingPayloadExplainsError() async {
+        let (viewModel, manager) = makeViewModel()
+        let queued = await viewModel.handleIncomingURL(
+            URL(string: "nostrsigner:?type=sign_event")!
+        )
+        let pending = await manager.pendingSessions()
+
+        XCTAssertFalse(queued)
+        XCTAssertEqual(viewModel.errorMessage, "This signing request has nothing in it to sign.")
+        XCTAssertEqual(pending.count, 0)
+    }
+
+    func testIncomingSignerURLInvalidCallbackIsRejected() async {
+        let (viewModel, _) = makeViewModel()
+
+        let queued = await viewModel.handleIncomingURL(
+            URL(string: "nostrsigner:?type=sign_event&callbackUrl=javascript:alert(1)&appName=Damus")!
+        )
+
+        XCTAssertFalse(queued)
+        XCTAssertEqual(
+            viewModel.errorMessage,
+            "This request contains an unsafe callback address."
+        )
+    }
+
+    func testIncomingSignerRequestsResetState() async {
+        let (viewModel, _) = makeViewModel()
+        _ = await viewModel.handleIncomingURL(URL(string: "nostrsigner:?type=decrypt_zap_event")!)
+
+        viewModel.reset()
+
+        XCTAssertNil(viewModel.errorMessage)
+        XCTAssertNil(viewModel.pairedAppName)
+    }
 }
