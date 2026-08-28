@@ -25,6 +25,19 @@ fi
 mkdir -p "${output_dir}"
 cp "${coverage_json}" "${output_dir}/coverage.json"
 
+readonly exclusions_json="${output_dir}/coverage-exclusions.json"
+(
+    cd "${repository_root}"
+    if command -v rg >/dev/null 2>&1; then
+        rg -n --no-heading 'coverage:ignore' App Data NIP46 Nostr Shared Wallet
+    else
+        grep -R -n -H 'coverage:ignore' App Data NIP46 Nostr Shared Wallet
+    fi
+) | jq -R -s '
+    split("\n")
+    | map(select(length > 0) | capture("^(?<file>[^:]+):(?<line>[0-9]+):") | {file, line: (.line | tonumber)})
+' > "${exclusions_json}"
+
 xcrun llvm-cov show "${test_binary}" \
     -instr-profile="${profile_data}" \
     -format=html \
@@ -49,18 +62,31 @@ cp "${coverage_assets}/coverage.css" "${output_dir}/coverage.css"
 jq -r \
     --arg root "${repository_root}/" \
     --arg generated "$(date -u '+%Y-%m-%d %H:%M')" \
+    --slurpfile exclusions "${exclusions_json}" \
     -f "${coverage_assets}/index.jq" \
     "${coverage_json}" > "${output_dir}/index.html"
 
 touch "${output_dir}/.nojekyll"
 
-jq -r --arg root "${repository_root}/" '
+jq -r --arg root "${repository_root}/" --slurpfile exclusions "${exclusions_json}" '
     def metric_sum($items; $name):
         reduce $items[] as $item (
             {covered: 0, count: 0};
             .covered += ($item.summary[$name].covered // 0)
             | .count += ($item.summary[$name].count // 0)
         );
+    def line_metric($items; $excluded):
+        [
+            $items[] as $file
+            | $file.segments[]
+            | select(.[3] == true)
+            | {file: $file.relative, line: .[0], count: .[2]}
+            | . as $entry
+            | select(any($excluded[]; .file == $entry.file and .line == $entry.line) | not)
+        ]
+        | group_by([.file, .line])
+        | map({covered: ((map(.count) | max) > 0)})
+        | {covered: (map(select(.covered)) | length), count: length};
     def percentage($metric):
         if $metric.count == 0 then "n/a"
         else (((($metric.covered * 10000 / $metric.count) | floor) / 100) | tostring) + "%"
@@ -72,13 +98,13 @@ jq -r --arg root "${repository_root}/" '
         | select(.relative | startswith(".build/") | not)
         | select(.relative | startswith("Tests/") | not)
     ] as $files
-    | (metric_sum($files; "lines")) as $lines
+    | (line_metric($files; $exclusions[0])) as $lines
     | (metric_sum($files; "functions")) as $functions
     | (metric_sum($files; "regions")) as $regions
     | [
         "## Code coverage",
         "",
-        "SignstrCore sources only; tests, generated files, and dependencies are excluded.",
+        "SignstrCore sources only; tests, generated files, dependencies, and explicitly marked compiler/platform-only lines are excluded.",
         "",
         "| Metric | Covered | Total | Coverage |",
         "| --- | ---: | ---: | ---: |",
@@ -96,7 +122,7 @@ jq -r --arg root "${repository_root}/" '
         | group_by(.relative | split("/")[0])
         | map(
             . as $group
-            | (metric_sum($group; "lines")) as $metric
+            | (line_metric($group; $exclusions[0])) as $metric
             | "| \(($group[0].relative | split("/")[0])) | \($metric.covered) | \($metric.count) | \(percentage($metric)) |"
         )
     )

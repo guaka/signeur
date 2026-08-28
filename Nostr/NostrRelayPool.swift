@@ -15,8 +15,13 @@ public actor NostrRelayPool {
     private var seenEventIDs: [String] = []
     private var seenEventLookup: Set<String> = []
 
+    public init(seenEventLimit: Int = 500) {
+        socketFactory = { URLSessionRelaySocket(url: $0) }
+        self.seenEventLimit = seenEventLimit
+    }
+
     public init(
-        socketFactory: @escaping @Sendable (URL) -> RelaySocketing = { URLSessionRelaySocket(url: $0) },
+        socketFactory: @escaping @Sendable (URL) -> RelaySocketing,
         seenEventLimit: Int = 500
     ) {
         self.socketFactory = socketFactory

@@ -8,15 +8,7 @@ struct AppIconView: View {
     var body: some View {
         Group {
             if let faviconURL = appFaviconURL(for: appURL) {
-                AsyncImage(url: faviconURL) { phase in
-                    if case .success(let image) = phase {
-                        image
-                            .resizable()
-                            .scaledToFit()
-                    } else {
-                        fallback
-                    }
-                }
+                AsyncImage(url: faviconURL, content: content(for:))
             } else {
                 fallback
             }
@@ -25,6 +17,17 @@ struct AppIconView: View {
         .background(.secondary.opacity(0.1), in: RoundedRectangle(cornerRadius: size * 0.22))
         .clipShape(RoundedRectangle(cornerRadius: size * 0.22))
         .accessibilityLabel("\(appName ?? "Unknown app") icon")
+    }
+
+    @ViewBuilder
+    func content(for phase: AsyncImagePhase) -> some View {
+        if case .success(let image) = phase {
+            image
+                .resizable()
+                .scaledToFit()
+        } else {
+            fallback
+        }
     }
 
     @ViewBuilder

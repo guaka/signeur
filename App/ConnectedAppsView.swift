@@ -92,7 +92,7 @@ public struct ConnectedAppsView: View {
             }
             ForEach(viewModel.apps) { app in
                 NavigationLink {
-                    ConnectedAppDetailView(app: app) {
+                    ConnectedAppDetailView(app: app) { // coverage:ignore SwiftUI evaluates this lazy destination on navigation.
                         await viewModel.revoke(app)
                     }
                 } label: {
@@ -189,7 +189,7 @@ struct ConnectedAppRow: View {
         app.identityName.map { "Signing key: \($0)" }
     }
 
-    private var permissionSummary: String {
+    var permissionSummary: String {
         let requested = app.requestedPermissions
         if !requested.isEmpty {
             return requested.map(permissionDisplayName).joined(separator: ", ")
@@ -199,7 +199,7 @@ struct ConnectedAppRow: View {
             : app.methods.map(permissionDisplayName).joined(separator: ", ")
     }
 
-    private func activityLabel(for date: Date) -> String {
+    func activityLabel(for date: Date) -> String {
         let calendar = Calendar.current
         let time = date.formatted(date: .omitted, time: .shortened)
         if calendar.isDateInToday(date) {
@@ -216,7 +216,7 @@ struct ConnectedAppDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let app: ConnectedAppItem
     let disconnect: () async -> Void
-    @State private var confirmingDisconnect = false
+    @State private var confirmingDisconnect = false // coverage:ignore SwiftUI synthesizes and owns this storage.
 
     var body: some View {
         List {
@@ -288,9 +288,7 @@ struct ConnectedAppDetailView: View {
             }
 
             Section {
-                Button("Disconnect App", role: .destructive) {
-                    confirmingDisconnect = true
-                }
+                Button("Disconnect App", role: .destructive, action: requestDisconnect)
             }
         }
         .navigationTitle("Connection")
@@ -299,15 +297,21 @@ struct ConnectedAppDetailView: View {
             isPresented: $confirmingDisconnect,
             titleVisibility: .visible
         ) {
-            Button("Disconnect", role: .destructive) {
-                Task {
-                    await disconnect()
-                    dismiss()
-                }
-            }
+            Button("Disconnect", role: .destructive, action: confirmDisconnect)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Signstr will stop listening for this app and forget its remembered approvals.")
+        }
+    }
+
+    func requestDisconnect() {
+        confirmingDisconnect = true
+    }
+
+    func confirmDisconnect() {
+        Task {
+            await disconnect()
+            dismiss()
         }
     }
 }

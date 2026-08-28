@@ -161,14 +161,8 @@ public struct IncomingRequestView: View {
 
             Divider()
             ApprovalActionsView(
-                approve: {
-                    Task {
-                        if await viewModel.approve() {
-                            onConnectionApproved?()
-                        }
-                    }
-                },
-                reject: { Task { await viewModel.reject() } },
+                approve: approveRequest,
+                reject: rejectRequest,
                 rememberChoice: $viewModel.rememberChoice,
                 approveTitle: isConnection ? "Approve Connection" : "Approve",
                 rejectTitle: isConnection ? "Decline" : "Reject",
@@ -188,6 +182,18 @@ public struct IncomingRequestView: View {
                     .padding(.bottom, 8)
             }
         }
+    }
+
+    func approveRequest() {
+        Task {
+            if await viewModel.approve() {
+                onConnectionApproved?()
+            }
+        }
+    }
+
+    func rejectRequest() {
+        Task { await viewModel.reject() }
     }
 
     func requestHeader(_ request: NIP46Request, isConnection: Bool) -> some View {

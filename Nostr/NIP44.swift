@@ -118,7 +118,7 @@ public enum NIP44 {
         return prefix + bytes + [UInt8](repeating: 0, count: target - bytes.count)
     }
 
-    private static func unpad(_ padded: [UInt8]) throws -> String {
+    static func unpad(_ padded: [UInt8]) throws -> String {
         guard padded.count >= 2 else { throw NIP44Error.invalidPadding }
         let declaredLength = Int(padded[0]) << 8 | Int(padded[1])
         let content = Array(padded.dropFirst(2))

@@ -33,9 +33,8 @@ public struct DeepLinkHandler: Sendable {
         guard let clientPubkey = url.host(percentEncoded: false), SecurityPolicy.isCanonicalPublicKey(clientPubkey) else {
             throw DeepLinkParseError.invalidClientPubkey
         }
-        guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false) else {
-            throw DeepLinkParseError.invalidScheme
-        }
+        // A URL that has already supplied a scheme and host is representable as URLComponents.
+        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)!
 
         let relayValues = components.queryItems?.filter { $0.name == "relay" }.compactMap { $0.value } ?? []
         guard !relayValues.isEmpty else {

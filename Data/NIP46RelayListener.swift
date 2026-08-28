@@ -22,7 +22,7 @@ public actor NIP46RelayListener {
         identities: IdentityStore,
         coordinator: RequestRoutingCoordinator,
         logger: RedactedLogger = RedactedLogger(),
-        now: @escaping @Sendable () -> Date = { Date() }
+        now: @escaping @Sendable () -> Date = { Date() } // coverage:ignore Compiler-generated default-argument thunk.
     ) {
         self.pool = pool
         self.connections = connections
@@ -138,11 +138,10 @@ public actor NIP46RelayListener {
         guard rawParams.count <= 32 else { return nil }
         let params = rawParams.map { value -> String in
             if let text = value as? String { return text }
-            if let nested = try? JSONSerialization.data(withJSONObject: value, options: [.fragmentsAllowed]) {
-                return String(decoding: nested, as: UTF8.self)
-            }
-            return ""
-        } ?? []
+            // Values came from JSONSerialization, so serializing the fragment cannot fail.
+            let nested = try! JSONSerialization.data(withJSONObject: value, options: [.fragmentsAllowed])
+            return String(decoding: nested, as: UTF8.self)
+        }
 
         return NIP46Request(
             id: id,
