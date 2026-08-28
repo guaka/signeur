@@ -14,6 +14,16 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertTrue(styles.contains(".github-mark { width: 20px; height: 20px; fill: currentColor; }"))
     }
 
+    func testCoveragePageKeepsDetailedMetricsAndExactGreenThreshold() throws {
+        let template = try String(contentsOf: repositoryFile("Scripts/coverage-site/index.jq"))
+        let generator = try String(contentsOf: repositoryFile("Scripts/generate-coverage-report.sh"))
+
+        XCTAssertTrue(template.contains("percentage_number($metric) == 100"))
+        XCTAssertTrue(template.contains("<th>Lines</th><th>Functions</th><th>Regions</th>"))
+        XCTAssertTrue(template.contains("Build \\($generated) UTC"))
+        XCTAssertTrue(generator.contains("date -u '+%Y-%m-%d %H:%M'"))
+    }
+
     private func repositoryFile(_ relativePath: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

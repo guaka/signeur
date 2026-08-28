@@ -67,6 +67,15 @@ final class AppConfigurationRegressionTests: XCTestCase {
         XCTAssertTrue(source.contains("await AppBootstrap.lockKeySession()"))
     }
 
+    func testBothHelpScreensLinkToThePublishedGuide() throws {
+        for path in ["MacOSApp/MacRootView.swift", "iOSApp/RootView.swift"] {
+            let source = try String(contentsOf: repositoryFile(path))
+
+            XCTAssertTrue(source.contains("Open the Signstr guide and NIP-46 tester"), path)
+            XCTAssertTrue(source.contains("https://guaka.github.io/signstr/"), path)
+        }
+    }
+
     private func repositoryFile(_ relativePath: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

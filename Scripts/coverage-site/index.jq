@@ -14,7 +14,7 @@ def percentage($metric):
     (percentage_number($metric) | tostring) + "%";
 
 def tone($metric):
-    if percentage_number($metric) >= 90 then "excellent"
+    if percentage_number($metric) == 100 then "excellent"
     elif percentage_number($metric) >= 70 then "good"
     else "needs-work"
     end;
@@ -69,17 +69,17 @@ def github_mark:
     "</header>",
     "<main>",
     "<section class=\"hero\">",
-    "<div class=\"eyebrow\"><span></span> Native on iPhone and Mac</div>",
-    "<h1>Your keys.<br><em>Your consent.</em></h1>",
-    "<p>Signstr is a Nostr signer that keeps your private key on your device and puts every signing request in front of you.</p>",
+    "<div class=\"eyebrow\"><span></span> Open source · AGPL-3.0</div>",
+    "<h1>A Nostr signer<br><em>for iPhone and Mac.</em></h1>",
+    "<p>Store Nostr keys on your device, pair clients over NIP-46, and approve signing requests before they run.</p>",
     "<div class=\"hero-actions\"><a class=\"primary-action\" href=\"#nip46-test\">Test NIP-46</a><a class=\"secondary-action\" href=\"#how-it-works\">See how it works</a><a class=\"secondary-action\" href=\"https://github.com/guaka/signstr\">View source on GitHub</a></div>",
     "</section>",
     "<section class=\"product-grid\" id=\"how-it-works\">",
-    "<article class=\"product-card feature-card\"><span class=\"card-number\">01</span><div><span class=\"section-kicker\">Bring your identity</span><h2>Create or import a key</h2><p>Generate a new Nostr key in Signstr or import an existing <code>nsec</code>. Your shareable <code>npub</code> identifies you; your private key stays secret.</p></div></article>",
-    "<article class=\"product-card\"><span class=\"card-number\">02</span><span class=\"section-kicker\">Connect your apps</span><h3>Pair through Nostr Connect</h3><p>Scan a connection code on iPhone or paste its link on Mac. Signstr supports NIP-46 remote signing and NIP-55 app requests.</p></article>",
-    "<article class=\"product-card\"><span class=\"card-number\">03</span><span class=\"section-kicker\">Stay in control</span><h3>Review every request</h3><p>Read what an app wants to do, choose what to approve, and keep remembered permissions scoped to that app.</p></article>",
+    "<article class=\"product-card feature-card\"><span class=\"card-number\">01</span><div><span class=\"section-kicker\">Keys</span><h2>Add a key</h2><p>Generate a key or import an existing <code>nsec</code>. Signstr stores private keys in the system Keychain.</p></div></article>",
+    "<article class=\"product-card\"><span class=\"card-number\">02</span><span class=\"section-kicker\">Connections</span><h3>Pair a client</h3><p>Scan a Nostr Connect code on iPhone or paste its link on Mac. NIP-46 and NIP-55 are supported.</p></article>",
+    "<article class=\"product-card\"><span class=\"card-number\">03</span><span class=\"section-kicker\">Requests</span><h3>Approve or reject</h3><p>Review each request and optionally remember a permission for that client.</p></article>",
     "</section>",
-    "<section class=\"security-callout\"><div><span class=\"section-kicker\">Device-first security</span><h2>Protected by the system you already trust.</h2></div><p>Private keys are stored as biometric-protected Keychain items. Touch ID, Face ID, or the device passcode gates access before Signstr performs a secp256k1 operation in memory.</p></section>",
+    "<section class=\"security-callout\"><div><span class=\"section-kicker\">Key storage</span><h2>Keys stay on your device.</h2></div><p>Private keys are stored as biometric-protected Keychain items. Touch ID, Face ID, or the device passcode gates access before a secp256k1 operation runs in memory.</p></section>",
     "<section class=\"nip46-section section-block\" id=\"nip46-test\">",
     "<div class=\"section-heading nip46-heading\"><div><span class=\"section-kicker\">Interactive protocol lab</span><h2>See NIP-46<br><em>in motion.</em></h2></div><p>Create a disposable test client, pair it with Signstr, and watch an encrypted public-key request make the round trip through Nostr relays.</p></div>",
     "<div class=\"protocol-flow\" aria-label=\"NIP-46 connection flow\">",
@@ -104,7 +104,7 @@ def github_mark:
     "<p class=\"tester-privacy\"><span aria-hidden=\"true\">◉</span> Your temporary client key stays in this tab. Relays see encrypted NIP-46 events and public routing metadata; they never receive your private Nostr key.</p>",
     "</section>",
     "<section class=\"coverage-intro\" id=\"coverage\">",
-    "<div class=\"eyebrow\"><span></span> main branch · \($generated)</div>",
+    "<div class=\"eyebrow\"><span></span> main branch · built \($generated) UTC</div>",
     "<div class=\"section-heading\"><div><span class=\"section-kicker\">Open engineering</span><h2>Confidence,<br><em>file by file.</em></h2></div><p>Live SignstrCore test coverage from the latest successful main build. Open any source file to see exactly which lines are exercised.</p></div>",
     "</section>",
     "<section class=\"metrics\" aria-label=\"Coverage totals\">",
@@ -127,20 +127,25 @@ def github_mark:
     "</section>",
     "<section class=\"section-block\" id=\"files\">",
     "<div class=\"section-heading\"><div><span class=\"section-kicker\">Annotated source</span><h2>Every measured file</h2></div><p>Lower-covered files appear first, making the next testing opportunities easy to spot.</p></div>",
-    "<div class=\"file-table-wrap\"><table class=\"file-table\"><thead><tr><th>Source file</th><th>Lines covered</th><th>Coverage</th></tr></thead><tbody>"
+    "<div class=\"file-table-wrap\"><table class=\"file-table\"><thead><tr><th>Source file</th><th>Lines</th><th>Functions</th><th>Regions</th></tr></thead><tbody>"
 ] + (
     $files
     | sort_by(.summary.lines.percent, .relative)
     | map(
-        .summary.lines as $metric
-        | "<tr><td><a href=\"coverage\(.filename).html\"><span class=\"file-area\">\((.relative | split("/")[0]) | html_escape)</span><strong>\((.relative | html_escape))</strong></a></td><td>\($metric.covered) / \($metric.count)</td><td><div class=\"table-coverage\"><div class=\"progress \(tone($metric))\"><span style=\"width: \(percentage($metric))\"></span></div><strong>\(percentage($metric))</strong></div></td></tr>"
+        .summary.lines as $lines
+        | .summary.functions as $functions
+        | .summary.regions as $regions
+        | "<tr><td><a href=\"coverage\(.filename).html\"><span class=\"file-area\">\((.relative | split("/")[0]) | html_escape)</span><strong>\((.relative | html_escape))</strong></a></td>"
+        + "<td><div class=\"table-metric\"><strong>\(percentage($lines))</strong><small>\($lines.covered) / \($lines.count)</small><div class=\"progress \(tone($lines))\"><span style=\"width: \(percentage($lines))\"></span></div></div></td>"
+        + "<td><div class=\"table-metric\"><strong>\(percentage($functions))</strong><small>\($functions.covered) / \($functions.count)</small><div class=\"progress \(tone($functions))\"><span style=\"width: \(percentage($functions))\"></span></div></div></td>"
+        + "<td><div class=\"table-metric\"><strong>\(percentage($regions))</strong><small>\($regions.covered) / \($regions.count)</small><div class=\"progress \(tone($regions))\"><span style=\"width: \(percentage($regions))\"></span></div></div></td></tr>"
     )
 ) + [
     "</tbody></table></div>",
     "</section>",
     "<section class=\"run-callout\"><div><span class=\"section-kicker\">Build Signstr</span><h2>Run the apps locally.</h2><p>Open <code>Signstr.xcodeproj</code> and select the <code>Signstr</code> iOS scheme or <code>SignstrMac</code> macOS scheme.</p></div><a class=\"primary-action\" href=\"https://github.com/guaka/signstr\">Get the source</a></section>",
     "</main>",
-    "<footer><div class=\"footer-brand\"><img src=\"signstr-icon.png\" alt=\"\"><span><strong>Signstr</strong><small>Your keys. Your consent.</small></span></div><p><a href=\"coverage.json\">Raw coverage data</a> · Generated with SwiftPM and llvm-cov.</p></footer>",
+    "<footer><div class=\"footer-brand\"><img src=\"signstr-icon.png\" alt=\"\"><span><strong>Signstr</strong><small>Nostr signer for iPhone and Mac</small></span></div><p>Build \($generated) UTC · <a href=\"coverage.json\">Raw coverage data</a> · SwiftPM + llvm-cov</p></footer>",
     "<script type=\"module\" src=\"nip46-tester.mjs\"></script>",
     "</body>",
     "</html>"
