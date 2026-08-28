@@ -21,6 +21,8 @@ run_ios() {
         -scheme Signstr \
         -destination "platform=iOS Simulator,id=${destination_id}" \
         -parallel-testing-enabled NO \
+        -retry-tests-on-failure \
+        -test-iterations 2 \
         -skipPackagePluginValidation \
         -only-testing:SignstrE2ETests \
         test
