@@ -146,6 +146,7 @@ struct ConnectedAppRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack {
+                AppIconView(appName: app.appName, appURL: app.appURL, size: 28)
                 Text(app.appName)
                     .font(.headline)
                 Spacer()
@@ -165,6 +166,12 @@ struct ConnectedAppRow: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
 
+            if let signingKeyLabel {
+                Label(signingKeyLabel, systemImage: "key")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             if let createdAt = app.createdAt {
                 Label {
                     Text("Connected \(createdAt.formatted(date: .abbreviated, time: .omitted))")
@@ -176,6 +183,10 @@ struct ConnectedAppRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    var signingKeyLabel: String? {
+        app.identityName.map { "Signing key: \($0)" }
     }
 
     private var permissionSummary: String {
@@ -210,11 +221,14 @@ struct ConnectedAppDetailView: View {
     var body: some View {
         List {
             Section {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(app.appName)
-                        .font(.title2.bold())
-                    if let appURL = app.appURL, let url = URL(string: appURL) {
-                        Link(appURL, destination: url)
+                HStack(alignment: .top, spacing: 12) {
+                    AppIconView(appName: app.appName, appURL: app.appURL, size: 44)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(app.appName)
+                            .font(.title2.bold())
+                        if let appURL = app.appURL, let url = URL(string: appURL) {
+                            Link(appURL, destination: url)
+                        }
                     }
                 }
                 .padding(.vertical, 4)
