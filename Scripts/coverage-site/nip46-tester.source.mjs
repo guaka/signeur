@@ -144,19 +144,37 @@ export function createNIP46RequestEvent({
     }, clientSecret);
 }
 
-export function friendlyError(error) {
+export function browserError(error) {
     const message = error instanceof Error ? error.message : String(error || "Unknown error");
-    if (message === "userRejected") return "The request was declined in Signstr.";
+    if (message === "userRejected") {
+        return { code: "WEB-1001", title: "Request declined", message: "The request was declined in Signstr. Start again when you are ready to approve it." };
+    }
     if (message.includes("expected pairing secret")) {
-        return "The response could not be authenticated. Reset the test and create a fresh pairing code.";
+        return { code: "WEB-2001", title: "Pairing could not be verified", message: "The reply did not contain this tab’s pairing secret. Start again to create a fresh code." };
+    }
+    if (message.includes("malformed") || message.includes("not valid JSON")) {
+        return { code: "WEB-2002", title: "Invalid signer response", message: "The page received a reply, but it was not valid NIP-46. Start again and copy this error if it repeats." };
+    }
+    if (message.includes("invalid user public key")) {
+        return { code: "WEB-2003", title: "Invalid public key", message: "Signstr replied, but the result was not a valid hexadecimal Nostr public key." };
     }
     if (message.includes("timed out")) {
-        return "No response arrived in time. Keep this page open, check Signstr is online, then try again.";
+        return { code: "WEB-3001", title: "Response timed out", message: "No reply arrived in time. Keep this page open while approving both prompts in Signstr, then try again." };
     }
-    if (message.includes("relay") || message.includes("Relay")) {
-        return "The page could not reach a Nostr relay. Check your connection or try again in a moment.";
+    if (/relay|websocket|connection.*closed/i.test(message)) {
+        return { code: "WEB-3002", title: "Relay connection lost", message: "The page could not keep a Nostr relay connection open. Check your connection, keep this tab visible, and try again." };
     }
-    return message;
+    if (message.includes("modern secure browser")) {
+        return { code: "WEB-4001", title: "Browser not supported", message: "Use a current browser with secure random-number and WebSocket support." };
+    }
+    if (message.includes("Copying was blocked")) {
+        return { code: "WEB-4002", title: "Copy was blocked", message: "Your browser blocked clipboard access. Select the visible text and copy it manually." };
+    }
+    return { code: "WEB-4999", title: "The test stopped unexpectedly", message };
+}
+
+export function friendlyError(error) {
+    return browserError(error).message;
 }
 
 function randomHex(bytes = 16) {
@@ -177,6 +195,8 @@ export class NIP46BrowserSession {
         this.elements = elements;
         this.pool = null;
         this.subscription = null;
+        this.subscriptionGeneration = 0;
+        this.subscriptionSince = null;
         this.timer = null;
         this.deadline = null;
         this.clientSecret = null;
@@ -187,6 +207,8 @@ export class NIP46BrowserSession {
         this.pairingSecret = null;
         this.relays = [];
         this.permissions = [];
+        this.relayRecoveryAttempts = 0;
+        this.lastError = null;
         this.uri = null;
         this.phase = "idle";
     }
@@ -208,6 +230,7 @@ export class NIP46BrowserSession {
             this.pool = new SimplePool({ enableReconnect: true });
             this.relays = await this.connectRelays(DEFAULT_RELAYS);
             this.permissions = [...TEST_PERMISSIONS];
+            this.subscriptionSince = Math.floor(Date.now() / 1000) - 30;
             this.subscribe();
 
             const pageURL = `${location.origin}${location.pathname}`;
@@ -258,19 +281,49 @@ export class NIP46BrowserSession {
     }
 
     subscribe() {
+        const previousSubscription = this.subscription;
+        const generation = ++this.subscriptionGeneration;
         this.subscription = this.pool.subscribeMany(
             this.relays,
-            { kinds: [NIP46_KIND], "#p": [this.clientPubkey], since: Math.floor(Date.now() / 1000) - 30 },
+            { kinds: [NIP46_KIND], "#p": [this.clientPubkey], since: this.subscriptionSince },
             {
                 onevent: (event) => void this.handleEvent(event),
                 onclose: (reasons) => {
-                    if (this.phase !== "success" && this.phase !== "idle") {
-                        const reason = reasons.map((entry) => entry.reason).filter(Boolean).join(", ");
-                        this.fail(new Error(reason || "All relay connections closed."));
-                    }
+                    void this.handleSubscriptionClose(generation, reasons);
                 }
             }
         );
+        previousSubscription?.close();
+    }
+
+    resumeWhenVisible() {
+        if (globalThis.document?.hidden || !this.pool || !this.clientPubkey) return;
+        if (["idle", "error", "success"].includes(this.phase)) return;
+        this.relayRecoveryAttempts = 0;
+        this.subscribe();
+    }
+
+    async handleSubscriptionClose(generation, reasons = []) {
+        if (generation !== this.subscriptionGeneration
+            || globalThis.document?.hidden
+            || ["idle", "error", "success"].includes(this.phase)) return;
+        if (this.relayRecoveryAttempts < 2) {
+            this.relayRecoveryAttempts += 1;
+            this.elements.statusText.textContent = "Reconnecting to Nostr relays";
+            try {
+                this.relays = await this.connectRelays(DEFAULT_RELAYS);
+                if (generation === this.subscriptionGeneration
+                    && !globalThis.document?.hidden
+                    && !["idle", "error", "success"].includes(this.phase)) {
+                    this.subscribe();
+                }
+                return;
+            } catch {
+                // The final failure below gives the visitor one stable, copyable explanation.
+            }
+        }
+        const reason = reasons.map((entry) => entry?.reason ?? entry).filter(Boolean).join(", ");
+        this.fail(new Error(reason || "All relay connections closed."));
     }
 
     async handleEvent(event) {
@@ -279,6 +332,7 @@ export class NIP46BrowserSession {
 
         let plaintext;
         try {
+            this.relayRecoveryAttempts = 0;
             plaintext = decryptNIP46Payload(event.content, this.clientSecret, event.pubkey);
         } catch {
             return;
@@ -348,10 +402,14 @@ export class NIP46BrowserSession {
         this.setBusy(false);
         this.elements.panel.hidden = false;
         this.elements.intro.hidden = true;
-        this.elements.errorText.textContent = friendlyError(error);
+        const detail = browserError(error);
+        this.lastError = `${detail.title}\n${detail.message}\n${detail.code}`;
+        this.elements.errorTitle.textContent = detail.title;
+        this.elements.errorText.textContent = detail.message;
+        this.elements.errorCode.textContent = detail.code;
         this.elements.error.hidden = false;
         this.elements.success.hidden = true;
-        this.elements.statusText.textContent = "Needs attention";
+        this.elements.statusText.textContent = `Test stopped · ${detail.code}`;
         this.elements.statusDot.className = "tester-status-dot error";
     }
 
@@ -420,13 +478,17 @@ export class NIP46BrowserSession {
     reset(showIntro = true) {
         this.clearCountdown();
         this.phase = "idle";
+        this.subscriptionGeneration += 1;
         this.subscription?.close();
         this.pool?.destroy();
         this.subscription = null;
         this.pool = null;
         this.clientSecret = null;
         this.signerPubkey = null;
+        this.subscriptionSince = null;
         this.permissions = [];
+        this.relayRecoveryAttempts = 0;
+        this.lastError = null;
         this.uri = null;
         if (!this.elements) return;
         this.elements.panel.hidden = true;
@@ -466,7 +528,10 @@ function collectElements() {
         hexPubkey: document.querySelector("#nip46-hex-pubkey"),
         permissions: document.querySelector("#nip46-permissions"),
         error: document.querySelector("#nip46-error"),
+        errorTitle: document.querySelector("#nip46-error-title"),
         errorText: document.querySelector("#nip46-error-text"),
+        errorCode: document.querySelector("#nip46-error-code"),
+        copyError: document.querySelector("#nip46-copy-error"),
         steps: [...document.querySelectorAll("[data-test-step]")],
         flowSteps: [...document.querySelectorAll("[data-flow-step]")]
     };
@@ -482,6 +547,8 @@ if (typeof document !== "undefined") {
         elements.retry.addEventListener("click", () => void session.start());
         elements.copyLink.addEventListener("click", () => void session.copy(session.uri, elements.copyLink));
         elements.copyNpub.addEventListener("click", () => void session.copy(elements.npub.textContent, elements.copyNpub));
+        elements.copyError.addEventListener("click", () => void session.copy(session.lastError, elements.copyError));
+        document.addEventListener("visibilitychange", () => session.resumeWhenVisible());
         addEventListener("beforeunload", () => session.reset(false));
     });
 }

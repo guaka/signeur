@@ -1,5 +1,8 @@
 import SwiftUI
 import XCTest
+#if os(macOS)
+import AppKit
+#endif
 @testable import SignstrCore
 
 @MainActor
@@ -102,9 +105,11 @@ final class IncomingRequestViewTests: XCTestCase {
             IncomingRequestView.ConnectAction(title: "Scan QR", systemImage: "qrcode") {},
             IncomingRequestView.ConnectAction(title: "Paste Link", systemImage: "doc.on.clipboard") {}
         ]
+        var copiedError: String?
         let view = IncomingRequestView(
             viewModel: viewModel,
-            connectActions: actions
+            connectActions: actions,
+            errorCopier: { copiedError = $0 }
         )
 
         await MainActor.run {
@@ -113,8 +118,35 @@ final class IncomingRequestViewTests: XCTestCase {
             _ = view.idleHorizontalAlignment
             _ = view.idleFrameAlignment
             _ = view.body
+            view.copyCurrentError()
         }
+        XCTAssertEqual(copiedError, "Select an active key in Keys before approving.")
     }
+
+    func testErrorCopyButtonCopiesTheCompleteMessageAndCode() async {
+        let (viewModel, _) = await makeViewModel()
+        var copied: String?
+        let view = IncomingRequestView(viewModel: viewModel, errorCopier: { copied = $0 })
+        let message = "None of the requested Nostr relays accepted the response. (N46-2104)"
+
+        view.copyCurrentError()
+        XCTAssertNil(copied)
+        view.copyErrorMessage(message)
+
+        XCTAssertEqual(copied, message)
+    }
+
+    #if os(macOS)
+    func testDefaultErrorCopierWritesTheCompleteMessageToTheSystemPasteboard() async {
+        let (viewModel, _) = await makeViewModel()
+        let view = IncomingRequestView(viewModel: viewModel)
+        let message = "Relay connection lost. (WEB-3002)"
+
+        view.copyErrorMessage(message)
+
+        XCTAssertEqual(NSPasteboard.general.string(forType: .string), message)
+    }
+    #endif
 
     func testApprovalContentBuildsConnectionAndRequestSummaries() async {
         let (viewModel, manager) = await makeViewModel()

@@ -108,6 +108,46 @@ final class RelayConnectionTests: XCTestCase {
         } catch {
             XCTAssertEqual(error as? RelayConnectionError, .rejected("blocked: no"))
         }
+        let rejectionConnectionCount = await socket.connectionsMade()
+        XCTAssertEqual(rejectionConnectionCount, 1, "relay rejections are not retried")
+        await connection.stop()
+    }
+
+    func testPublishReconnectsAfterTheSocketClosesAndRestoresSubscriptions() async throws {
+        let socket = FakeRelaySocket()
+        let connection = RelayConnection(url: URL(string: "wss://relay.one")!, socket: socket)
+        try await connection.start { _ in }
+        try await connection.subscribe(subscriptionID: "sub-1", recipientPubkey: TestVectors.pubkeyHex)
+        await socket.failNextSend()
+
+        try await connection.publish(try makeEvent())
+
+        let reconnectCount = await socket.connectionsMade()
+        XCTAssertEqual(reconnectCount, 2)
+        let frames = await socket.frames()
+        XCTAssertEqual(frames.filter { $0.hasPrefix("[\"REQ\",\"sub-1\"") }.count, 2)
+        XCTAssertEqual(frames.filter { $0.hasPrefix("[\"EVENT\"") }.count, 1)
+        await connection.stop()
+    }
+
+    func testPublishReconnectsAndSucceedsAfterTheFirstAcknowledgementTimesOut() async throws {
+        let socket = FakeRelaySocket(autoAcknowledge: false)
+        let connection = RelayConnection(
+            url: URL(string: "wss://relay.one")!,
+            socket: socket,
+            publishTimeout: 0.1
+        )
+        try await connection.start { _ in }
+        let publish = Task { try await connection.publish(try makeEvent()) }
+
+        while await socket.frames().isEmpty {
+            await Task.yield()
+        }
+        await socket.enableAutoAcknowledge()
+
+        try await publish.value
+        let connectionCount = await socket.connectionsMade()
+        XCTAssertEqual(connectionCount, 2)
         await connection.stop()
     }
 

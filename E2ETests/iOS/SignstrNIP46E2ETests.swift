@@ -1,7 +1,10 @@
 import XCTest
 
 final class SignstrNIP46E2ETests: XCTestCase {
-    private let testURL = "https://guaka.github.io/signstr/#nip46-test"
+    private var testURL: String {
+        ProcessInfo.processInfo.environment["SIGNSTR_E2E_TEST_URL"]
+            ?? "https://guaka.github.io/signstr/#nip46-test"
+    }
     private let testNsec = "nsec1vl029mgpspedva04g90vltkh6fvh240zqtv9k0t9af8935ke9laqsnlfe5"
     private let expectedNpub = "npub10elfcs4fr0l0r8af98jlmgdh9c8tcxjvz9qkw038js35mp4dma8qzvjptg"
 
@@ -86,6 +89,26 @@ final class SignstrNIP46E2ETests: XCTestCase {
             "Expected Approve Connection in Signstr"
         )
         approveConnection.tap()
+        let connectedClient = app.staticTexts["Signstr NIP-46 tester"]
+        let followUpApproval = app.buttons["Approve"]
+        XCTAssertTrue(
+            waitForEither(connectedClient, or: followUpApproval, timeout: 30),
+            "Expected the connection to remain visible or its public-key follow-up request to arrive"
+        )
+        XCTAssertFalse(app.staticTexts["transportFailure"].exists)
+    }
+
+    private func waitForEither(
+        _ first: XCUIElement,
+        or second: XCUIElement,
+        timeout: TimeInterval
+    ) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        repeat {
+            if first.exists || second.exists { return true }
+            RunLoop.current.run(until: Date().addingTimeInterval(0.1))
+        } while Date() < deadline
+        return first.exists || second.exists
     }
 
     private func scrollAndTap(_ element: XCUIElement, in webView: XCUIElement) {

@@ -1,4 +1,5 @@
 import XCTest
+import Security
 @testable import SignstrCore
 
 final class NIP46SessionManagerTests: XCTestCase {
@@ -149,6 +150,62 @@ final class NIP46SessionManagerTests: XCTestCase {
         let state = await manager.handleApprove(requestID: "failing", identityID: "identity-a")
 
         XCTAssertEqual(state, .completedError(.signingFailed))
+    }
+
+    func testDeliveryFailuresPreserveSafeActionableCategories() {
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NIP46RelayTransportError.unknownApp),
+            .connectionNotRegistered
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NIP46RelayTransportError.noKeyForIdentity),
+            .identityKeyUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NIP46RelayTransportError.encryptionFailed),
+            .responseEncryptionFailed
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NostrRelayPoolError.allRelaysFailed),
+            .relayUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: RelayConnectionError.publishTimedOut),
+            .relayUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: RelaySocketError.closed),
+            .relayUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: URLError(.cannotConnectToHost)),
+            .relayUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NSError(domain: "test", code: 1)),
+            .transportFailure
+        )
+    }
+
+    func testKeyExecutionFailuresPreserveSafeActionableCategories() {
+        let mappings: [(Error, SessionFailureReason)] = [
+            (NsecStoreError.authenticationFailed, .keyAuthenticationFailed),
+            (NsecStoreError.authenticationCanceled, .keyAuthenticationCanceled),
+            (NsecStoreError.protectionUnavailable, .keychainProtectionUnavailable),
+            (NsecStoreError.invalidInput, .storedKeyInvalid),
+            (NIP46ExecutionError.invalidStoredKey, .storedKeyInvalid),
+            (NIP46ExecutionError.noKeyStoredForIdentity, .identityKeyUnavailable),
+            (NsecStoreError.unexpectedStatus(errSecInteractionNotAllowed), .keychainInteractionNotAllowed),
+            (NsecStoreError.unexpectedStatus(errSecMissingEntitlement), .keychainPermissionMissing),
+            (NsecStoreError.unexpectedStatus(-34010), .keychainProtectionUnavailable),
+            (NsecStoreError.unexpectedStatus(errSecNotAvailable), .keychainUnavailable),
+            (NsecStoreError.unexpectedStatus(errSecDecode), .keychainUnexpectedError),
+            (NIP46ExecutionError.signingFailed, .signingFailed)
+        ]
+
+        for (error, expected) in mappings {
+            XCTAssertEqual(NIP46SessionManager.executionFailureReason(for: error), expected)
+        }
     }
 
     func testHandleApproveRejectsBadIdentity() async {

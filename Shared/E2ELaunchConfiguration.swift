@@ -39,9 +39,7 @@ public struct E2ELaunchConfiguration: Sendable {
 
     public func makeIdentityStore() -> IdentityStore {
         let suiteName = "signstr.e2e.\(UUID().uuidString)"
-        guard let defaults = UserDefaults(suiteName: suiteName) else {
-            preconditionFailure("Could not create isolated E2E defaults")
-        }
+        let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return IdentityStore(defaults: defaults, seed: [identity])
     }

@@ -15,7 +15,7 @@ public actor RelayConnection {
     private var readerTask: Task<Void, Never>?
     private var pendingPublishes: [String: CheckedContinuation<Void, Error>] = [:]
     private var eventHandler: (@Sendable (NostrEvent) async -> Void)?
-    private var subscriptions: [String: String] = [:]
+    private var subscriptions: [String: (recipientPubkey: String, since: Int?)] = [:]
     private var isStopped = false
 
     public init(url: URL, socket: RelaySocketing, publishTimeout: TimeInterval = 10) {
@@ -32,7 +32,7 @@ public actor RelayConnection {
     }
 
     public func subscribe(subscriptionID: String, recipientPubkey: String, since: Int? = nil) async throws {
-        subscriptions[subscriptionID] = recipientPubkey
+        subscriptions[subscriptionID] = (recipientPubkey, since)
         try await socket.send(
             try RelayRequest.subscribeToNIP46(subscriptionID: subscriptionID, recipientPubkey: recipientPubkey, since: since)
         )
@@ -45,10 +45,45 @@ public actor RelayConnection {
 
     /// Publishes and waits for the relay's `OK`, so a caller learns whether the event was stored.
     public func publish(_ event: NostrEvent) async throws {
+        do {
+            try await publishOnce(event)
+        } catch let error as RelayConnectionError {
+            guard !isStopped, case .publishTimedOut = error else { throw error }
+            try await reconnect()
+            try await publishOnce(event)
+        } catch {
+            guard !isStopped else { throw error }
+            try await reconnect()
+            try await publishOnce(event)
+        }
+    }
+
+    private func publishOnce(_ event: NostrEvent) async throws {
         try await socket.connect()
         startReaderIfNeeded()
         try await socket.send(try RelayRequest.event(event))
         try await waitForAcknowledgement(of: event.id)
+    }
+
+    /// iOS can close a WebSocket while Signstr is suspended behind Safari. Reopen it
+    /// once and restore subscriptions before retrying the response publish.
+    private func reconnect() async throws {
+        let previousReader = readerTask
+        previousReader?.cancel()
+        readerTask = nil
+        await socket.close()
+        await previousReader?.value
+        try await socket.connect()
+        startReaderIfNeeded()
+        for (subscriptionID, subscription) in subscriptions {
+            try await socket.send(
+                try RelayRequest.subscribeToNIP46(
+                    subscriptionID: subscriptionID,
+                    recipientPubkey: subscription.recipientPubkey,
+                    since: subscription.since
+                )
+            )
+        }
     }
 
     public func stop() async {
@@ -95,6 +130,7 @@ public actor RelayConnection {
                 await handle(RelayFrame.decode(text))
             } catch {
                 failAllPending(with: error)
+                await socket.close()
                 readerTask = nil
                 return
             }

@@ -163,13 +163,13 @@ final class NIP46SessionQueueTests: XCTestCase {
         XCTAssertTrue(pending.isEmpty, "a failed request must not stay in the queue")
     }
 
-    func testTransportFailureOnApprovalIsTerminal() async {
+    func testRelayFailureOnApprovalIsTerminalAndSpecific() async {
         let manager = makeManager(transport: RecordingTransport(shouldThrow: true))
         _ = await manager.onRequestArrived(makeTestRequest(id: "a"))
         _ = await manager.activateNextPendingIfNeeded()
 
         let state = await manager.handleApprove(requestID: "a", identityID: "id-1")
-        XCTAssertEqual(state, .completedError(.transportFailure))
+        XCTAssertEqual(state, .completedError(.relayUnavailable))
     }
 
     func testRememberChoiceStoresRuleOnlyWhenRequested() async {

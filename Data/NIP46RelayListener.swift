@@ -46,6 +46,13 @@ public actor NIP46RelayListener {
         await resubscribe()
     }
 
+    /// iOS may suspend and close relay WebSockets while Safari is in front. Start
+    /// from fresh sockets when the app becomes active, then replay recent requests.
+    public func resumeAfterSuspension() async {
+        await pool.stop()
+        await start()
+    }
+
     public func resubscribe() async {
         for connection in await connections.approved() {
             guard let pubkey = await identities.publicKeyHex(for: connection.identityID) else {

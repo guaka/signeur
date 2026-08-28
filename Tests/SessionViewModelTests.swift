@@ -222,7 +222,7 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(signCount, 1)
         XCTAssertEqual(activated, [TestVectors.pubkeyHex])
         XCTAssertTrue(forgotten.isEmpty)
-        XCTAssertEqual(registered.count, 0)
+        XCTAssertEqual(registered, [TestVectors.pubkeyHex])
     }
 
     func testApproveConnectionStartsListeningBeforePublishingConnectResponse() async {

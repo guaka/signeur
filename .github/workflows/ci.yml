@@ -41,6 +41,15 @@ jobs:
       - name: Run Swift tests with coverage
         run: swift test --enable-code-coverage
 
+      - name: Generate site for live E2E tests
+        run: Scripts/generate-coverage-report.sh coverage-report
+
+      - name: Serve the generated site locally
+        run: |
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory coverage-report > "$RUNNER_TEMP/signstr-site.log" 2>&1 &
+          echo "SIGNSTR_E2E_TEST_URL=http://127.0.0.1:8765/#nip46-test" >> "$GITHUB_ENV"
+          curl --retry 5 --retry-connrefused --fail --silent http://127.0.0.1:8765/ > /dev/null
+
       - name: Build macOS app
         run: >-
           xcodebuild

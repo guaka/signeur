@@ -84,7 +84,7 @@ final class ViewModelCoverageGapTests: XCTestCase {
         _ = await manualManager.onRequestArrived(makeTestRequest(id: "manual-denied"))
         await manualViewModel.refresh()
         _ = await manualViewModel.approve()
-        XCTAssertEqual(manualViewModel.errorMessage, SessionFailureReason.unauthorizedSigningAttempt.rawValue)
+        XCTAssertEqual(manualViewModel.errorMessage, SessionFailureReason.unauthorizedSigningAttempt.userMessage)
 
         let automaticManager = NIP46SessionManager(
             validator: NIP46Validator(),
@@ -96,7 +96,7 @@ final class ViewModelCoverageGapTests: XCTestCase {
         let automaticViewModel = SessionViewModel(sessionManager: automaticManager, identityStore: identities)
         _ = await automaticManager.onRequestArrived(makeTestRequest(id: "automatic-denied"))
         await automaticViewModel.refresh()
-        XCTAssertEqual(automaticViewModel.errorMessage, SessionFailureReason.unauthorizedSigningAttempt.rawValue)
+        XCTAssertEqual(automaticViewModel.errorMessage, SessionFailureReason.unauthorizedSigningAttempt.userMessage)
         XCTAssertNil(automaticViewModel.currentSession)
     }
 

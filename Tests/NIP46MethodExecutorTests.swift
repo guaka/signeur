@@ -74,6 +74,15 @@ final class NIP46MethodExecutorTests: XCTestCase {
         XCTAssertEqual(result, "ack")
     }
 
+    func testConnectUnlocksTheIdentityKeyBeforeReplying() async {
+        await assertThrows(.noKeyStoredForIdentity) {
+            try await self.makeExecutor(keys: [:]).execute(
+                makeTestRequest(method: .connect, params: ["s3cret"]),
+                identityID: "id-1"
+            )
+        }
+    }
+
     func testSignEventReturnsAFullySignedVerifiableEvent() async throws {
         let request = makeTestRequest(
             method: .signEvent,

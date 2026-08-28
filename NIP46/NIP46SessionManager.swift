@@ -1,4 +1,5 @@
 import Foundation
+import Security
 
 public protocol NIP46RespondingTransport: Sendable {
     func sendResponse(_ response: NIP46Response, to appPubkey: String) async throws
@@ -137,7 +138,9 @@ public actor NIP46SessionManager {
         do {
             result = try await executor.execute(session.request, identityID: identityID)
         } catch {
-            _ = session.stateMachine.transition(on: .onSignComplete(.failure(error)))
+            _ = session.stateMachine.transition(
+                on: .onSignComplete(.failure(Self.executionFailureReason(for: error)))
+            )
             sessionsByRequestID[requestID] = session
             // The requesting app is told, otherwise it waits for a reply that never comes.
             await sendFailure(.signingFailed, for: session)
@@ -156,7 +159,9 @@ public actor NIP46SessionManager {
                 await permissionEvaluator?.saveRememberRule(for: session.request)
             }
         } catch {
-            _ = session.stateMachine.transition(on: .onSendComplete(.failure(error)))
+            _ = session.stateMachine.transition(
+                on: .onSendComplete(.failure(Self.deliveryFailureReason(for: error)))
+            )
         }
 
         sessionsByRequestID[requestID] = session
@@ -242,6 +247,48 @@ public actor NIP46SessionManager {
         processingQueue.removeAll { $0 == sessionID }
         if activeSessionID == sessionID {
             activeSessionID = nil
+        }
+    }
+
+    static func deliveryFailureReason(for error: Error) -> SessionFailureReason {
+        switch error {
+        case NIP46RelayTransportError.unknownApp:
+            return .connectionNotRegistered
+        case NIP46RelayTransportError.noKeyForIdentity:
+            return .identityKeyUnavailable
+        case NIP46RelayTransportError.encryptionFailed:
+            return .responseEncryptionFailed
+        case is NostrRelayPoolError, is RelayConnectionError, is RelaySocketError, is URLError:
+            return .relayUnavailable
+        default:
+            return .transportFailure
+        }
+    }
+
+    static func executionFailureReason(for error: Error) -> SessionFailureReason {
+        switch error {
+        case NsecStoreError.authenticationFailed:
+            return .keyAuthenticationFailed
+        case NsecStoreError.authenticationCanceled:
+            return .keyAuthenticationCanceled
+        case NsecStoreError.protectionUnavailable:
+            return .keychainProtectionUnavailable
+        case NsecStoreError.invalidInput, NIP46ExecutionError.invalidStoredKey:
+            return .storedKeyInvalid
+        case NIP46ExecutionError.noKeyStoredForIdentity:
+            return .identityKeyUnavailable
+        case NsecStoreError.unexpectedStatus(errSecInteractionNotAllowed):
+            return .keychainInteractionNotAllowed
+        case NsecStoreError.unexpectedStatus(errSecMissingEntitlement):
+            return .keychainPermissionMissing
+        case NsecStoreError.unexpectedStatus(-34010):
+            return .keychainProtectionUnavailable
+        case NsecStoreError.unexpectedStatus(errSecNotAvailable):
+            return .keychainUnavailable
+        case is NsecStoreError:
+            return .keychainUnexpectedError
+        default:
+            return .signingFailed
         }
     }
 }

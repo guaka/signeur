@@ -95,6 +95,10 @@ enum AppBootstrap {
         await relayListener.start()
     }
 
+    static func resumeListening() async {
+        await relayListener.resumeAfterSuspension()
+    }
+
     static func prepareForLaunch() async {
         #if DEBUG
         if let e2eConfiguration {
