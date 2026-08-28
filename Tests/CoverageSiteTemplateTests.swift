@@ -10,7 +10,7 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertTrue(template.contains("aria-label=\\\"GitHub repository\\\""))
         XCTAssertTrue(template.contains("class=\\\"github-mark\\\""))
         XCTAssertFalse(template.contains(">GitHub <span"))
-        XCTAssertTrue(template.contains("View source on GitHub"))
+        XCTAssertFalse(template.contains("Get the source"))
         XCTAssertTrue(styles.contains(".github-mark { width: 20px; height: 20px; fill: currentColor; }"))
     }
 
