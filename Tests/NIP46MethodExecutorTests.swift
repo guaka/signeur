@@ -166,6 +166,26 @@ final class NIP46MethodExecutorTests: XCTestCase {
         XCTAssertEqual(decrypted, "legacy message")
     }
 
+    func testSwitchRelaysIsAcknowledged() async throws {
+        let result = try await makeExecutor().execute(makeTestRequest(method: .switchRelays, params: []), identityID: "id-1")
+
+        XCTAssertEqual(result, "ack")
+    }
+
+    func testLogoutIsAcknowledged() async throws {
+        let result = try await makeExecutor().execute(makeTestRequest(method: .logout, params: []), identityID: "id-1")
+
+        XCTAssertEqual(result, "ack")
+    }
+
+    func testMissingPubkeyForNip04DecryptIsRejected() async {
+        let request = makeTestRequest(method: .nip04Decrypt, params: ["payload"])
+
+        await assertThrows(.missingParameter("nip04_decrypt expects [pubkey, payload]")) {
+            try await self.makeExecutor().execute(request, identityID: "id-1")
+        }
+    }
+
     func testEncryptRejectsANonPubkeyFirstParameter() async {
         let request = makeTestRequest(method: .nip44Encrypt, params: ["not-a-pubkey", "text"])
 

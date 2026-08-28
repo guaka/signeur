@@ -127,6 +127,75 @@ final class NIP46ValidatorTests: XCTestCase {
         }
     }
 
+    func testRejectsMalformedLocalSignerIdentity() {
+        let request = NIP46Request(
+            id: "r1",
+            method: .getPublicKey,
+            params: [],
+            appName: "App",
+            appURL: nil,
+            appPubkey: "not-a-valid-key",
+            correlationID: "c1",
+            rawPayloadPreview: "{}",
+            origin: .localSigner
+        )
+
+        XCTAssertEqual(
+            resultError(NIP46Validator().validate(request)),
+            .invalidField("appPubkey")
+        )
+    }
+
+    func testRejectsTooManyPermissions() {
+        let tooMany = Array(repeating: "sign_event", count: 33)
+        let request = NIP46Request(
+            id: "r2",
+            method: .signEvent,
+            params: ["{}"],
+            appName: "App",
+            appURL: nil,
+            appPubkey: TestVectors.pubkeyHex,
+            requestedPermissions: tooMany,
+            correlationID: "c2",
+            rawPayloadPreview: "{}"
+        )
+        XCTAssertEqual(resultError(NIP46Validator().validate(request)), .invalidField("requestedPermissions"))
+    }
+
+    func testRejectsInvalidAppNameMetadata() {
+        let request = makeTestRequest(method: .getPublicKey, appName: "app\nname")
+        XCTAssertEqual(resultError(NIP46Validator().validate(request)), .invalidField("appName"))
+    }
+
+    func testRejectsInvalidMetadataURL() {
+        let request = NIP46Request(
+            id: "r3",
+            method: .getPublicKey,
+            params: [],
+            appName: "App",
+            appURL: "ftp://example.com",
+            appPubkey: TestVectors.pubkeyHex,
+            correlationID: "c3",
+            rawPayloadPreview: ""
+        )
+        XCTAssertEqual(resultError(NIP46Validator().validate(request)), .invalidField("appURL"))
+    }
+
+    func testRejectsInvalidRelayList() {
+        let request = NIP46Request(
+            id: "r4",
+            method: .signEvent,
+            params: ["{}"],
+            appName: "App",
+            appURL: nil,
+            appPubkey: TestVectors.pubkeyHex,
+            relays: ["wss://allowed.example", "ws://not-loopback"],
+            correlationID: "c4",
+            rawPayloadPreview: "{}",
+        )
+        XCTAssertEqual(resultError(NIP46Validator().validate(request)), .invalidField("relays"))
+    }
+
     private func resultError(_ result: Result<Void, NIP46ValidationError>) -> NIP46ValidationError? {
         if case let .failure(error) = result { return error }
         return nil

@@ -194,6 +194,23 @@ final class URLSessionRelaySocketTests: XCTestCase {
         XCTAssertEqual(received, "signed-binary")
     }
 
+    func testSendAfterCloseThrowsNotConnected() async throws {
+        let task = FakeRelayTask()
+        let socket = URLSessionRelaySocket(
+            url: URL(string: "wss://example.com/relay")!,
+            taskFactory: FakeRelayTaskFactory(task: task)
+        )
+        try await socket.connect()
+        await socket.close()
+
+        do {
+            try await socket.send("late")
+            XCTFail("sending without an active connection should fail")
+        } catch {
+            XCTAssertEqual(error as? RelaySocketError, .notConnected)
+        }
+    }
+
     func testClosingConnectedTaskCancelsReceive() async throws {
         let task = FakeRelayTask()
         let socket = URLSessionRelaySocket(

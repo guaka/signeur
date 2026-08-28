@@ -351,6 +351,52 @@ final class NostrProfileLookupTests: XCTestCase {
         XCTAssertEqual(profile?.nip05, nil)
     }
 
+    func testWebSocketFetcherIgnoresEventsForUnexpectedSubscriptionIDs() async throws {
+        let relay = URL(string: "wss://relay.one")!
+        let socket = FakeRelaySocket()
+        let fetcher = WebSocketNostrProfileEventFetcher(
+            socketFactory: { _ in socket },
+            timeout: 1
+        )
+        let requestTask = Task { await fetcher.fetchProfileEvents(pubkey: TestVectors.pubkeyHex, relays: [relay]) }
+
+        try await Task.sleep(for: .milliseconds(50))
+        let frames = await socket.frames()
+        let subscribeFrame = try XCTUnwrap(
+            frames.first { $0.hasPrefix("[\"REQ\",") },
+            "subscription should be sent before assertions"
+        )
+        let requestData = try XCTUnwrap(subscribeFrame.data(using: .utf8))
+        let requestArray = try XCTUnwrap(JSONSerialization.jsonObject(with: requestData) as? [Any])
+        let subscriptionID = try XCTUnwrap(requestArray[1] as? String)
+        let otherID = "\(subscriptionID)-other"
+        let event = try profileEvent(createdAt: 1_700_000_000, content: #"{"display_name":"Alice"}"#)
+        await socket.deliver("[\"EVENT\",\"\(otherID)\",\(try NostrEventFactory.json(for: event))]")
+        await socket.deliver("[\"EOSE\",\"\(subscriptionID)\"]")
+
+        let events = await requestTask.value
+
+        XCTAssertEqual(events.count, 0)
+        let isClosed = await socket.closedYet()
+        XCTAssertTrue(isClosed)
+    }
+
+    func testNonProfileEventKindsDoNotQualifyForLookup() async throws {
+        let event = try NostrEventFactory.sign(
+            UnsignedNostrEvent(createdAt: 100, kind: 1, tags: [], content: #"{"text":"not a profile"}"#),
+            privateKey: try NostrKeyDeriver.secretKeyBytes(fromNsec: TestVectors.nsec)
+        )
+        let lookup = RelayNostrProfileLookup(
+            relays: [],
+            eventFetcher: StubProfileEventFetcher(events: [event]),
+            nip05Verifier: StubNIP05Verifier(validIdentifiers: [])
+        )
+
+        let profile = await lookup.lookup(pubkey: TestVectors.pubkeyHex)
+
+        XCTAssertNil(profile)
+    }
+
     func testNIP05VerifierAcceptsMatchingNip05IdentifierFromServer() async throws {
         try await withMockNIP05VerifierResponse(statusCode: 200, body: #"{"names":{"alice":"\#(TestVectors.pubkeyHex)"} }"#) { verifier in
             let verified = await verifier.verify(identifier: "alice@example.com", pubkey: TestVectors.pubkeyHex)

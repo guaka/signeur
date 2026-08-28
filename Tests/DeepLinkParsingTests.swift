@@ -105,4 +105,36 @@ final class DeepLinkParsingTests: XCTestCase {
         let url = try XCTUnwrap(URL(string: "nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret"))
         XCTAssertEqual(try PairingPayloadParser().parse(url).clientPubkey, clientPubkey)
     }
+
+    func testRejectsInvalidClientPublicKey() throws {
+        XCTAssertThrowsError(
+            try handler.parse(try url("nostrconnect://not-a-key?relay=wss://relay.one&secret=s"))
+        ) { error in
+            XCTAssertEqual(error as? DeepLinkParseError, .invalidClientPubkey)
+        }
+    }
+
+    func testRejectsInsecureRelayURLs() throws {
+        XCTAssertThrowsError(
+            try handler.parse(try url("nostrconnect://\(clientPubkey)?relay=ws://relay.example.com&secret=s3cret"))
+        ) { error in
+            XCTAssertEqual(error as? DeepLinkParseError, .invalidRelay)
+        }
+    }
+
+    func testRejectsInvalidMetadataText() {
+        XCTAssertThrowsError(
+            try handler.parse(try url("nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret&name=%0A"))
+        ) { error in
+            XCTAssertEqual(error as? DeepLinkParseError, .invalidMetadata)
+        }
+    }
+
+    func testRejectsInvalidAppMetadataURL() throws {
+        XCTAssertThrowsError(
+            try handler.parse(try url("nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret&url=ftp://example.com"))
+        ) { error in
+            XCTAssertEqual(error as? DeepLinkParseError, .invalidMetadata)
+        }
+    }
 }
