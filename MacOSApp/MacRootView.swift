@@ -166,15 +166,7 @@ struct MacRootView: View {
 }
 
 private struct MacSignstrHelpView: View {
-    private let buildTime: String = {
-        guard let value = Bundle.main.object(forInfoDictionaryKey: "SignstrBuildTime") as? String,
-              !value.isEmpty,
-              !value.hasPrefix("$(")
-        else {
-            return "Development build"
-        }
-        return value
-    }()
+    private let buildTime = BuildInformation.displayBuildTime()
 
     var body: some View {
         ScrollView {
