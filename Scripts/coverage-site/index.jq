@@ -74,7 +74,7 @@ def github_mark:
     "<div class=\"hero-actions\"><a class=\"primary-action\" href=\"#nip46-test\">Test NIP-46</a><a class=\"secondary-action\" href=\"#how-it-works\">See how it works</a></div>",
     "</section>",
     "<section class=\"product-grid\" id=\"how-it-works\">",
-    "<article class=\"product-card feature-card\"><span class=\"card-number\">01</span><div><span class=\"section-kicker\">Keys</span><h2>Add a key</h2><p>Generate a key or import an existing <code>nsec</code>. Signstr stores private keys in the system Keychain.</p></div></article>",
+    "<article class=\"product-card\"><span class=\"card-number\">01</span><span class=\"section-kicker\">Keys</span><h3>Add a key</h3><p>Generate a key or import an existing <code>nsec</code>. Signstr stores private keys in the system Keychain.</p></article>",
     "<article class=\"product-card\"><span class=\"card-number\">02</span><span class=\"section-kicker\">Connections</span><h3>Pair a client</h3><p>Scan a Nostr Connect code on iPhone or paste its link on Mac. NIP-46 and NIP-55 are supported.</p></article>",
     "<article class=\"product-card\"><span class=\"card-number\">03</span><span class=\"section-kicker\">Requests</span><h3>Approve or reject</h3><p>Review each request and optionally remember a permission for that client.</p></article>",
     "</section>",

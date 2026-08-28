@@ -28,6 +28,16 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertTrue(generator.contains("date -u '+%Y-%m-%d %H:%M'"))
     }
 
+    func testHowItWorksCardsShareOneDesktopRow() throws {
+        let template = try String(contentsOf: repositoryFile("Scripts/coverage-site/index.jq"))
+        let styles = try String(contentsOf: repositoryFile("Scripts/coverage-site/coverage.css"))
+
+        XCTAssertEqual(template.components(separatedBy: "class=\\\"product-card\\\"").count - 1, 3)
+        XCTAssertFalse(template.contains("feature-card"))
+        XCTAssertTrue(styles.contains("grid-template-columns: repeat(3, 1fr);"))
+        XCTAssertTrue(styles.contains(".product-grid { grid-template-columns: 1fr; }"))
+    }
+
     private func repositoryFile(_ relativePath: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
