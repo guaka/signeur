@@ -69,7 +69,7 @@ def github_mark:
     "</header>",
     "<main>",
     "<section class=\"hero\">",
-    "<div class=\"eyebrow\"><span></span> Open source · AGPL-3.0</div>",
+    "<div class=\"eyebrow\"><span></span> AGPL-3.0</div>",
     "<h1>A Nostr signer<br><em>for iPhone and Mac.</em></h1>",
     "<p>Store Nostr keys on your device, pair clients over NIP-46, and grant each client only the permissions you want.</p>",
     "<div class=\"hero-actions\"><a class=\"primary-action\" href=\"#nip46-test\">Test NIP-46</a><a class=\"secondary-action\" href=\"#how-it-works\">See how it works</a></div>",
