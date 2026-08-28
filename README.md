@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="iOSApp/Assets.xcassets/AppIcon.appiconset/icon-1024.png" width="180" alt="Signstr app icon">
+  <img src=".github/assets/signstr-icon.png" width="180" alt="Signstr app icon">
 </p>
 
 <h1 align="center">Signstr</h1>
