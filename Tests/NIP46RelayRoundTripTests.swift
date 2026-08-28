@@ -337,6 +337,23 @@ final class NIP46RelayListenerTests: XCTestCase {
         XCTAssertEqual(pending.first?.request.method, .getPublicKey)
     }
 
+    func testResumeAfterSuspensionReopensRelayAndRestoresSubscription() async throws {
+        let sockets = SocketRegistry()
+        let setup = try await makeListener(socketFactory: { url in sockets.socket(for: url) })
+
+        await setup.listener.start()
+        let socket = sockets.socket(for: URL(string: "wss://relay.one")!)
+        let initialConnectionCount = await socket.connectionsMade()
+        XCTAssertEqual(initialConnectionCount, 1)
+
+        await setup.listener.resumeAfterSuspension()
+
+        let resumedConnectionCount = await socket.connectionsMade()
+        XCTAssertEqual(resumedConnectionCount, 2)
+        let frames = await socket.frames()
+        XCTAssertEqual(frames.filter { $0.hasPrefix("[\"REQ\"") }.count, 2)
+    }
+
     func testAnEventFromAnUnknownAppIsIgnored() async throws {
         let setup = try await makeListener(registerApp: false)
         let event = try makeNIP46Event(

@@ -2,6 +2,16 @@ import XCTest
 @testable import SignstrCore
 
 final class IdentityStoreTests: XCTestCase {
+    func testFirstIdentityBecomesActiveWhenTheStoredSelectionIsMissing() async {
+        let store = IdentityStore(
+            defaults: makeEphemeralDefaults(),
+            seed: [Identity(id: "id-1", displayName: "Main")]
+        )
+
+        let activeID = await store.activeIdentityID()
+        XCTAssertEqual(activeID, "id-1")
+    }
+
     func testUpdatingOrMarkingAMissingIdentityIsANoOp() async {
         let store = IdentityStore(defaults: makeEphemeralDefaults())
 

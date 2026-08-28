@@ -74,6 +74,15 @@ final class AppConfigurationRegressionTests: XCTestCase {
         XCTAssertTrue(source.contains("await AppBootstrap.lockKeySession()"))
     }
 
+    func testIOSRefreshesRelaySubscriptionsAfterReturningToTheForeground() throws {
+        let root = try String(contentsOf: repositoryFile("iOSApp/RootView.swift"))
+        let bootstrap = try String(contentsOf: repositoryFile("iOSApp/AppBootstrap.swift"))
+
+        XCTAssertTrue(root.contains("UIApplication.didBecomeActiveNotification"))
+        XCTAssertTrue(root.contains("await AppBootstrap.resumeListening()"))
+        XCTAssertTrue(bootstrap.contains("await relayListener.resumeAfterSuspension()"))
+    }
+
     func testBothHelpScreensLinkToThePublishedGuide() throws {
         for path in ["MacOSApp/MacRootView.swift", "iOSApp/RootView.swift"] {
             let source = try String(contentsOf: repositoryFile(path))

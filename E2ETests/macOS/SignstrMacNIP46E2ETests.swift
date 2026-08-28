@@ -1,7 +1,10 @@
 import XCTest
 
 final class SignstrMacNIP46E2ETests: XCTestCase {
-    private let testURL = "https://guaka.github.io/signstr/#nip46-test"
+    private var testURL: String {
+        ProcessInfo.processInfo.environment["SIGNSTR_E2E_TEST_URL"]
+            ?? "https://guaka.github.io/signstr/#nip46-test"
+    }
     private let testNsec = "nsec1vl029mgpspedva04g90vltkh6fvh240zqtv9k0t9af8935ke9laqsnlfe5"
     private let expectedNpub = "npub10elfcs4fr0l0r8af98jlmgdh9c8tcxjvz9qkw038js35mp4dma8qzvjptg"
 

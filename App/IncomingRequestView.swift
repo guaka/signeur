@@ -1,10 +1,17 @@
 import SwiftUI
+#if os(iOS)
+import UIKit
+#elseif os(macOS)
+import AppKit
+#endif
 
 public struct IncomingRequestView: View {
     @ObservedObject private var viewModel: SessionViewModel
     @State private var showDetails = false
+    @State private var copiedError: String?
     private let connectActions: [ConnectAction]
     private let onConnectionApproved: (() -> Void)?
+    private let errorCopier: (String) -> Void
 
     /// A way to start a connection from the empty state, e.g. scanning or pasting a link.
     public struct ConnectAction: Identifiable {
@@ -23,11 +30,13 @@ public struct IncomingRequestView: View {
     public init(
         viewModel: SessionViewModel,
         connectActions: [ConnectAction] = [],
-        onConnectionApproved: (() -> Void)? = nil
+        onConnectionApproved: (() -> Void)? = nil,
+        errorCopier: ((String) -> Void)? = nil
     ) {
         self.viewModel = viewModel
         self.connectActions = connectActions
         self.onConnectionApproved = onConnectionApproved
+        self.errorCopier = errorCopier ?? Self.copyToSystemClipboard
     }
 
     public var body: some View {
@@ -175,9 +184,21 @@ public struct IncomingRequestView: View {
             .background(.bar)
 
             if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .foregroundStyle(.red)
-                    .font(.footnote)
+                HStack(alignment: .firstTextBaseline, spacing: 12) {
+                    Text(errorMessage)
+                        .foregroundStyle(.red)
+                        .font(.footnote)
+                        .textSelection(.enabled)
+                    Spacer(minLength: 0)
+                    Button(action: copyCurrentError) {
+                        Label(
+                            copiedError == errorMessage ? "Copied" : "Copy error",
+                            systemImage: copiedError == errorMessage ? "checkmark" : "doc.on.doc"
+                        )
+                    }
+                    .buttonStyle(.borderless)
+                    .accessibilityIdentifier("copy-error")
+                }
                     .padding(.horizontal)
                     .padding(.bottom, 8)
             }
@@ -194,6 +215,25 @@ public struct IncomingRequestView: View {
 
     func rejectRequest() {
         Task { await viewModel.reject() }
+    }
+
+    func copyErrorMessage(_ message: String) {
+        errorCopier(message)
+        copiedError = message
+    }
+
+    func copyCurrentError() {
+        guard let message = viewModel.errorMessage else { return }
+        copyErrorMessage(message)
+    }
+
+    private static func copyToSystemClipboard(_ message: String) {
+        #if os(iOS)
+        UIPasteboard.general.string = message
+        #elseif os(macOS)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(message, forType: .string)
+        #endif
     }
 
     func requestHeader(_ request: NIP46Request, isConnection: Bool) -> some View {

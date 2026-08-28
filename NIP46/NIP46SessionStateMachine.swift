@@ -25,12 +25,12 @@ public struct NIP46SessionStateMachine: Sendable {
             return .cancelled
         case (.signing, .onSignComplete(.success)):
             return .sendingResponse
-        case (.signing, .onSignComplete(.failure)):
-            return .completedError(.signingFailed)
+        case let (.signing, .onSignComplete(.failure(error))):
+            return .completedError((error as? SessionFailureReason) ?? .signingFailed)
         case (.sendingResponse, .onSendComplete(.success)):
             return .completedSuccess
-        case (.sendingResponse, .onSendComplete(.failure)):
-            return .completedError(.transportFailure)
+        case let (.sendingResponse, .onSendComplete(.failure(error))):
+            return .completedError((error as? SessionFailureReason) ?? .transportFailure)
         case (_, .onTimeout):
             return .expired
         case (_, .onCancel):

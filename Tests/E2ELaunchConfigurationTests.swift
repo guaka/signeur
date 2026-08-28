@@ -29,7 +29,7 @@ final class E2ELaunchConfigurationTests: XCTestCase {
         let seededIdentities = await identities.list()
         let initialActiveIdentityID = await identities.activeIdentityID()
         XCTAssertEqual(seededIdentities, [configuration.identity])
-        XCTAssertNil(initialActiveIdentityID)
+        XCTAssertEqual(initialActiveIdentityID, configuration.identity.id)
         await identities.setActive(identityID: configuration.identity.id)
         let activeIdentityID = await identities.activeIdentityID()
         XCTAssertEqual(activeIdentityID, configuration.identity.id)

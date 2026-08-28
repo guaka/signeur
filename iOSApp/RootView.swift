@@ -139,6 +139,10 @@ struct RootView: View {
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
             Task { await AppBootstrap.lockKeySession() }
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            guard didPickInitialSection else { return }
+            Task { await AppBootstrap.resumeListening() }
+        }
     }
 
     private var pairingErrorBinding: Binding<Bool> {

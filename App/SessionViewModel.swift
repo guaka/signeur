@@ -45,14 +45,17 @@ public final class SessionViewModel: ObservableObject {
         }
 
         let request = currentSession?.request
-        let activatedAppPubkey = await activateConnectionBeforeReplyIfNeeded(request: request)
+        let activatedAppPubkey = await registerAndActivateConnectionBeforeReplyIfNeeded(
+            request: request,
+            identityID: identityID
+        )
         let newState = await sessionManager.handleApprove(
             requestID: requestID,
             identityID: identityID,
             approvalMode: .remembered
         )
         if case let .completedError(reason) = newState {
-            errorMessage = reason.rawValue
+            errorMessage = reason.userMessage
         }
         await rollBackConnectionIfNeeded(appPubkey: activatedAppPubkey, state: newState)
         currentSession = await sessionManager.activateNextPendingIfNeeded()
@@ -67,7 +70,10 @@ public final class SessionViewModel: ObservableObject {
             return false
         }
         let request = currentSession?.request
-        let activatedAppPubkey = await activateConnectionBeforeReplyIfNeeded(request: request)
+        let activatedAppPubkey = await registerAndActivateConnectionBeforeReplyIfNeeded(
+            request: request,
+            identityID: selectedIdentityID
+        )
         let newState = await sessionManager.handleApprove(
             requestID: requestID,
             identityID: selectedIdentityID,
@@ -75,7 +81,7 @@ public final class SessionViewModel: ObservableObject {
         )
         sessionState = newState
         if case let .completedError(reason) = newState {
-            errorMessage = reason.rawValue
+            errorMessage = reason.userMessage
         }
         await rollBackConnectionIfNeeded(appPubkey: activatedAppPubkey, state: newState)
         await refresh()
@@ -88,7 +94,7 @@ public final class SessionViewModel: ObservableObject {
         let newState = await sessionManager.handleReject(requestID: requestID)
         sessionState = newState
         if case let .completedError(reason) = newState {
-            errorMessage = reason.rawValue
+            errorMessage = reason.userMessage
         }
         // A refused pairing should not be remembered or listened to.
         if request?.method == .connect, let appPubkey = request?.appPubkey {
@@ -100,8 +106,20 @@ public final class SessionViewModel: ObservableObject {
     /// Listen before publishing the connect response. NIP-46 clients may send
     /// `get_public_key` as soon as that response arrives, so subscribing afterwards
     /// leaves a race where the follow-up request can be missed.
-    private func activateConnectionBeforeReplyIfNeeded(request: NIP46Request?) async -> String? {
+    private func registerAndActivateConnectionBeforeReplyIfNeeded(
+        request: NIP46Request?,
+        identityID: String
+    ) async -> String? {
         guard let request, request.method == .connect else { return nil }
+        let pairing = DeepLinkRequest(
+            clientPubkey: request.appPubkey,
+            relays: request.relays,
+            secret: request.params.first ?? "",
+            requestedPerms: request.requestedPermissions,
+            appName: request.appName,
+            appURL: request.appURL
+        )
+        await connectionRegistry?.register(pairing: pairing, identityID: identityID)
         await connectionRegistry?.activate(appPubkey: request.appPubkey)
         return request.appPubkey
     }
