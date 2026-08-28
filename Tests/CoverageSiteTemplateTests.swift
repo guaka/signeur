@@ -41,6 +41,18 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertTrue(styles.contains(".product-grid { grid-template-columns: 1fr; }"))
     }
 
+    func testHeroHasOnlyThePrimaryActionAndTesterUsesAContainedLayout() throws {
+        let template = try String(contentsOf: repositoryFile("Scripts/coverage-site/index.jq"))
+        let styles = try String(contentsOf: repositoryFile("Scripts/coverage-site/coverage.css"))
+
+        XCTAssertFalse(template.contains("See how it works"))
+        XCTAssertTrue(template.contains("<div class=\\\"hero-actions\\\"><a class=\\\"primary-action\\\" href=\\\"#nip46-test\\\">Test NIP-46</a></div>"))
+        XCTAssertTrue(styles.contains("max-width: 1440px;"))
+        XCTAssertTrue(styles.contains("grid-template-columns: minmax(0, 720px) auto;"))
+        XCTAssertTrue(styles.contains(".tester-privacy {"))
+        XCTAssertTrue(styles.contains("border-top: 1px solid var(--border);"))
+    }
+
     private func repositoryFile(_ relativePath: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
