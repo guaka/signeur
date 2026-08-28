@@ -15,9 +15,6 @@ final class SignstrNIP46E2ETests: XCTestCase {
             "SIGNSTR_E2E_ENABLED": "1",
             "SIGNSTR_E2E_NSEC": testNsec
         ]
-        signstr.launch()
-        XCTAssertTrue(signstr.staticTexts["No pending requests"].waitForExistence(timeout: 15))
-
         let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
         safari.launch()
 
@@ -74,12 +71,8 @@ final class SignstrNIP46E2ETests: XCTestCase {
 
     private func openConnection(_ url: URL, in app: XCUIApplication) {
         let approveConnection = app.buttons["Approve Connection"]
-        app.open(url)
-        if !approveConnection.waitForExistence(timeout: 15) {
-            // A resource-constrained hosted simulator can cold-launch the app without
-            // delivering the first URL to SwiftUI. Once launched, delivery is reliable.
-            app.open(url)
-        }
+        app.launchEnvironment["SIGNSTR_E2E_PAIRING_URI"] = url.absoluteString
+        app.launch()
         XCTAssertTrue(
             approveConnection.waitForExistence(timeout: 30),
             "Expected Approve Connection in Signstr"

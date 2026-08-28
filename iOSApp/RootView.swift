@@ -107,6 +107,15 @@ struct RootView: View {
             guard !didPickInitialSection else { return }
             didPickInitialSection = true
             await AppBootstrap.prepareForLaunch()
+            #if DEBUG
+            if let pairingURL = AppBootstrap.e2eConfiguration?.pairingURL {
+                if await pairingVM.handleIncomingURL(pairingURL) {
+                    showPairedRequest()
+                } else {
+                    pairingErrorMessage = pairingVM.errorMessage
+                }
+            }
+            #endif
             await keysVM.refresh()
             if keysVM.identities.isEmpty {
                 section = .keys

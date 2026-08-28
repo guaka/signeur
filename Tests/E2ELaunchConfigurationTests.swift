@@ -23,6 +23,7 @@ final class E2ELaunchConfigurationTests: XCTestCase {
 
         XCTAssertEqual(configuration.identity.id, E2ELaunchConfiguration.identityID)
         XCTAssertEqual(configuration.identity.npub, TestVectors.npub)
+        XCTAssertNil(configuration.pairingURL)
 
         let identities = configuration.makeIdentityStore()
         let seededIdentities = await identities.list()
@@ -44,6 +45,23 @@ final class E2ELaunchConfigurationTests: XCTestCase {
         await keys.saveNsec(TestVectors.otherNsec, for: configuration.identity.id)
         let replacedNsec = await keys.loadNsec(for: configuration.identity.id)
         XCTAssertEqual(replacedNsec, TestVectors.otherNsec)
+    }
+
+    func testPairingURLOnlyAcceptsNostrConnectURLs() throws {
+        let pairingURL = "nostrconnect://\(TestVectors.pubkeyHex)?relay=wss%3A%2F%2Frelay.example&secret=test"
+        let configuration = try XCTUnwrap(E2ELaunchConfiguration(environment: [
+            E2ELaunchConfiguration.enabledEnvironmentKey: "1",
+            E2ELaunchConfiguration.nsecEnvironmentKey: TestVectors.nsec,
+            E2ELaunchConfiguration.pairingEnvironmentKey: pairingURL
+        ]))
+        XCTAssertEqual(configuration.pairingURL?.absoluteString, pairingURL)
+
+        let unsafeConfiguration = try XCTUnwrap(E2ELaunchConfiguration(environment: [
+            E2ELaunchConfiguration.enabledEnvironmentKey: "1",
+            E2ELaunchConfiguration.nsecEnvironmentKey: TestVectors.nsec,
+            E2ELaunchConfiguration.pairingEnvironmentKey: "https://example.com"
+        ]))
+        XCTAssertNil(unsafeConfiguration.pairingURL)
     }
 }
 #endif

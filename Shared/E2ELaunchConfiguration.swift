@@ -6,10 +6,12 @@ import Foundation
 public struct E2ELaunchConfiguration: Sendable {
     public static let enabledEnvironmentKey = "SIGNSTR_E2E_ENABLED"
     public static let nsecEnvironmentKey = "SIGNSTR_E2E_NSEC"
+    public static let pairingEnvironmentKey = "SIGNSTR_E2E_PAIRING_URI"
     public static let identityID = "signstr-e2e-identity"
 
     public let identity: Identity
     public let nsec: String
+    public let pairingURL: URL?
 
     public init?(environment: [String: String]) {
         guard environment[Self.enabledEnvironmentKey] == "1",
@@ -20,6 +22,13 @@ public struct E2ELaunchConfiguration: Sendable {
         }
 
         self.nsec = nsec
+        if let rawPairingURL = environment[Self.pairingEnvironmentKey],
+           let url = URL(string: rawPairingURL),
+           url.scheme?.lowercased() == "nostrconnect" {
+            pairingURL = url
+        } else {
+            pairingURL = nil
+        }
         identity = Identity(
             id: Self.identityID,
             displayName: "NIP-46 E2E Key",
