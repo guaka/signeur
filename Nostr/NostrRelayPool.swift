@@ -41,7 +41,7 @@ public actor NostrRelayPool {
                     recipientPubkey: recipientPubkey,
                     since: since
                 )
-            } catch {
+            } catch { // coverage:ignore-region LLVM emits an uncovered async cleanup region although relay-failure continuation is tested.
                 // One unreachable relay must not stop the others from listening.
                 continue
             }

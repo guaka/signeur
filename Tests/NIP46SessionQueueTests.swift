@@ -27,6 +27,13 @@ final class NIP46SessionQueueTests: XCTestCase {
         XCTAssertTrue(pending.isEmpty)
     }
 
+    func testEmptyManagerHasNoActiveSession() async {
+        let manager = makeManager()
+
+        let activeSession = await manager.activeSession()
+        XCTAssertNil(activeSession)
+    }
+
     func testRequestsAreServedInArrivalOrder() async {
         let manager = makeManager()
         _ = await manager.onRequestArrived(makeTestRequest(id: "first"))
@@ -91,6 +98,24 @@ final class NIP46SessionQueueTests: XCTestCase {
 
         XCTAssertEqual(approve, .completedError(.invalidProtocol))
         XCTAssertEqual(reject, .completedError(.invalidProtocol))
+    }
+
+    func testUnknownRequestIDCannotTimeOut() async {
+        let manager = makeManager()
+
+        let timeout = await manager.onTimeout(requestID: "ghost")
+
+        XCTAssertEqual(timeout, .completedError(.invalidProtocol))
+    }
+
+    func testTransportFailureWhileRejectingIsTerminal() async {
+        let manager = makeManager(transport: RecordingTransport(shouldThrow: true))
+        _ = await manager.onRequestArrived(makeTestRequest(id: "reject-failure"))
+        _ = await manager.activateNextPendingIfNeeded()
+
+        let state = await manager.handleReject(requestID: "reject-failure")
+
+        XCTAssertEqual(state, .completedError(.userRejected))
     }
 
     func testApprovalSignsWithTheChosenIdentity() async {

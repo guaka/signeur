@@ -2,6 +2,16 @@ import XCTest
 @testable import SignstrCore
 
 final class IdentityStoreTests: XCTestCase {
+    func testUpdatingOrMarkingAMissingIdentityIsANoOp() async {
+        let store = IdentityStore(defaults: makeEphemeralDefaults())
+
+        await store.updateNIP05("nobody@example.com", for: "missing")
+        await store.markUsed(identityID: "missing")
+
+        let identities = await store.list()
+        XCTAssertTrue(identities.isEmpty)
+    }
+
     func testSeedIsUsedWhenNothingPersisted() async {
         let store = IdentityStore(defaults: makeEphemeralDefaults(), seed: [Identity(id: "a", displayName: "A")])
         let identities = await store.list()

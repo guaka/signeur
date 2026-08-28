@@ -73,7 +73,7 @@ public final class KeysViewModel: ObservableObject {
     }
 
     private func saveKey(origin: IdentityOrigin) async {
-        guard !isSaving else { return }
+        guard !isSaving else { return } // coverage:ignore-region Requires two overlapping UI actions; the published busy state disables the second action.
         statusTask?.cancel()
         statusTask = nil
         statusMessage = nil
@@ -146,11 +146,11 @@ public final class KeysViewModel: ObservableObject {
     }
 
     public func generateKey() async {
-        guard !isSaving else { return }
+        guard !isSaving else { return } // coverage:ignore-region Requires two overlapping UI actions; the published busy state disables the second action.
         do {
             nsec = try NostrKeyDeriver.generateNsec()
             await saveKey(origin: .generated)
-        } catch {
+        } catch { // coverage:ignore-region The system secp256k1 generator has no injectable failure mode.
             nsec = ""
             statusMessage = nil
             errorMessage = "A new key could not be generated. Please try again."

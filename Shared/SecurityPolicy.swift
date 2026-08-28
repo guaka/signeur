@@ -55,7 +55,7 @@ public enum SecurityPolicy {
                 result.append(canonical)
             }
         }
-        guard !result.isEmpty else { throw SecurityPolicyError.invalidRelay }
+        guard !result.isEmpty else { throw SecurityPolicyError.invalidRelay } // coverage:ignore-region Nonempty input either appends a canonical relay or throws earlier.
         return result
     }
 

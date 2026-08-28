@@ -200,6 +200,21 @@ final class KeysViewModelTests: XCTestCase {
         XCTAssertEqual(lookedUpPubkeys, [TestVectors.pubkeyHex])
     }
 
+    func testSyncDescribesConfiguredRelaysAndMultipleResults() async {
+        let lookup = StubProfileLookup(
+            metadata: NostrProfileMetadata(nip05: "verified@example.com"),
+            relayURLs: [URL(string: "wss://relay.example")!]
+        )
+        let (viewModel, identityStore, _) = makeViewModel(profileLookup: lookup)
+        await identityStore.add(Identity(id: "one", displayName: "One", npub: TestVectors.npub))
+        await identityStore.add(Identity(id: "two", displayName: "Two", npub: TestVectors.otherNpub))
+        await viewModel.refresh()
+
+        await viewModel.syncNIP05()
+
+        XCTAssertEqual(viewModel.statusMessage, "Checked 2 keys. Found 2 NIP-05 addresses.")
+    }
+
     func testSyncExposesTheRelaysBeingChecked() async {
         let lookup = StubProfileLookup(
             metadata: nil,

@@ -140,6 +140,12 @@ final class NIP44VectorTests: XCTestCase {
         }
     }
 
+    func testUnpaddingRejectsMissingLengthPrefix() {
+        XCTAssertThrowsError(try NIP44.unpad([])) { error in
+            XCTAssertEqual(error as? NIP44Error, .invalidPadding)
+        }
+    }
+
     func testInvalidPayloadsAreRejected() throws {
         let cases = try invalidCases("decrypt")
 

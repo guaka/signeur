@@ -10,6 +10,11 @@ final class NIP04Tests: XCTestCase {
     /// Cross-checked against an independent Python implementation (Tools/derive_reference_vectors.py).
     private let referencePayload = "zgC5jLLvz2rjne1LFgo0YJPMj1AjMfVYmW7UrUnOhng=?iv=AAAAAAAAAAAAAAAAAAAAAA=="
 
+    func testKeyAgreementRejectsWrongLengthKeys() {
+        XCTAssertThrowsError(try NostrKeyAgreement.sharedX(privateKey: [], publicKeyXOnly: [UInt8](repeating: 1, count: 32)))
+        XCTAssertThrowsError(try NostrKeyAgreement.sharedX(privateKey: [UInt8](repeating: 1, count: 32), publicKeyXOnly: []))
+    }
+
     func testEncryptMatchesAnIndependentImplementation() throws {
         let payload = try NIP04.encrypt(
             plaintext: "hello from python",

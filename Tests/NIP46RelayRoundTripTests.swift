@@ -68,6 +68,15 @@ final class ConnectionStoreTests: XCTestCase {
         XCTAssertEqual(connection?.usesLegacyEncryption, true)
     }
 
+    func testMarkingAnUnknownConnectionIsANoOp() async {
+        let store = ConnectionStore(defaults: makeEphemeralDefaults())
+
+        await store.markUsed(appPubkey: TestVectors.otherPubkeyHex)
+
+        let connections = await store.all()
+        XCTAssertTrue(connections.isEmpty)
+    }
+
     func testRemovingAConnectionForgetsIt() async {
         let store = ConnectionStore(defaults: makeEphemeralDefaults())
         await store.upsert(makeConnection(approved: true))
