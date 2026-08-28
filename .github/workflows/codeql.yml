@@ -16,7 +16,9 @@ permissions:
 
 concurrency:
   group: codeql-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # A cancelled CodeQL run is recorded as an unsuccessful analysis. Let scans
+  # finish so rapid pushes to main do not leave code scanning in a failed state.
+  cancel-in-progress: false
 
 jobs:
   analyze:
