@@ -8,7 +8,7 @@ readonly repository_root="$(git rev-parse --show-toplevel)"
 run_ios() {
     local destination_id="${SIGNSTR_IOS_DESTINATION_ID:-}"
     if [[ -z "${destination_id}" ]]; then
-        destination_id="$(xcrun simctl list devices available | awk '/iPhone/ && /\([0-9A-F-]+\)/ { value=$0; sub(/^.*\(/, "", value); sub(/\).*$/, "", value); print value; exit }')"
+        destination_id="$(xcrun simctl list devices available | sed -nE '/iPhone/ s/.*\(([0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})\).*/\1/p' | head -n 1)"
     fi
     if [[ -z "${destination_id}" ]]; then
         echo "No available iPhone simulator was found." >&2
@@ -30,6 +30,10 @@ run_macos() {
         -destination 'platform=macOS' \
         -skipPackagePluginValidation \
         -only-testing:SignstrMacE2ETests \
+        CODE_SIGN_STYLE=Manual \
+        CODE_SIGN_IDENTITY=- \
+        DEVELOPMENT_TEAM= \
+        CODE_SIGN_ENTITLEMENTS= \
         test
 }
 
