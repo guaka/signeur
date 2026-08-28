@@ -179,6 +179,22 @@ final class ConnectedAppsViewTests: XCTestCase {
         XCTAssertNil(ConnectedAppRow(app: unavailable).signingKeyLabel)
     }
 
+    func testAppFaviconURLUsesTheHTTPSOriginAndRejectsUnsafeMetadataURLs() {
+        XCTAssertEqual(
+            appFaviconURL(for: "https://Example.com/apps/client?theme=dark")?.absoluteString,
+            "https://example.com/favicon.ico"
+        )
+        XCTAssertNil(appFaviconURL(for: nil))
+        XCTAssertNil(appFaviconURL(for: "http://example.com"))
+        XCTAssertNil(appFaviconURL(for: "http://localhost:3000"))
+    }
+
+    func testAppIconViewBuildsRemoteAndFallbackStates() {
+        _ = AppIconView(appName: "Amethyst", appURL: "https://example.com").body
+        _ = AppIconView(appName: "Local", appURL: nil).body
+        _ = AppIconView(appName: nil, appURL: nil).body
+    }
+
     func testLoadingSigningViewBuildsBody() {
         _ = LoadingSigningView().body
     }

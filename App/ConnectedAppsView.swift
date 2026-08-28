@@ -146,6 +146,7 @@ struct ConnectedAppRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack {
+                AppIconView(appName: app.appName, appURL: app.appURL, size: 28)
                 Text(app.appName)
                     .font(.headline)
                 Spacer()
@@ -220,11 +221,14 @@ struct ConnectedAppDetailView: View {
     var body: some View {
         List {
             Section {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(app.appName)
-                        .font(.title2.bold())
-                    if let appURL = app.appURL, let url = URL(string: appURL) {
-                        Link(appURL, destination: url)
+                HStack(alignment: .top, spacing: 12) {
+                    AppIconView(appName: app.appName, appURL: app.appURL, size: 44)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(app.appName)
+                            .font(.title2.bold())
+                        if let appURL = app.appURL, let url = URL(string: appURL) {
+                            Link(appURL, destination: url)
+                        }
                     }
                 }
                 .padding(.vertical, 4)

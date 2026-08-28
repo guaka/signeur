@@ -192,9 +192,7 @@ public struct IncomingRequestView: View {
 
     func requestHeader(_ request: NIP46Request, isConnection: Bool) -> some View {
         HStack(alignment: .top, spacing: 14) {
-            Image(systemName: isConnection ? "link.circle.fill" : "signature")
-                .font(.system(size: 38))
-                .foregroundStyle(.tint)
+            AppIconView(appName: request.appName, appURL: request.appURL, size: 44)
 
             VStack(alignment: .leading, spacing: 4) {
                 Text(isConnection ? "Connection Request" : "Approval Required")
