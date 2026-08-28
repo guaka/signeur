@@ -8,6 +8,7 @@ import {
     decryptNIP46Payload,
     encryptNIP46Payload,
     friendlyError,
+    NIP46BrowserSession,
     parseNIP46Response,
     publicKeyFromSecret,
     validateConnectResponse,
@@ -16,6 +17,38 @@ import {
 
 const clientPubkey = "a".repeat(64);
 const userPubkey = "b".repeat(64);
+
+function classList() {
+    const values = new Set();
+    return {
+        toggle(value, enabled) { enabled ? values.add(value) : values.delete(value); },
+        remove(...items) { for (const item of items) values.delete(item); },
+        contains(value) { return values.has(value); }
+    };
+}
+
+function browserElements() {
+    const steps = ["relay", "approval", "connected", "public-key", "success"]
+        .map((phase) => ({ dataset: { testStep: phase }, classList: classList() }));
+    const flowSteps = ["relay", "approval", "connected", "public-key", "success"]
+        .map((phase) => ({ dataset: { flowStep: phase }, classList: classList() }));
+    return {
+        start: { disabled: false, textContent: "" },
+        intro: { hidden: false },
+        panel: { hidden: true },
+        qr: { width: 272, height: 272, getContext: () => ({ clearRect() {} }) },
+        countdown: { textContent: "—" },
+        statusText: { textContent: "" },
+        statusDot: { className: "" },
+        success: { hidden: true },
+        npub: { textContent: "" },
+        hexPubkey: { textContent: "" },
+        error: { hidden: true },
+        errorText: { textContent: "" },
+        steps,
+        flowSteps
+    };
+}
 
 test("builds a Signstr-compatible nostrconnect URI", () => {
     const uri = buildNostrConnectURI({
@@ -116,4 +149,46 @@ test("validates and presents public-key and common error states", () => {
     assert.match(friendlyError(new Error("Pairing timed out.")), /No response arrived/);
     assert.match(friendlyError(new Error("No Nostr relay could be reached.")), /could not reach a Nostr relay/);
     assert.match(friendlyError(new Error("expected pairing secret")), /could not be authenticated/);
+});
+
+test("renders browser progress and a connected npub", () => {
+    const elements = browserElements();
+    const session = new NIP46BrowserSession(elements);
+
+    session.setPhase("public-key");
+    assert.equal(elements.steps[3].classList.contains("active"), true);
+    assert.equal(elements.steps[2].classList.contains("done"), true);
+    assert.equal(elements.statusText.textContent, "Approve the public-key request in Signstr");
+
+    session.succeed(userPubkey);
+    assert.equal(elements.success.hidden, false);
+    assert.equal(elements.error.hidden, true);
+    assert.match(elements.npub.textContent, /^npub1/);
+    assert.equal(elements.hexPubkey.textContent, userPubkey);
+    assert.equal(elements.statusDot.className, "tester-status-dot success");
+});
+
+test("renders actionable browser errors and resets sensitive session state", () => {
+    const elements = browserElements();
+    const session = new NIP46BrowserSession(elements);
+    let subscriptionClosed = false;
+    let poolDestroyed = false;
+    session.clientSecret = new Uint8Array([1]);
+    session.signerPubkey = userPubkey;
+    session.subscription = { close() { subscriptionClosed = true; } };
+    session.pool = { destroy() { poolDestroyed = true; } };
+
+    session.fail(new Error("userRejected"));
+    assert.equal(elements.panel.hidden, false);
+    assert.equal(elements.error.hidden, false);
+    assert.equal(elements.errorText.textContent, "The request was declined in Signstr.");
+    assert.equal(elements.statusDot.className, "tester-status-dot error");
+
+    session.reset();
+    assert.equal(subscriptionClosed, true);
+    assert.equal(poolDestroyed, true);
+    assert.equal(session.clientSecret, null);
+    assert.equal(session.signerPubkey, null);
+    assert.equal(elements.panel.hidden, true);
+    assert.equal(elements.intro.hidden, false);
 });

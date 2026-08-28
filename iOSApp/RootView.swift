@@ -214,6 +214,7 @@ private struct SignstrHelpView: View {
 
                 Divider()
 
+                Link("Open the Signstr guide and NIP-46 tester", destination: URL(string: "https://guaka.github.io/signstr/")!)
                 Link("View Signstr on GitHub", destination: URL(string: "https://github.com/guaka/signstr")!)
                 Text("Build time: \(buildTime)")
                     .font(.footnote)

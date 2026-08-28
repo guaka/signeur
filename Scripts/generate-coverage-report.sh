@@ -48,7 +48,7 @@ cp "${coverage_assets}/coverage.css" "${output_dir}/coverage.css"
 
 jq -r \
     --arg root "${repository_root}/" \
-    --arg generated "$(date -u '+%Y-%m-%d %H:%M UTC')" \
+    --arg generated "$(date -u '+%Y-%m-%d %H:%M')" \
     -f "${coverage_assets}/index.jq" \
     "${coverage_json}" > "${output_dir}/index.html"
 

@@ -163,7 +163,7 @@ function timeoutAfter(milliseconds, message) {
     });
 }
 
-class NIP46BrowserSession {
+export class NIP46BrowserSession {
     constructor(elements) {
         this.elements = elements;
         this.pool = null;
