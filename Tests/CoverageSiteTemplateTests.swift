@@ -58,6 +58,26 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertTrue(styles.contains("border-top: 1px solid var(--border);"))
     }
 
+    func testSuccessfulNIP46PanelShowsIdentityAndAcquiredPermissions() throws {
+        let template = try String(contentsOf: repositoryFile("Scripts/coverage-site/index.jq"))
+
+        XCTAssertTrue(template.contains("id=\\\"nip46-npub\\\""))
+        XCTAssertTrue(template.contains("Acquired permissions"))
+        XCTAssertTrue(template.contains("id=\\\"nip46-permissions\\\""))
+    }
+
+    func testCoveragePageShowsLatestPlatformE2EResults() throws {
+        let template = try String(contentsOf: repositoryFile("Scripts/coverage-site/index.jq"))
+        let generator = try String(contentsOf: repositoryFile("Scripts/generate-coverage-report.sh"))
+
+        XCTAssertTrue(template.contains("id=\\\"e2e-results\\\""))
+        XCTAssertTrue(template.contains("e2e_card(\"iOS\"; $e2eIOSStatus)"))
+        XCTAssertTrue(template.contains("e2e_card(\"macOS\"; $e2eMacOSStatus)"))
+        XCTAssertTrue(template.contains("Last checked"))
+        XCTAssertTrue(generator.contains("SIGNSTR_E2E_IOS_STATUS"))
+        XCTAssertTrue(generator.contains("SIGNSTR_E2E_MACOS_STATUS"))
+    }
+
     private func repositoryFile(_ relativePath: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()

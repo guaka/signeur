@@ -2,6 +2,8 @@ import Foundation
 
 /// Decodes an incoming NIP-46 request event and hands it to the approval flow.
 public actor NIP46RelayListener {
+    public static let requestReceivedNotification = Notification.Name("signstr.nip46.request-received")
+
     public struct DecodedRequest: Equatable, Sendable {
         public let request: NIP46Request
         public let usedLegacyEncryption: Bool
@@ -14,6 +16,7 @@ public actor NIP46RelayListener {
     private let coordinator: RequestRoutingCoordinator
     private let logger: RedactedLogger
     private let now: @Sendable () -> Date
+    private let onRequestReceived: @Sendable () async -> Void
 
     public init(
         pool: NostrRelayPool,
@@ -22,7 +25,8 @@ public actor NIP46RelayListener {
         identities: IdentityStore,
         coordinator: RequestRoutingCoordinator,
         logger: RedactedLogger = RedactedLogger(),
-        now: @escaping @Sendable () -> Date = { Date() } // coverage:ignore Compiler-generated default-argument thunk.
+        now: @escaping @Sendable () -> Date = { Date() }, // coverage:ignore Compiler-generated default-argument thunk.
+        onRequestReceived: @escaping @Sendable () async -> Void = {}
     ) {
         self.pool = pool
         self.connections = connections
@@ -31,6 +35,7 @@ public actor NIP46RelayListener {
         self.coordinator = coordinator
         self.logger = logger
         self.now = now
+        self.onRequestReceived = onRequestReceived
     }
 
     /// Subscribes on every relay of every approved connection.
@@ -93,6 +98,7 @@ public actor NIP46RelayListener {
             metadata: ["method": decoded.request.method.rawValue, "app": event.pubkey]
         )
         await coordinator.routeIncomingRequest(decoded.request)
+        await onRequestReceived()
     }
 
     func decode(event: NostrEvent, for connection: AppConnection) async -> DecodedRequest? {

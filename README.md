@@ -33,6 +33,12 @@ Open `Signstr.xcodeproj` and select either the `Signstr` iOS scheme or the
 directly or pasted from the clipboard; QR camera scanning is available in the
 iPhone app.
 
+## Live NIP-46 end-to-end tests
+
+The UI tests pair each app with the published [NIP-46 tester](https://guaka.github.io/signstr/#nip46-test), approve the connection and public-key request, and verify the returned npub and acquired permissions in Safari. They use a disposable in-memory key in debug builds only.
+
+Run both platforms with `Scripts/run-nip46-e2e.sh`, or pass `ios` or `macos` to run one platform. Because these tests depend on public relays and Safari, they run after changes land on `main`, on demand, and weekly rather than blocking pull requests. The latest per-platform results appear on the [Signstr project page](https://guaka.github.io/signstr/#e2e-results).
+
 Private keys are stored as biometric-protected Keychain items. Key use requires
 Touch ID on Mac or Face ID/Touch ID on iPhone when available, with the device
 password/passcode as the system fallback. Apple Secure Enclave hardware cannot

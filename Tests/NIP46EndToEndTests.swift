@@ -20,7 +20,16 @@ final class NIP46EndToEndTests: XCTestCase {
         let signerPubkey: String
     }
 
-    private func makeHarness() async throws -> Harness {
+    private actor RequestReceipt {
+        private var count = 0
+
+        func record() { count += 1 }
+        func recordedCount() -> Int { count }
+    }
+
+    private func makeHarness(
+        onRequestReceived: @escaping @Sendable () async -> Void = {}
+    ) async throws -> Harness {
         let appPubkey = try NostrKeyDeriver.derivePublicKeyHex(fromNsec: appNsec)
         let sockets = SocketRegistry()
         let pool = NostrRelayPool(socketFactory: { url in sockets.socket(for: url) })
@@ -56,7 +65,8 @@ final class NIP46EndToEndTests: XCTestCase {
             identities: identities,
             coordinator: coordinator,
             logger: RedactedLogger(emit: { _ in }),
-            now: { Date(timeIntervalSince1970: 1_700_000_000) }
+            now: { Date(timeIntervalSince1970: 1_700_000_000) },
+            onRequestReceived: onRequestReceived
         )
 
         return Harness(
@@ -176,7 +186,8 @@ final class NIP46EndToEndTests: XCTestCase {
     }
 
     func testGetPublicKeyOverTheRelayReturnsTheIdentityKey() async throws {
-        let harness = try await makeHarness()
+        let receipt = RequestReceipt()
+        let harness = try await makeHarness(onRequestReceived: { await receipt.record() })
         try await connect(harness)
 
         let event = try makeNIP46Event(
@@ -192,6 +203,8 @@ final class NIP46EndToEndTests: XCTestCase {
         let replyBody = try await lastReply(from: harness)
         let reply = try XCTUnwrap(replyBody)
         XCTAssertEqual(reply["result"] as? String, harness.signerPubkey)
+        let receivedCount = await receipt.recordedCount()
+        XCTAssertEqual(receivedCount, 1, "the app shell must be told to show each relay request")
         await harness.pool.stop()
     }
 
