@@ -14,11 +14,13 @@ public actor NIP46SessionManager {
     private let transport: NIP46RespondingTransport
     private let authorizationGuard: RequestAuthorization
     private let permissionEvaluator: PermissionRuleEvaluating?
+    private let auditLog: AuditLogProviding?
     private let sessionTTL: TimeInterval
 
     private var sessionsByRequestID: [String: NIP46Session] = [:]
     private var processingQueue: [String] = []
     private var activeSessionID: String?
+    private var auditedRequestIDs: Set<String> = []
 
     public init(
         validator: NIP46Validator,
@@ -26,6 +28,7 @@ public actor NIP46SessionManager {
         transport: NIP46RespondingTransport,
         authorizationGuard: RequestAuthorization,
         permissionEvaluator: PermissionRuleEvaluating? = nil,
+        auditLog: AuditLogProviding? = nil,
         sessionTTL: TimeInterval = 120
     ) {
         self.validator = validator
@@ -33,15 +36,17 @@ public actor NIP46SessionManager {
         self.transport = transport
         self.authorizationGuard = authorizationGuard
         self.permissionEvaluator = permissionEvaluator
+        self.auditLog = auditLog
         self.sessionTTL = sessionTTL
     }
 
     @discardableResult
-    public func onRequestArrived(_ request: NIP46Request) -> SessionState {
+    public func onRequestArrived(_ request: NIP46Request) async -> SessionState {
         if sessionsByRequestID[request.id] != nil {
             return .requestReceived
         }
         guard case .success = validator.validate(request) else {
+            await recordAudit(for: request, outcome: .invalidRequest, approvalMode: .notApplicable)
             return .completedError(.invalidProtocol)
         }
 
@@ -76,7 +81,7 @@ public actor NIP46SessionManager {
                 continue
             }
             if session.expiresAt < Date() {
-                expireSession(session.request.id)
+                await expireSession(session.request.id)
                 continue
             }
             activeSessionID = nextID
@@ -96,13 +101,20 @@ public actor NIP46SessionManager {
         return await permissionEvaluator.shouldAutoApprove(request: session.request)
     }
 
-    public func handleApprove(requestID: String, identityID: String, rememberChoice: Bool = false) async -> SessionState {
+    public func handleApprove(
+        requestID: String,
+        identityID: String,
+        rememberChoice: Bool = false,
+        approvalMode: AuditApprovalMode = .manual
+    ) async -> SessionState {
         guard var session = sessionsByRequestID[requestID] else { return .completedError(.invalidProtocol) }
-        guard session.expiresAt > Date() else { return expireSession(requestID) }
+        guard session.expiresAt > Date() else { return await expireSession(requestID) }
         guard session.stateMachine.state == .requestReceived else {
             return session.stateMachine.state
         }
         guard SecurityPolicy.validateIdentifier(identityID) else {
+            finishSession(session.id)
+            await recordAudit(for: session.request, outcome: .unauthorized, approvalMode: approvalMode)
             return .completedError(.unauthorizedSigningAttempt)
         }
 
@@ -117,6 +129,7 @@ public actor NIP46SessionManager {
             _ = session.stateMachine.transition(on: .onSignComplete(.failure(SessionFailureReason.unauthorizedSigningAttempt)))
             sessionsByRequestID[requestID] = session
             finishSession(session.id)
+            await recordAudit(for: session.request, outcome: .unauthorized, approvalMode: approvalMode)
             return .completedError(.unauthorizedSigningAttempt)
         }
 
@@ -129,6 +142,7 @@ public actor NIP46SessionManager {
             // The requesting app is told, otherwise it waits for a reply that never comes.
             await sendFailure(.signingFailed, for: session)
             finishSession(session.id)
+            await recordAudit(for: session.request, outcome: .signingFailed, approvalMode: approvalMode)
             return session.stateMachine.state
         }
 
@@ -147,6 +161,8 @@ public actor NIP46SessionManager {
 
         sessionsByRequestID[requestID] = session
         finishSession(session.id)
+        let outcome: AuditOutcome = session.stateMachine.state == .completedSuccess ? .signed : .deliveryFailed
+        await recordAudit(for: session.request, outcome: outcome, approvalMode: approvalMode)
         return session.stateMachine.state
     }
 
@@ -171,15 +187,16 @@ public actor NIP46SessionManager {
 
         sessionsByRequestID[requestID] = session
         finishSession(session.id)
+        await recordAudit(for: session.request, outcome: .rejected, approvalMode: .manual)
         return session.stateMachine.state
     }
 
-    public func onTimeout(requestID: String) -> SessionState {
-        expireSession(requestID)
+    public func onTimeout(requestID: String) async -> SessionState {
+        await expireSession(requestID)
     }
 
     @discardableResult
-    private func expireSession(_ requestID: String) -> SessionState {
+    private func expireSession(_ requestID: String) async -> SessionState {
         guard var session = sessionsByRequestID[requestID] else { return .completedError(.invalidProtocol) }
         guard session.stateMachine.state == .requestReceived || session.stateMachine.state == .awaitingUserDecision else {
             return session.stateMachine.state
@@ -187,7 +204,29 @@ public actor NIP46SessionManager {
         _ = session.stateMachine.transition(on: .onTimeout)
         sessionsByRequestID[requestID] = session
         finishSession(session.id)
+        await recordAudit(for: session.request, outcome: .expired, approvalMode: .notApplicable)
         return session.stateMachine.state
+    }
+
+    private func recordAudit(
+        for request: NIP46Request,
+        outcome: AuditOutcome,
+        approvalMode: AuditApprovalMode
+    ) async {
+        guard request.method == .signEvent, let auditLog else { return }
+        guard auditedRequestIDs.insert(request.id).inserted else { return }
+
+        let eventKind = request.params.first.flatMap { payload in
+            try? UnsignedNostrEvent.decode(json: payload).kind
+        }
+        let entry = AuditEntry(
+            appName: request.appName ?? "Unknown app",
+            method: request.method.rawValue,
+            outcome: outcome,
+            eventKind: eventKind,
+            approvalMode: approvalMode
+        )
+        try? await auditLog.append(entry)
     }
 
     private func sendFailure(_ reason: SessionFailureReason, for session: NIP46Session) async {

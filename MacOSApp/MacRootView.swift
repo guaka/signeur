@@ -4,6 +4,7 @@ import SwiftUI
 
 private enum MacRootSection: String, CaseIterable, Identifiable {
     case requests
+    case activity
     case connected
     case keys
     case help
@@ -13,6 +14,7 @@ private enum MacRootSection: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .requests: return "Requests"
+        case .activity: return "Activity"
         case .connected: return "Connected Apps"
         case .keys: return "Keys"
         case .help: return "Help"
@@ -22,6 +24,7 @@ private enum MacRootSection: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .requests: return "signature"
+        case .activity: return "clock.arrow.circlepath"
         case .connected: return "link"
         case .keys: return "key.fill"
         case .help: return "questionmark.circle"
@@ -31,6 +34,7 @@ private enum MacRootSection: String, CaseIterable, Identifiable {
 
 struct MacRootView: View {
     @StateObject private var sessionVM = MacAppBootstrap.makeSessionViewModel()
+    @StateObject private var activityVM = MacAppBootstrap.makeActivityViewModel()
     @StateObject private var connectedAppsVM = MacAppBootstrap.makeConnectedAppsViewModel()
     @StateObject private var keysVM = MacAppBootstrap.makeKeysViewModel()
     @StateObject private var pairingVM = MacAppBootstrap.makePairingViewModel()
@@ -144,6 +148,8 @@ struct MacRootView: View {
                 ],
                 onConnectionApproved: showApprovedConnection
             )
+        case .activity:
+            ActivityView(viewModel: activityVM)
         case .connected:
             ConnectedAppsView(viewModel: connectedAppsVM)
         case .keys:

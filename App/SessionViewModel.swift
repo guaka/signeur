@@ -45,7 +45,11 @@ public final class SessionViewModel: ObservableObject {
         }
 
         let request = currentSession?.request
-        let newState = await sessionManager.handleApprove(requestID: requestID, identityID: identityID)
+        let newState = await sessionManager.handleApprove(
+            requestID: requestID,
+            identityID: identityID,
+            approvalMode: .remembered
+        )
         if case let .completedError(reason) = newState {
             errorMessage = reason.rawValue
         }

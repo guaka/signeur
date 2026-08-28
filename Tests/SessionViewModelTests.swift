@@ -7,6 +7,7 @@ final class SessionViewModelTests: XCTestCase {
         executor: RecordingExecutor = RecordingExecutor(),
         transport: RecordingTransport = RecordingTransport(),
         permissionEvaluator: PermissionRuleEvaluating? = nil,
+        auditLog: AuditLogProviding? = nil,
         identities: [Identity] = [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)],
         activeIdentityID: String? = "id-1",
         connectionRegistry: ConnectionRegistering? = nil
@@ -20,7 +21,8 @@ final class SessionViewModelTests: XCTestCase {
             executor: executor,
             transport: transport,
             authorizationGuard: AuthorizationGuard(),
-            permissionEvaluator: permissionEvaluator
+            permissionEvaluator: permissionEvaluator,
+            auditLog: auditLog
         )
         return (
             SessionViewModel(
@@ -138,7 +140,12 @@ final class SessionViewModelTests: XCTestCase {
         let permissions = PermissionRuleStore(defaults: makeEphemeralDefaults())
         await permissions.saveRememberRule(for: makeTestRequest(id: "seed", payload: "{\"kind\":1}"))
         let executor = RecordingExecutor()
-        let (viewModel, manager) = await makeViewModel(executor: executor, permissionEvaluator: permissions)
+        let auditLog = SessionAuditLog()
+        let (viewModel, manager) = await makeViewModel(
+            executor: executor,
+            permissionEvaluator: permissions,
+            auditLog: auditLog
+        )
         _ = await manager.onRequestArrived(makeTestRequest(id: "a", payload: "{\"kind\":1}"))
 
         await viewModel.refresh()
@@ -147,6 +154,8 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(signCount, 1)
         XCTAssertNil(viewModel.currentSession, "a remembered request should not stop on the approval screen")
         XCTAssertEqual(viewModel.sessionState, .idle)
+        let entries = await auditLog.entries()
+        XCTAssertEqual(entries.first?.approvalMode, .remembered)
     }
 
     func testUnrememberedRequestStillWaitsForTheUser() async {
@@ -249,6 +258,18 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertNil(viewModel.currentSession)
         XCTAssertEqual(viewModel.sessionState, .idle)
     }
+}
+
+private actor SessionAuditLog: AuditLogProviding {
+    private var recordedEntries: [AuditEntry] = []
+
+    func append(_ entry: AuditEntry) async throws {
+        recordedEntries.append(entry)
+    }
+
+    func list() async throws -> [AuditEntry] { recordedEntries }
+    func clear() async { recordedEntries = [] }
+    func entries() -> [AuditEntry] { recordedEntries }
 }
 
 private actor SpyConnectionRegistry: ConnectionRegistering {

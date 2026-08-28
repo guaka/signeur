@@ -3,6 +3,7 @@ import SignstrCore
 
 enum RootSection: String, CaseIterable, Identifiable {
     case requests
+    case activity
     case connected
     case keys
     case help
@@ -12,6 +13,7 @@ enum RootSection: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .requests: return "Requests"
+        case .activity: return "Activity"
         case .connected: return "Connected"
         case .keys: return "Keys"
         case .help: return "Help"
@@ -21,6 +23,7 @@ enum RootSection: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .requests: return "signature"
+        case .activity: return "clock.arrow.circlepath"
         case .connected: return "link"
         case .keys: return "key.fill"
         case .help: return "questionmark.circle"
@@ -30,6 +33,7 @@ enum RootSection: String, CaseIterable, Identifiable {
 
 struct RootView: View {
     @StateObject private var sessionVM = AppBootstrap.makeSessionViewModel()
+    @StateObject private var activityVM = AppBootstrap.makeActivityViewModel()
     @StateObject private var connectedAppsVM = AppBootstrap.makeConnectedAppsViewModel()
     @StateObject private var keysVM = AppBootstrap.makeKeysViewModel()
     @StateObject private var pairingVM = AppBootstrap.makePairingViewModel()
@@ -170,6 +174,8 @@ struct RootView: View {
                 ],
                 onConnectionApproved: showApprovedConnection
             )
+        case .activity:
+            ActivityView(viewModel: activityVM)
         case .connected:
             ConnectedAppsView(viewModel: connectedAppsVM)
         case .keys:
