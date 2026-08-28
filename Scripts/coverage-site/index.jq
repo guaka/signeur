@@ -69,7 +69,6 @@ def github_mark:
     "</header>",
     "<main>",
     "<section class=\"hero\">",
-    "<div class=\"eyebrow\"><span></span> AGPL-3.0</div>",
     "<h1>A Nostr signer<br><em>for iPhone and Mac.</em></h1>",
     "<p>Store Nostr keys on your device, pair clients over NIP-46, and grant each client only the permissions you want.</p>",
     "<div class=\"hero-actions\"><a class=\"primary-action\" href=\"#nip46-test\">Test NIP-46</a><a class=\"secondary-action\" href=\"#how-it-works\">See how it works</a></div>",
@@ -144,7 +143,7 @@ def github_mark:
     "</tbody></table></div>",
     "</section>",
     "</main>",
-    "<footer><div class=\"footer-brand\"><img src=\"signstr-icon.png\" alt=\"\"><span><strong>Signstr</strong><small>Nostr signer for iPhone and Mac</small></span></div><p>Build \($generated) UTC · <a href=\"coverage.json\">Raw coverage data</a> · SwiftPM + llvm-cov</p></footer>",
+    "<footer><div class=\"footer-brand\"><img src=\"signstr-icon.png\" alt=\"\"><span><strong>Signstr</strong><small>Nostr signer for iPhone and Mac</small></span></div><p>Build \($generated) UTC · <a href=\"coverage.json\">Raw coverage data</a> · SwiftPM + llvm-cov · <a href=\"https://github.com/guaka/signstr/blob/main/LICENSE\">AGPL-3.0</a></p></footer>",
     "<script type=\"module\" src=\"nip46-tester.mjs\"></script>",
     "</body>",
     "</html>"
