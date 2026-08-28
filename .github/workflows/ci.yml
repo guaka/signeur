@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths-ignore:
       - "**/*.md"
+      - ".github/assets/**"
       - LICENSE
   pull_request:
     paths-ignore:
       - "**/*.md"
+      - ".github/assets/**"
       - LICENSE
 
 permissions:
