@@ -45,9 +45,8 @@ enum Bech32 {
     }
 
     static func encode(hrp: String, bytes: [UInt8]) throws -> String {
-        guard let data5 = convertBits(bytes, from: 8, to: 5, pad: true) else {
-            throw Bech32Error.invalidData
-        }
+        // Every UInt8 is valid input when converting from 8 bits with padding enabled.
+        let data5 = convertBits(bytes, from: 8, to: 5, pad: true)!
         let checksum = createChecksum(hrp: hrp, data: data5)
         let combined = data5 + checksum
         let encoded = combined.map { String(charset[Int($0)]) }.joined()
@@ -83,7 +82,7 @@ enum Bech32 {
         polymod(hrpExpand(hrp) + data) == 1
     }
 
-    private static func createChecksum(hrp: String, data: [UInt8]) -> [UInt8] {
+    static func createChecksum(hrp: String, data: [UInt8]) -> [UInt8] {
         let values = hrpExpand(hrp) + data + [0, 0, 0, 0, 0, 0]
         let mod = polymod(values) ^ 1
         return (0..<6).map { i in

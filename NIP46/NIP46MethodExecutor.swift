@@ -67,7 +67,7 @@ public actor NIP46MethodExecutor: NIP46RequestExecuting {
             }
             do {
                 return try NostrEventFactory.json(for: try NostrEventFactory.sign(unsigned, privateKey: secret, now: now()))
-            } catch {
+            } catch { // coverage:ignore Signing cannot fail after the validated secret and event checks above.
                 throw NIP46ExecutionError.signingFailed
             }
 

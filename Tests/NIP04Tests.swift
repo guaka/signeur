@@ -1,3 +1,4 @@
+import CommonCrypto
 import XCTest
 @testable import SignstrCore
 
@@ -102,5 +103,21 @@ final class NIP04Tests: XCTestCase {
         let plaintext = try? NIP04.decrypt(payload: referencePayload, privateKey: wrongSecret, publicKeyXOnly: peer)
 
         XCTAssertNotEqual(plaintext, "hello from python")
+    }
+
+    func testCryptMapsCommonCryptoFailuresByOperation() {
+        let invalidKey: [UInt8] = []
+        let iv = [UInt8](repeating: 0, count: kCCBlockSizeAES128)
+
+        XCTAssertThrowsError(try NIP04.crypt(
+            operation: CCOperation(kCCEncrypt), data: [1], key: invalidKey, iv: iv
+        )) { error in
+            XCTAssertEqual(error as? NIP04Error, .encryptionFailed)
+        }
+        XCTAssertThrowsError(try NIP04.crypt(
+            operation: CCOperation(kCCDecrypt), data: [1], key: invalidKey, iv: iv
+        )) { error in
+            XCTAssertEqual(error as? NIP04Error, .decryptionFailed)
+        }
     }
 }

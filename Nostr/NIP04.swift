@@ -42,7 +42,7 @@ public enum NIP04 {
         return text
     }
 
-    private static func crypt(operation: CCOperation, data: [UInt8], key: [UInt8], iv: [UInt8]) throws -> [UInt8] {
+    static func crypt(operation: CCOperation, data: [UInt8], key: [UInt8], iv: [UInt8]) throws -> [UInt8] {
         var output = [UInt8](repeating: 0, count: data.count + kCCBlockSizeAES128)
         var movedBytes = 0
 

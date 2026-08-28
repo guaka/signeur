@@ -22,7 +22,7 @@ public struct NIP46RelayTransport: NIP46RespondingTransport {
         connections: ConnectionStore,
         nsecStore: NsecStoring,
         logger: RedactedLogger = RedactedLogger(),
-        now: @escaping @Sendable () -> Date = { Date() }
+        now: @escaping @Sendable () -> Date = { Date() } // coverage:ignore Compiler-generated default-argument thunk.
     ) {
         self.pool = pool
         self.connections = connections
@@ -77,9 +77,6 @@ public struct NIP46RelayTransport: NIP46RespondingTransport {
             object["error"] = error.message
         }
         let data = try JSONSerialization.data(withJSONObject: object, options: [.sortedKeys])
-        guard let json = String(data: data, encoding: .utf8) else {
-            throw NostrEventError.malformedJSON
-        }
-        return json
+        return String(decoding: data, as: UTF8.self)
     }
 }

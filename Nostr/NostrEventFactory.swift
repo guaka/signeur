@@ -47,10 +47,7 @@ public enum NostrEventFactory {
     public static func json(for event: NostrEvent) throws -> String {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.withoutEscapingSlashes]
-        guard let json = String(data: try encoder.encode(event), encoding: .utf8) else {
-            throw NostrEventError.malformedJSON
-        }
-        return json
+        return String(decoding: try encoder.encode(event), as: UTF8.self)
     }
 
     static func hexBytes(_ hex: String) throws -> [UInt8] {

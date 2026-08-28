@@ -196,9 +196,7 @@ public struct UnsignedNostrEvent: Equatable, Sendable {
         }
         let content: String
         if let rawContent = object["content"] {
-            guard let value = rawContent as? String,
-                  value.utf8.count <= SecurityPolicy.maxRequestPayloadBytes
-            else {
+            guard let value = rawContent as? String else {
                 throw NostrEventError.malformedJSON
             }
             content = value

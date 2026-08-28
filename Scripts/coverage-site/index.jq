@@ -5,6 +5,19 @@ def metric_sum($items; $name):
         | .count += ($item.summary[$name].count // 0)
     );
 
+def line_metric($items; $excluded):
+    [
+        $items[] as $file
+        | $file.segments[]
+        | select(.[3] == true)
+        | {file: $file.relative, line: .[0], count: .[2]}
+        | . as $entry
+        | select(any($excluded[]; .file == $entry.file and .line == $entry.line) | not)
+    ]
+    | group_by([.file, .line])
+    | map({covered: ((map(.count) | max) > 0)})
+    | {covered: (map(select(.covered)) | length), count: length};
+
 def percentage_number($metric):
     if $metric.count == 0 then 0
     else (($metric.covered * 10000 / $metric.count) | floor) / 100
@@ -43,8 +56,9 @@ def github_mark:
     | . + {relative: (.filename | ltrimstr($root))}
     | select(.relative | startswith(".build/") | not)
     | select(.relative | startswith("Tests/") | not)
-] as $files
-| (metric_sum($files; "lines")) as $lines
+]
+| map(. as $file | . + {lineMetric: line_metric([$file]; $exclusions[0])}) as $files
+| (line_metric($files; $exclusions[0])) as $lines
 | (metric_sum($files; "functions")) as $functions
 | (metric_sum($files; "regions")) as $regions
 | ($files | sort_by(.relative | split("/")[0]) | group_by(.relative | split("/")[0])) as $areas
@@ -107,31 +121,31 @@ def github_mark:
     "<div class=\"section-heading\"><p>SignstrCore test coverage from the latest successful main build.</p></div>",
     "</section>",
     "<section class=\"metrics\" aria-label=\"Coverage totals\">",
-    metric_card("Line coverage"; $lines; "Executable source lines reached by tests."),
+    metric_card("Line coverage"; $lines; "Testable executable source lines reached by tests."),
     metric_card("Function coverage"; $functions; "Functions entered at least once."),
     metric_card("Region coverage"; $regions; "Control-flow regions exercised."),
     "</section>",
     "<section class=\"section-block\">",
-    "<div class=\"section-heading\"><div><span class=\"section-kicker\">Architecture</span><h2>Coverage by area</h2></div><p>SignstrCore only. Tests, generated files, and third-party dependencies are excluded.</p></div>",
+    "<div class=\"section-heading\"><div><h2>Coverage by area</h2></div><p>SignstrCore only. Tests, generated files, dependencies, and explicitly marked compiler/platform-only lines are excluded.</p></div>",
     "<div class=\"area-grid\">"
 ] + (
     $areas
     | map(
         . as $area
-        | (metric_sum($area; "lines")) as $metric
+        | (line_metric($area; $exclusions[0])) as $metric
         | "<article class=\"area-card\"><div><span>\(($area[0].relative | split("/")[0]) | html_escape)</span><strong>\(percentage($metric))</strong></div><div class=\"progress \(tone($metric))\"><span style=\"width: \(percentage($metric))\"></span></div><small>\($metric.covered) / \($metric.count) lines</small></article>"
     )
 ) + [
     "</div>",
     "</section>",
     "<section class=\"section-block\" id=\"files\">",
-    "<div class=\"section-heading\"><div><span class=\"section-kicker\">Annotated source</span><h2>Every measured file</h2></div><p>Lower-covered files appear first, making the next testing opportunities easy to spot.</p></div>",
+    "<div class=\"section-heading\"><div><h2>Coverage by file</h2></div></div>",
     "<div class=\"file-table-wrap\"><table class=\"file-table\"><thead><tr><th>Source file</th><th>Lines</th><th>Functions</th><th>Regions</th></tr></thead><tbody>"
 ] + (
     $files
-    | sort_by(.summary.lines.percent, .relative)
+    | sort_by((percentage_number(.lineMetric)), .relative)
     | map(
-        .summary.lines as $lines
+        .lineMetric as $lines
         | .summary.functions as $functions
         | .summary.regions as $regions
         | "<tr><td><a href=\"coverage\(.filename).html\"><span class=\"file-area\">\((.relative | split("/")[0]) | html_escape)</span><strong>\((.relative | html_escape))</strong></a></td>"

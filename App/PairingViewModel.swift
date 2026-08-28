@@ -96,7 +96,7 @@ public final class PairingViewModel: ObservableObject {
         return true
     }
 
-    private static func message(for error: Error) -> String {
+    static func message(for error: Error) -> String {
         if let signerError = error as? SignerURLParseError {
             switch signerError {
             case .invalidScheme:
