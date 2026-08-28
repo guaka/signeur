@@ -161,7 +161,7 @@ final class NIP46SessionManagerTests: XCTestCase {
         _ = await manager.onRequestArrived(Self.request(id: "identity"))
         _ = await manager.activateNextPendingIfNeeded()
 
-        let state = await manager.handleApprove(requestID: "identity", identityID: "not valid id")
+        let state = await manager.handleApprove(requestID: "identity", identityID: "\n")
 
         XCTAssertEqual(state, SessionState.completedError(.unauthorizedSigningAttempt))
     }
