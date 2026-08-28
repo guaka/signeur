@@ -7,6 +7,7 @@ enum MacAppBootstrap {
     static let identityStore = IdentityStore(seed: [])
     static let nsecStore = NsecKeychainStore()
     static let connectionStore = ConnectionStore()
+    static let auditLog = AuditLogStore()
     static let executor = NIP46MethodExecutor(nsecStore: nsecStore, identityStore: identityStore)
     static let relayPool = NostrRelayPool()
     static let profileLookup = RelayNostrProfileLookup()
@@ -39,7 +40,8 @@ enum MacAppBootstrap {
         executor: executor,
         transport: RoutingTransport(callbackTransport: callbackTransport, relayTransport: relayTransport),
         authorizationGuard: AuthorizationGuard(),
-        permissionEvaluator: permissionStore
+        permissionEvaluator: permissionStore,
+        auditLog: auditLog
     )
 
     static let relayListener = NIP46RelayListener(
@@ -86,6 +88,11 @@ enum MacAppBootstrap {
                 identities: identityStore
             )
         )
+    }
+
+    @MainActor
+    static func makeActivityViewModel() -> ActivityViewModel {
+        ActivityViewModel(provider: auditLog)
     }
 
     @MainActor

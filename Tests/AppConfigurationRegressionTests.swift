@@ -83,6 +83,26 @@ final class AppConfigurationRegressionTests: XCTestCase {
         }
     }
 
+    func testBothAppsExposeActivityUsingTheSharedAuditStore() throws {
+        let platformFiles = [
+            ("iOSApp/RootView.swift", "AppBootstrap.makeActivityViewModel()"),
+            ("MacOSApp/MacRootView.swift", "MacAppBootstrap.makeActivityViewModel()")
+        ]
+        for (path, factory) in platformFiles {
+            let source = try String(contentsOf: repositoryFile(path))
+            XCTAssertTrue(source.contains("case activity"), path)
+            XCTAssertTrue(source.contains(factory), path)
+            XCTAssertTrue(source.contains("ActivityView(viewModel: activityVM)"), path)
+        }
+
+        for path in ["iOSApp/AppBootstrap.swift", "MacOSApp/MacAppBootstrap.swift"] {
+            let source = try String(contentsOf: repositoryFile(path))
+            XCTAssertTrue(source.contains("static let auditLog = AuditLogStore()"), path)
+            XCTAssertTrue(source.contains("auditLog: auditLog"), path)
+            XCTAssertTrue(source.contains("ActivityViewModel(provider: auditLog)"), path)
+        }
+    }
+
     private func repositoryFile(_ relativePath: String) -> URL {
         URL(fileURLWithPath: #filePath)
             .deletingLastPathComponent()
