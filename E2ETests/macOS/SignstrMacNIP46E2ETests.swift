@@ -20,14 +20,10 @@ final class SignstrMacNIP46E2ETests: XCTestCase {
 
         let safari = XCUIApplication(bundleIdentifier: "com.apple.Safari")
         safari.launch()
-        safari.typeKey("l", modifierFlags: .command)
-        safari.typeText(testURL)
-        safari.typeKey(.enter, modifierFlags: [])
 
         let webArea = safari.webViews.firstMatch
-        XCTAssertTrue(webArea.waitForExistence(timeout: 30))
         let start = webArea.buttons["Start NIP-46 test"]
-        XCTAssertTrue(start.waitForExistence(timeout: 30))
+        XCTAssertTrue(loadTestPage(in: safari, until: start), "Expected the published NIP-46 tester to load")
         scrollAndClick(start, in: webArea)
 
         let copyLink = webArea.buttons["Copy link"]
@@ -52,6 +48,17 @@ final class SignstrMacNIP46E2ETests: XCTestCase {
         let button = app.buttons[title]
         XCTAssertTrue(button.waitForExistence(timeout: 30), "Expected \(title) in Signstr")
         button.click()
+    }
+
+    private func loadTestPage(in safari: XCUIApplication, until element: XCUIElement) -> Bool {
+        for _ in 0..<3 {
+            safari.typeKey("l", modifierFlags: .command)
+            safari.typeText(testURL)
+            safari.typeKey(.enter, modifierFlags: [])
+            guard safari.webViews.firstMatch.waitForExistence(timeout: 20) else { continue }
+            if element.waitForExistence(timeout: 20) { return true }
+        }
+        return false
     }
 
     private func scrollAndClick(_ element: XCUIElement, in webArea: XCUIElement) {

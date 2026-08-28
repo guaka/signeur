@@ -20,11 +20,10 @@ final class SignstrNIP46E2ETests: XCTestCase {
 
         let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
         safari.launch()
-        openTestPage(in: safari)
 
         let webView = safari.webViews.firstMatch
         let start = webView.buttons["Start NIP-46 test"]
-        XCTAssertTrue(start.waitForExistence(timeout: 30))
+        XCTAssertTrue(loadTestPage(in: safari, until: start), "Expected the published NIP-46 tester to load")
         scrollAndTap(start, in: webView)
 
         let openInSignstr = webView.links["Open in Signstr"]
@@ -43,11 +42,15 @@ final class SignstrNIP46E2ETests: XCTestCase {
         }
     }
 
-    private func openTestPage(in safari: XCUIApplication) {
-        safari.typeKey("l", modifierFlags: .command)
-        safari.typeText(testURL)
-        safari.typeText("\n")
-        XCTAssertTrue(safari.webViews.firstMatch.waitForExistence(timeout: 30))
+    private func loadTestPage(in safari: XCUIApplication, until element: XCUIElement) -> Bool {
+        for _ in 0..<3 {
+            safari.typeKey("l", modifierFlags: .command)
+            safari.typeText(testURL)
+            safari.typeText("\n")
+            guard safari.webViews.firstMatch.waitForExistence(timeout: 20) else { continue }
+            if element.waitForExistence(timeout: 20) { return true }
+        }
+        return false
     }
 
     private func confirmOpeningSignstrIfNeeded(in safari: XCUIApplication) {
