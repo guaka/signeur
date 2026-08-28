@@ -2,6 +2,13 @@ import Foundation
 import XCTest
 
 final class AppConfigurationRegressionTests: XCTestCase {
+    func testMacAppUsesASingleWindowScene() throws {
+        let source = try String(contentsOf: repositoryFile("MacOSApp/SignstrMacApp.swift"))
+
+        XCTAssertTrue(source.contains("Window(\"Signstr\", id: \"main\")"))
+        XCTAssertFalse(source.contains("WindowGroup"))
+    }
+
     func testMacTargetCarriesItsKeychainEntitlements() throws {
         let entitlementsData = try Data(contentsOf: repositoryFile("MacOSApp/SignstrMac.entitlements"))
         let entitlements = try XCTUnwrap(
