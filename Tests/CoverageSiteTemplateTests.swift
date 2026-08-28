@@ -28,6 +28,7 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertTrue(template.contains("Build \\($generated) UTC"))
         XCTAssertTrue(generator.contains("date -u '+%Y-%m-%d %H:%M'"))
         XCTAssertTrue(generator.contains("coverage:ignore"))
+        XCTAssertTrue(generator.contains("grep -R -n -H"))
     }
 
     private func repositoryFile(_ relativePath: String) -> URL {

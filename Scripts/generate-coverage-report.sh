@@ -28,7 +28,11 @@ cp "${coverage_json}" "${output_dir}/coverage.json"
 readonly exclusions_json="${output_dir}/coverage-exclusions.json"
 (
     cd "${repository_root}"
-    rg -n --no-heading 'coverage:ignore' App Data NIP46 Nostr Shared Wallet
+    if command -v rg >/dev/null 2>&1; then
+        rg -n --no-heading 'coverage:ignore' App Data NIP46 Nostr Shared Wallet
+    else
+        grep -R -n -H 'coverage:ignore' App Data NIP46 Nostr Shared Wallet
+    fi
 ) | jq -R -s '
     split("\n")
     | map(select(length > 0) | capture("^(?<file>[^:]+):(?<line>[0-9]+):") | {file, line: (.line | tonumber)})
