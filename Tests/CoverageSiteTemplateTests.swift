@@ -11,6 +11,8 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertTrue(template.contains("class=\\\"github-mark\\\""))
         XCTAssertFalse(template.contains(">GitHub <span"))
         XCTAssertFalse(template.contains("Get the source"))
+        XCTAssertFalse(template.contains("<span></span> AGPL-3.0"))
+        XCTAssertTrue(template.contains(">AGPL-3.0</a>"))
         XCTAssertTrue(styles.contains(".github-mark { width: 20px; height: 20px; fill: currentColor; }"))
     }
 
