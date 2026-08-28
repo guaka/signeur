@@ -45,6 +45,7 @@ public final class SessionViewModel: ObservableObject {
         }
 
         let request = currentSession?.request
+        let activatedAppPubkey = await activateConnectionBeforeReplyIfNeeded(request: request)
         let newState = await sessionManager.handleApprove(
             requestID: requestID,
             identityID: identityID,
@@ -53,7 +54,7 @@ public final class SessionViewModel: ObservableObject {
         if case let .completedError(reason) = newState {
             errorMessage = reason.rawValue
         }
-        await activateConnectionIfNeeded(request: request, state: newState)
+        await rollBackConnectionIfNeeded(appPubkey: activatedAppPubkey, state: newState)
         currentSession = await sessionManager.activateNextPendingIfNeeded()
         sessionState = currentSession?.stateMachine.state ?? .idle
     }
@@ -66,6 +67,7 @@ public final class SessionViewModel: ObservableObject {
             return false
         }
         let request = currentSession?.request
+        let activatedAppPubkey = await activateConnectionBeforeReplyIfNeeded(request: request)
         let newState = await sessionManager.handleApprove(
             requestID: requestID,
             identityID: selectedIdentityID,
@@ -75,7 +77,7 @@ public final class SessionViewModel: ObservableObject {
         if case let .completedError(reason) = newState {
             errorMessage = reason.rawValue
         }
-        await activateConnectionIfNeeded(request: request, state: newState)
+        await rollBackConnectionIfNeeded(appPubkey: activatedAppPubkey, state: newState)
         await refresh()
         return request?.method == .connect && newState == .completedSuccess
     }
@@ -95,10 +97,17 @@ public final class SessionViewModel: ObservableObject {
         await refresh()
     }
 
-    /// An approved pairing is where a connection becomes real: it is remembered and we
-    /// start listening for that app's later requests.
-    private func activateConnectionIfNeeded(request: NIP46Request?, state: SessionState) async {
-        guard let request, request.method == .connect, state == .completedSuccess else { return }
+    /// Listen before publishing the connect response. NIP-46 clients may send
+    /// `get_public_key` as soon as that response arrives, so subscribing afterwards
+    /// leaves a race where the follow-up request can be missed.
+    private func activateConnectionBeforeReplyIfNeeded(request: NIP46Request?) async -> String? {
+        guard let request, request.method == .connect else { return nil }
         await connectionRegistry?.activate(appPubkey: request.appPubkey)
+        return request.appPubkey
+    }
+
+    private func rollBackConnectionIfNeeded(appPubkey: String?, state: SessionState) async {
+        guard let appPubkey, state != .completedSuccess else { return }
+        await connectionRegistry?.forget(appPubkey: appPubkey)
     }
 }

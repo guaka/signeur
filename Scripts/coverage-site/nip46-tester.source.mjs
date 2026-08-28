@@ -13,6 +13,7 @@ export const DEFAULT_RELAYS = [
     "wss://relay.damus.io",
     "wss://nos.lol"
 ];
+export const TEST_PERMISSIONS = ["get_public_key", "ping"];
 
 const NIP46_KIND = 24_133;
 const CONNECTION_TIMEOUT_MS = 8_000;
@@ -25,7 +26,7 @@ export function buildNostrConnectURI({
     secret,
     name = "Signstr NIP-46 tester",
     url = "https://guaka.github.io/signstr/",
-    permissions = ["get_public_key", "ping"]
+    permissions = TEST_PERMISSIONS
 }) {
     if (!/^[0-9a-f]{64}$/.test(clientPubkey)) {
         throw new Error("The temporary client public key is invalid.");
@@ -98,6 +99,14 @@ export function validateUserPubkey(value) {
         throw new Error("Signstr returned an invalid user public key.");
     }
     return value;
+}
+
+export function permissionDisplayName(permission) {
+    const labels = {
+        get_public_key: "Read public key",
+        ping: "Ping"
+    };
+    return labels[permission] ?? permission;
 }
 
 export function publicKeyFromSecret(secretKey) {
@@ -177,6 +186,7 @@ export class NIP46BrowserSession {
         this.publicKeyRequestID = null;
         this.pairingSecret = null;
         this.relays = [];
+        this.permissions = [];
         this.uri = null;
         this.phase = "idle";
     }
@@ -197,6 +207,7 @@ export class NIP46BrowserSession {
             this.connectID = await connectRequestID(this.clientPubkey, this.pairingSecret);
             this.pool = new SimplePool({ enableReconnect: true });
             this.relays = await this.connectRelays(DEFAULT_RELAYS);
+            this.permissions = [...TEST_PERMISSIONS];
             this.subscribe();
 
             const pageURL = `${location.origin}${location.pathname}`;
@@ -204,7 +215,8 @@ export class NIP46BrowserSession {
                 clientPubkey: this.clientPubkey,
                 relays: this.relays,
                 secret: this.pairingSecret,
-                url: pageURL
+                url: pageURL,
+                permissions: this.permissions
             });
             await QRCode.toCanvas(this.elements.qr, this.uri, {
                 width: 272,
@@ -323,6 +335,7 @@ export class NIP46BrowserSession {
         this.setPhase("success");
         this.elements.npub.textContent = nip19.npubEncode(userPubkey);
         this.elements.hexPubkey.textContent = userPubkey;
+        this.elements.permissions.textContent = this.permissions.map(permissionDisplayName).join(" · ");
         this.elements.success.hidden = false;
         this.elements.error.hidden = true;
         this.elements.statusText.textContent = "Connected securely";
@@ -413,10 +426,12 @@ export class NIP46BrowserSession {
         this.pool = null;
         this.clientSecret = null;
         this.signerPubkey = null;
+        this.permissions = [];
         this.uri = null;
         if (!this.elements) return;
         this.elements.panel.hidden = true;
         this.elements.success.hidden = true;
+        this.elements.permissions.textContent = "";
         this.elements.error.hidden = true;
         this.elements.intro.hidden = !showIntro;
         this.elements.qr.getContext("2d")?.clearRect(0, 0, this.elements.qr.width, this.elements.qr.height);
@@ -449,6 +464,7 @@ function collectElements() {
         success: document.querySelector("#nip46-success"),
         npub: document.querySelector("#nip46-npub"),
         hexPubkey: document.querySelector("#nip46-hex-pubkey"),
+        permissions: document.querySelector("#nip46-permissions"),
         error: document.querySelector("#nip46-error"),
         errorText: document.querySelector("#nip46-error-text"),
         steps: [...document.querySelectorAll("[data-test-step]")],

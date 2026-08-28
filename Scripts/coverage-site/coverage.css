@@ -520,6 +520,9 @@ footer p a { color: var(--muted); }
 .tester-success h3 { margin: 4px 0; font-size: 22px; }
 .success-mark { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: var(--green); color: #072217; font-size: 22px; font-weight: 900; }
 .npub-value { overflow-wrap: anywhere; color: var(--text) !important; font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; }
+.acquired-permissions { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; font-size: 11px; }
+.acquired-permissions strong { color: var(--text); }
+.acquired-permissions span { color: var(--green); }
 .tester-success details { margin-top: 8px; color: var(--muted); font-size: 10px; }
 .tester-success code { display: block; margin-top: 6px; overflow-wrap: anywhere; }
 .tester-success button,
@@ -537,6 +540,19 @@ footer p a { color: var(--muted); }
     text-align: left;
 }
 .tester-privacy span { color: var(--green); }
+
+.e2e-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+.e2e-card { padding: 24px; border: 1px solid var(--border); border-radius: 16px; background: var(--surface); }
+.e2e-card::before { content: ""; display: block; width: 9px; height: 9px; margin-bottom: 18px; border-radius: 50%; }
+.e2e-card.passed::before { background: var(--green); box-shadow: 0 0 14px var(--green); }
+.e2e-card.failed::before { background: #ff6b7a; box-shadow: 0 0 14px #ff6b7a; }
+.e2e-card.not-run::before { background: var(--amber); }
+.e2e-platform { display: block; color: var(--muted); font-size: 11px; letter-spacing: 0.11em; text-transform: uppercase; }
+.e2e-card strong { display: block; margin-top: 5px; font-size: 30px; }
+.e2e-card.passed strong { color: var(--green); }
+.e2e-card.failed strong { color: #ff8793; }
+.e2e-card p { margin-top: 6px; font-size: 12px; }
+.e2e-checked { margin: 14px 0 0; color: var(--muted); font-size: 11px; text-align: right; }
 
 @keyframes tester-pulse {
     0%, 100% { opacity: 0.55; transform: scale(0.9); }
@@ -582,6 +598,7 @@ footer p a { color: var(--muted); }
     .pairing-actions a,
     .pairing-actions button { width: 100%; text-align: center; }
     .connection-facts { grid-template-columns: 1fr; }
+    .e2e-grid { grid-template-columns: 1fr; }
     .tester-steps { grid-template-columns: 1fr; gap: 12px; padding: 0 24px 24px; }
     .tester-steps li { padding: 0 0 0 24px; text-align: left; }
     .tester-steps li::before { top: -12px; bottom: auto; left: 5px; width: 1px; height: 12px; }

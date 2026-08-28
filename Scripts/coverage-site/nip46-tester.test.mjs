@@ -10,6 +10,7 @@ import {
     friendlyError,
     NIP46BrowserSession,
     parseNIP46Response,
+    permissionDisplayName,
     publicKeyFromSecret,
     validateConnectResponse,
     validateUserPubkey
@@ -43,6 +44,7 @@ function browserElements() {
         success: { hidden: true },
         npub: { textContent: "" },
         hexPubkey: { textContent: "" },
+        permissions: { textContent: "" },
         error: { hidden: true },
         errorText: { textContent: "" },
         steps,
@@ -151,6 +153,12 @@ test("validates and presents public-key and common error states", () => {
     assert.match(friendlyError(new Error("expected pairing secret")), /could not be authenticated/);
 });
 
+test("uses readable names for acquired permissions", () => {
+    assert.equal(permissionDisplayName("get_public_key"), "Read public key");
+    assert.equal(permissionDisplayName("ping"), "Ping");
+    assert.equal(permissionDisplayName("nip44_encrypt"), "nip44_encrypt");
+});
+
 test("renders browser progress and a connected npub", () => {
     const elements = browserElements();
     const session = new NIP46BrowserSession(elements);
@@ -160,11 +168,13 @@ test("renders browser progress and a connected npub", () => {
     assert.equal(elements.steps[2].classList.contains("done"), true);
     assert.equal(elements.statusText.textContent, "Approve the public-key request in Signstr");
 
+    session.permissions = ["get_public_key", "ping"];
     session.succeed(userPubkey);
     assert.equal(elements.success.hidden, false);
     assert.equal(elements.error.hidden, true);
     assert.match(elements.npub.textContent, /^npub1/);
     assert.equal(elements.hexPubkey.textContent, userPubkey);
+    assert.equal(elements.permissions.textContent, "Read public key · Ping");
     assert.equal(elements.statusDot.className, "tester-status-dot success");
 });
 
@@ -175,6 +185,7 @@ test("renders actionable browser errors and resets sensitive session state", () 
     let poolDestroyed = false;
     session.clientSecret = new Uint8Array([1]);
     session.signerPubkey = userPubkey;
+    session.permissions = ["get_public_key"];
     session.subscription = { close() { subscriptionClosed = true; } };
     session.pool = { destroy() { poolDestroyed = true; } };
 
@@ -189,6 +200,8 @@ test("renders actionable browser errors and resets sensitive session state", () 
     assert.equal(poolDestroyed, true);
     assert.equal(session.clientSecret, null);
     assert.equal(session.signerPubkey, null);
+    assert.deepEqual(session.permissions, []);
+    assert.equal(elements.permissions.textContent, "");
     assert.equal(elements.panel.hidden, true);
     assert.equal(elements.intro.hidden, false);
 });

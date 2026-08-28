@@ -106,6 +106,16 @@ struct RootView: View {
         .task {
             guard !didPickInitialSection else { return }
             didPickInitialSection = true
+            await AppBootstrap.prepareForLaunch()
+            #if DEBUG
+            if let pairingURL = AppBootstrap.e2eConfiguration?.pairingURL {
+                if await pairingVM.handleIncomingURL(pairingURL) {
+                    showPairedRequest()
+                } else {
+                    pairingErrorMessage = pairingVM.errorMessage
+                }
+            }
+            #endif
             await keysVM.refresh()
             if keysVM.identities.isEmpty {
                 section = .keys
@@ -121,6 +131,10 @@ struct RootView: View {
                     pairingErrorMessage = pairingVM.errorMessage
                 }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NIP46RelayListener.requestReceivedNotification)) { _ in
+            section = .requests
+            Task { await sessionVM.refresh() }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
             Task { await AppBootstrap.lockKeySession() }

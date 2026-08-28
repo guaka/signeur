@@ -52,5 +52,48 @@ targets:
     dependencies:
       - package: SignstrCore
         product: SignstrCore
-scheme:
-  testTargets: []
+  SignstrE2ETests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - E2ETests/iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signstr.e2e-tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 5.10
+        TEST_TARGET_NAME: Signstr
+    dependencies:
+      - target: Signstr
+  SignstrMacE2ETests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - E2ETests/macOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signstr.mac.e2e-tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 5.10
+        TEST_TARGET_NAME: SignstrMac
+    dependencies:
+      - target: SignstrMac
+schemes:
+  Signstr:
+    build:
+      targets:
+        Signstr: all
+        SignstrE2ETests: [test]
+    test:
+      targets:
+        - SignstrE2ETests
+  SignstrMac:
+    build:
+      targets:
+        SignstrMac: all
+        SignstrMacE2ETests: [test]
+    test:
+      targets:
+        - SignstrMacE2ETests

@@ -79,6 +79,21 @@ def metric_card($label; $metric; $description):
 def github_mark:
     "<svg class=\"github-mark\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 .297C5.37.297 0 5.67 0 12.297c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.084-.729.084-.729 1.205.084 1.838 1.237 1.838 1.237 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297 24 5.67 18.627.297 12 .297Z\"/></svg>";
 
+def e2e_label($status):
+    if $status == "success" then "Passed"
+    elif $status == "failure" then "Failed"
+    else "Not run"
+    end;
+
+def e2e_tone($status):
+    if $status == "success" then "passed"
+    elif $status == "failure" then "failed"
+    else "not-run"
+    end;
+
+def e2e_card($platform; $status):
+    "<article class=\"e2e-card \(e2e_tone($status))\"><span class=\"e2e-platform\">\($platform)</span><strong>\(e2e_label($status))</strong><p>Safari → Signstr → Nostr relays → npub</p></article>";
+
 .data[0] as $coverage
 | $coverage.functions as $allFunctions
 | [
@@ -110,7 +125,7 @@ def github_mark:
     "<div class=\"page-glow glow-one\"></div><div class=\"page-glow glow-two\"></div>",
     "<header class=\"site-header\">",
     "<a class=\"brand\" href=\"./\" aria-label=\"Signstr home\"><img src=\"signstr-icon.png\" alt=\"\"><span><strong>Signstr</strong><small>Nostr signer</small></span></a>",
-    ("<nav><a href=\"#how-it-works\">How it works</a><a href=\"#nip46-test\">Test NIP-46</a><a href=\"#coverage\">Coverage</a><a class=\"github-icon-link\" href=\"https://github.com/guaka/signstr\" aria-label=\"GitHub repository\">" + github_mark + "</a></nav>"),
+    ("<nav><a href=\"#how-it-works\">How it works</a><a href=\"#nip46-test\">Test NIP-46</a><a href=\"#e2e-results\">E2E status</a><a href=\"#coverage\">Coverage</a><a class=\"github-icon-link\" href=\"https://github.com/guaka/signstr\" aria-label=\"GitHub repository\">" + github_mark + "</a></nav>"),
     "</header>",
     "<main>",
     "<section class=\"hero\">",
@@ -142,11 +157,19 @@ def github_mark:
     "<div class=\"pairing-guide\"><span class=\"tester-overline\">Pairing instructions</span><h3>Scan, approve, then approve once more.</h3><ol><li><span>1</span><div><strong>Open the connection</strong><p>Scan the QR in Signstr, or use the button on this device.</p></div></li><li><span>2</span><div><strong>Approve the app connection</strong><p>Check the client name and relays shown by Signstr.</p></div></li><li><span>3</span><div><strong>Approve “Read public key”</strong><p>The page asks for your public <code>npub</code>—never your private key.</p></div></li></ol><label for=\"nip46-link-value\">Nostr Connect link</label><textarea id=\"nip46-link-value\" rows=\"3\" readonly></textarea><dl class=\"connection-facts\"><div><dt>Temporary client</dt><dd id=\"nip46-client-key\">—</dd></div><div><dt>Relays</dt><dd id=\"nip46-relays\">—</dd></div></dl></div>",
     "</div>",
     "<ol class=\"tester-steps\" aria-label=\"Connection status\"><li data-test-step=\"relay\"><span></span>Relays ready</li><li data-test-step=\"approval\"><span></span>Connection approved</li><li data-test-step=\"connected\"><span></span>Pairing verified</li><li data-test-step=\"public-key\"><span></span>Public key approved</li><li data-test-step=\"success\"><span></span>npub received</li></ol>",
-    "<div class=\"tester-success\" id=\"nip46-success\" hidden><div class=\"success-mark\">✓</div><div><span class=\"tester-overline\">NIP-46 connected</span><h3>Your public Nostr identity</h3><p id=\"nip46-npub\" class=\"npub-value\"></p><details><summary>Show hex public key</summary><code id=\"nip46-hex-pubkey\"></code></details></div><button class=\"secondary-action\" id=\"nip46-copy-npub\" type=\"button\">Copy npub</button></div>",
+    "<div class=\"tester-success\" id=\"nip46-success\" hidden><div class=\"success-mark\">✓</div><div><span class=\"tester-overline\">NIP-46 connected</span><h3>Your public Nostr identity</h3><p id=\"nip46-npub\" class=\"npub-value\"></p><p class=\"acquired-permissions\"><strong>Acquired permissions</strong><span id=\"nip46-permissions\"></span></p><details><summary>Show hex public key</summary><code id=\"nip46-hex-pubkey\"></code></details></div><button class=\"secondary-action\" id=\"nip46-copy-npub\" type=\"button\">Copy npub</button></div>",
     "<div class=\"tester-error\" id=\"nip46-error\" role=\"alert\" hidden><div><strong>The test could not finish</strong><p id=\"nip46-error-text\"></p></div><button class=\"secondary-action\" id=\"nip46-retry\" type=\"button\">Try again</button></div>",
     "</div>",
     "<p class=\"tester-privacy\"><span aria-hidden=\"true\">◉</span> Your temporary client key stays in this tab. Relays see encrypted NIP-46 events and public routing metadata; they never receive your private Nostr key.</p>",
     "</div>",
+    "</section>",
+    "<section class=\"e2e-section section-block\" id=\"e2e-results\">",
+    "<div class=\"section-heading\"><div><span class=\"section-kicker\">Live app verification</span><h2>NIP-46 E2E<br><em>status.</em></h2></div><p>Each run drives Safari and the native app through connection approval, <code>get_public_key</code>, and the encrypted relay response.</p></div>",
+    "<div class=\"e2e-grid\">",
+    e2e_card("iOS"; $e2eIOSStatus),
+    e2e_card("macOS"; $e2eMacOSStatus),
+    "</div>",
+    "<p class=\"e2e-checked\">Last checked <strong>\($e2eGenerated)</strong></p>",
     "</section>",
     "<section class=\"coverage-intro\" id=\"coverage\">",
     "<div class=\"eyebrow\"><span></span> main branch · built \($generated) UTC</div>",

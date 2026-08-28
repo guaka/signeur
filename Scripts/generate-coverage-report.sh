@@ -67,6 +67,9 @@ jq -r \
     --arg root "${repository_root}/" \
     --arg generated "$(date -u '+%Y-%m-%d %H:%M')" \
     --slurpfile exclusions "${exclusions_json}" \
+    --arg e2eGenerated "${SIGNSTR_E2E_GENERATED:-$(date -u '+%Y-%m-%d %H:%M UTC')}" \
+    --arg e2eIOSStatus "${SIGNSTR_E2E_IOS_STATUS:-not-run}" \
+    --arg e2eMacOSStatus "${SIGNSTR_E2E_MACOS_STATUS:-not-run}" \
     -f "${coverage_assets}/index.jq" \
     "${coverage_json}" > "${output_dir}/index.html"
 

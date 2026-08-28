@@ -95,6 +95,7 @@ struct MacRootView: View {
         .task {
             guard !didStart else { return }
             didStart = true
+            await MacAppBootstrap.prepareForLaunch()
             await keysVM.refresh()
             if keysVM.identities.isEmpty {
                 section = .keys
@@ -109,6 +110,10 @@ struct MacRootView: View {
                     pairingErrorMessage = pairingVM.errorMessage
                 }
             }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NIP46RelayListener.requestReceivedNotification)) { _ in
+            section = .requests
+            Task { await sessionVM.refresh() }
         }
     }
 

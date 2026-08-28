@@ -5,7 +5,7 @@ import XCTest
 final class SessionViewModelTests: XCTestCase {
     private func makeViewModel(
         executor: RecordingExecutor = RecordingExecutor(),
-        transport: RecordingTransport = RecordingTransport(),
+        transport: any NIP46RespondingTransport = RecordingTransport(),
         permissionEvaluator: PermissionRuleEvaluating? = nil,
         auditLog: AuditLogProviding? = nil,
         identities: [Identity] = [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)],
@@ -225,6 +225,45 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(registered.count, 0)
     }
 
+    func testApproveConnectionStartsListeningBeforePublishingConnectResponse() async {
+        let trace = ConnectionApprovalTrace()
+        let registry = SpyConnectionRegistry(trace: trace)
+        let transport = TracingTransport(trace: trace)
+        let (viewModel, manager) = await makeViewModel(
+            transport: transport,
+            connectionRegistry: registry
+        )
+        _ = await manager.onRequestArrived(
+            makeTestRequest(id: "connect", method: .connect, params: ["pairing-secret"])
+        )
+        await viewModel.refresh()
+
+        _ = await viewModel.approve()
+
+        let events = await trace.recordedEvents()
+        XCTAssertEqual(events, ["activate", "response"])
+    }
+
+    func testFailedConnectResponseRollsBackActivatedConnection() async {
+        let registry = SpyConnectionRegistry()
+        let (viewModel, manager) = await makeViewModel(
+            transport: RecordingTransport(shouldThrow: true),
+            connectionRegistry: registry
+        )
+        _ = await manager.onRequestArrived(
+            makeTestRequest(id: "connect", method: .connect, params: ["pairing-secret"])
+        )
+        await viewModel.refresh()
+
+        let approved = await viewModel.approve()
+
+        XCTAssertFalse(approved)
+        let activated = await registry.activatedApps()
+        let forgotten = await registry.forgottenApps()
+        XCTAssertEqual(activated, [TestVectors.pubkeyHex])
+        XCTAssertEqual(forgotten, [TestVectors.pubkeyHex])
+    }
+
     func testRejectingAConnectionForgetsTheApp() async {
         let registry = SpyConnectionRegistry()
         let (viewModel, manager) = await makeViewModel(connectionRegistry: registry)
@@ -281,10 +320,30 @@ private actor SessionAuditLog: AuditLogProviding {
     func entries() -> [AuditEntry] { recordedEntries }
 }
 
+private actor ConnectionApprovalTrace {
+    private var events: [String] = []
+
+    func record(_ event: String) { events.append(event) }
+    func recordedEvents() -> [String] { events }
+}
+
+private struct TracingTransport: NIP46RespondingTransport {
+    let trace: ConnectionApprovalTrace
+
+    func sendResponse(_ response: NIP46Response, to appPubkey: String) async throws {
+        await trace.record("response")
+    }
+}
+
 private actor SpyConnectionRegistry: ConnectionRegistering {
     private(set) var activatedApps: [String] = []
     private(set) var forgottenApps: [String] = []
     private(set) var registeredApps: [String] = []
+    private let trace: ConnectionApprovalTrace?
+
+    init(trace: ConnectionApprovalTrace? = nil) {
+        self.trace = trace
+    }
 
     func register(pairing: DeepLinkRequest, identityID: String) async {
         registeredApps.append(pairing.clientPubkey)
@@ -292,6 +351,7 @@ private actor SpyConnectionRegistry: ConnectionRegistering {
 
     func activate(appPubkey: String) async {
         activatedApps.append(appPubkey)
+        await trace?.record("activate")
     }
 
     func forget(appPubkey: String) async {

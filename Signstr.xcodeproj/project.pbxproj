@@ -7,41 +7,64 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04FA57BE678B54610DDCBCAC /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05D20CC3A0DBF3029A7BA7C /* MacRootView.swift */; };
 		2FC25B35CB9CA1766C9FF9B6 /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2493B00260209BF73ABED587 /* AppBootstrap.swift */; };
+		448658403D4B5EA61FA112E3 /* MacKeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7ADB4705B701F0C95838A4D /* MacKeysView.swift */; };
+		4D92BB2AD278101EF986E578 /* SignstrMacNIP46E2ETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1525ABE184BE7DF1BA760382 /* SignstrMacNIP46E2ETests.swift */; };
+		5D6A28AE8B2139E4E20973E3 /* SignstrMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12ADB6E24381450D32A33FC5 /* SignstrMacApp.swift */; };
 		693224F8539BD50AAB880C6C /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5828E017BF2141ADAC636001 /* QRScannerView.swift */; };
 		75526CF33D96A82C9A436864 /* SignstrApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EC48704DAA538A7A126386 /* SignstrApp.swift */; };
 		7643A9F4FBAAAAD519694943 /* KeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2979112A34823CCD9AC6E712 /* KeysView.swift */; };
 		830BEEB7C49D5AAACE6E7A42 /* ScanPairingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */; };
+		85ED7C7890DF9D8F3D85ACA7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E96D3D56275F269957427230 /* Assets.xcassets */; };
 		AAC546BFAF73EA492B069F79 /* SignstrCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SignstrCore */; };
+		BC07207B6A6F288EA49473E8 /* SignstrNIP46E2ETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10FC75909BDBFB0750F9902 /* SignstrNIP46E2ETests.swift */; };
+		BCF9B4EB299BA335EDFC6BDE /* MacAppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63B23AD4881055928B62159E /* MacAppBootstrap.swift */; };
 		CDB30EA3E1803BB82CE07D63 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E35BDB324C62DA47954D66 /* RootView.swift */; };
+		EEC6778CF65151E02257B14D /* SignstrCore in Frameworks */ = {isa = PBXBuildFile; productRef = C133BE19088830FC90034720 /* SignstrCore */; };
 		FE058444748D4F3D14BA3F09 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D6E5FCCD24114D1BBFE33E27 /* Assets.xcassets */; };
-		A10000000000000000000001 /* SignstrMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* SignstrMacApp.swift */; };
-		A10000000000000000000002 /* MacAppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* MacAppBootstrap.swift */; };
-		A10000000000000000000003 /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* MacRootView.swift */; };
-		A10000000000000000000004 /* MacKeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* MacKeysView.swift */; };
-		A10000000000000000000005 /* SignstrCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SignstrCore */; };
-		A10000000000000000000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		00B55F35E69E07F77A7FCE00 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1DBE78AD74E32221A74B783B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 4DD01A09D99C1BBB31282CA9;
+			remoteInfo = SignstrMac;
+		};
+		B89B2DB5AFF9E287F27E0032 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1DBE78AD74E32221A74B783B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7FEF835F801865554B1CB876;
+			remoteInfo = Signstr;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		0E6CC16CE2DCCE4D5AF61056 /* SignstrMacE2ETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignstrMacE2ETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		12ADB6E24381450D32A33FC5 /* SignstrMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrMacApp.swift; sourceTree = "<group>"; };
+		1525ABE184BE7DF1BA760382 /* SignstrMacNIP46E2ETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrMacNIP46E2ETests.swift; sourceTree = "<group>"; };
 		2493B00260209BF73ABED587 /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
 		2979112A34823CCD9AC6E712 /* KeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeysView.swift; sourceTree = "<group>"; };
+		35CBAF6BFF8A6E72F4BF6679 /* SignstrMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SignstrMac.entitlements; sourceTree = "<group>"; };
 		44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPairingSheet.swift; sourceTree = "<group>"; };
 		454B407AFBBED585459D15E5 /* Signstr.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Signstr.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		542DB560650D80632A1CCD72 /* signstr */ = {isa = PBXFileReference; lastKnownFileType = folder; name = signstr; path = .; sourceTree = SOURCE_ROOT; };
 		5828E017BF2141ADAC636001 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
+		63B23AD4881055928B62159E /* MacAppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAppBootstrap.swift; sourceTree = "<group>"; };
+		71169EB591042A135201B437 /* signstr-nip46-e2e */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "signstr-nip46-e2e"; path = .; sourceTree = SOURCE_ROOT; };
+		83B0F888F9F18E14EEE451F2 /* SignstrE2ETests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SignstrE2ETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		87E35BDB324C62DA47954D66 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		9B2F6498688B8267A85F62DF /* SignstrMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SignstrMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A8E188E9389781728AE09DB1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		AF6F95DF1B5E0A00D11B2045 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		C7ADB4705B701F0C95838A4D /* MacKeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacKeysView.swift; sourceTree = "<group>"; };
 		D6E5FCCD24114D1BBFE33E27 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		E05D20CC3A0DBF3029A7BA7C /* MacRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacRootView.swift; sourceTree = "<group>"; };
+		E96D3D56275F269957427230 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		F10FC75909BDBFB0750F9902 /* SignstrNIP46E2ETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrNIP46E2ETests.swift; sourceTree = "<group>"; };
 		F5EC48704DAA538A7A126386 /* SignstrApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrApp.swift; sourceTree = "<group>"; };
-		A10000000000000000000011 /* SignstrMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrMacApp.swift; sourceTree = "<group>"; };
-		A10000000000000000000012 /* MacAppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAppBootstrap.swift; sourceTree = "<group>"; };
-		A10000000000000000000013 /* MacRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacRootView.swift; sourceTree = "<group>"; };
-		A10000000000000000000014 /* MacKeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacKeysView.swift; sourceTree = "<group>"; };
-		A10000000000000000000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		A10000000000000000000016 /* Signstr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Signstr.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		A10000000000000000000018 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A10000000000000000000019 /* SignstrMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SignstrMac.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -53,11 +76,11 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A10000000000000000000021 /* Frameworks */ = {
+		8B176CD43E5F4265C0366DCD /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A10000000000000000000005 /* SignstrCore in Frameworks */,
+				EEC6778CF65151E02257B14D /* SignstrCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -82,40 +105,62 @@
 		09BC7F761975EFEAC4E1A1EB = {
 			isa = PBXGroup;
 			children = (
+				984EE607D9FCB29A7C37ECF7 /* iOS */,
 				0813DBA9B3A3492E18699102 /* iOSApp */,
-				A10000000000000000000017 /* MacOSApp */,
+				3A58DC622B45B979BD4703B9 /* macOS */,
+				A79BBBC464C7BCDEF15CA33F /* MacOSApp */,
 				F7490F3E7937D1E861469E1A /* Packages */,
 				CA31E179C1F5B8BEE2F8878A /* Products */,
 			);
+			sourceTree = "<group>";
+		};
+		3A58DC622B45B979BD4703B9 /* macOS */ = {
+			isa = PBXGroup;
+			children = (
+				1525ABE184BE7DF1BA760382 /* SignstrMacNIP46E2ETests.swift */,
+			);
+			name = macOS;
+			path = E2ETests/macOS;
+			sourceTree = "<group>";
+		};
+		984EE607D9FCB29A7C37ECF7 /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				F10FC75909BDBFB0750F9902 /* SignstrNIP46E2ETests.swift */,
+			);
+			name = iOS;
+			path = E2ETests/iOS;
+			sourceTree = "<group>";
+		};
+		A79BBBC464C7BCDEF15CA33F /* MacOSApp */ = {
+			isa = PBXGroup;
+			children = (
+				E96D3D56275F269957427230 /* Assets.xcassets */,
+				A8E188E9389781728AE09DB1 /* Info.plist */,
+				63B23AD4881055928B62159E /* MacAppBootstrap.swift */,
+				C7ADB4705B701F0C95838A4D /* MacKeysView.swift */,
+				E05D20CC3A0DBF3029A7BA7C /* MacRootView.swift */,
+				35CBAF6BFF8A6E72F4BF6679 /* SignstrMac.entitlements */,
+				12ADB6E24381450D32A33FC5 /* SignstrMacApp.swift */,
+			);
+			path = MacOSApp;
 			sourceTree = "<group>";
 		};
 		CA31E179C1F5B8BEE2F8878A /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				454B407AFBBED585459D15E5 /* Signstr.app */,
-				A10000000000000000000016 /* Signstr.app */,
+				83B0F888F9F18E14EEE451F2 /* SignstrE2ETests.xctest */,
+				9B2F6498688B8267A85F62DF /* SignstrMac.app */,
+				0E6CC16CE2DCCE4D5AF61056 /* SignstrMacE2ETests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		A10000000000000000000017 /* MacOSApp */ = {
-			isa = PBXGroup;
-			children = (
-				A10000000000000000000012 /* MacAppBootstrap.swift */,
-				A10000000000000000000014 /* MacKeysView.swift */,
-				A10000000000000000000013 /* MacRootView.swift */,
-				A10000000000000000000011 /* SignstrMacApp.swift */,
-				A10000000000000000000018 /* Assets.xcassets */,
-				A10000000000000000000015 /* Info.plist */,
-				A10000000000000000000019 /* SignstrMac.entitlements */,
-			);
-			path = MacOSApp;
 			sourceTree = "<group>";
 		};
 		F7490F3E7937D1E861469E1A /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				542DB560650D80632A1CCD72 /* signstr */,
+				71169EB591042A135201B437 /* signstr-nip46-e2e */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -123,6 +168,26 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		4DD01A09D99C1BBB31282CA9 /* SignstrMac */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E73001A474A8BC3ED8FF1DAB /* Build configuration list for PBXNativeTarget "SignstrMac" */;
+			buildPhases = (
+				88A9E3344426C4DF090B570C /* Sources */,
+				4D17CB95DCFABF6DBC3F8149 /* Resources */,
+				8B176CD43E5F4265C0366DCD /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = SignstrMac;
+			packageProductDependencies = (
+				C133BE19088830FC90034720 /* SignstrCore */,
+			);
+			productName = SignstrMac;
+			productReference = 9B2F6498688B8267A85F62DF /* SignstrMac.app */;
+			productType = "com.apple.product-type.application";
+		};
 		7FEF835F801865554B1CB876 /* Signstr */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signstr" */;
@@ -143,25 +208,41 @@
 			productReference = 454B407AFBBED585459D15E5 /* Signstr.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A10000000000000000000031 /* SignstrMac */ = {
+		9F9A8C94196443CBE0100E2D /* SignstrE2ETests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A10000000000000000000041 /* Build configuration list for PBXNativeTarget "SignstrMac" */;
+			buildConfigurationList = 19C2FBA9CA04D37840ED50B8 /* Build configuration list for PBXNativeTarget "SignstrE2ETests" */;
 			buildPhases = (
-				A10000000000000000000022 /* Sources */,
-				A10000000000000000000023 /* Resources */,
-				A10000000000000000000021 /* Frameworks */,
+				CE94DDA0052CFEE177CFB53D /* Sources */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				C92A4E710CB7FE6391804043 /* PBXTargetDependency */,
 			);
-			name = SignstrMac;
+			name = SignstrE2ETests;
 			packageProductDependencies = (
-				54DD18EB4CAA374E35D8FBFF /* SignstrCore */,
 			);
-			productName = Signstr;
-			productReference = A10000000000000000000016 /* Signstr.app */;
-			productType = "com.apple.product-type.application";
+			productName = SignstrE2ETests;
+			productReference = 83B0F888F9F18E14EEE451F2 /* SignstrE2ETests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		DF5D04D48D0BAD894339CA0E /* SignstrMacE2ETests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 55F81A8629162FC92DA2E601 /* Build configuration list for PBXNativeTarget "SignstrMacE2ETests" */;
+			buildPhases = (
+				53D866A3485F7159B85B8E76 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				6A58688FAABB6D11A1F8611E /* PBXTargetDependency */,
+			);
+			name = SignstrMacE2ETests;
+			packageProductDependencies = (
+			);
+			productName = SignstrMacE2ETests;
+			productReference = 0E6CC16CE2DCCE4D5AF61056 /* SignstrMacE2ETests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
 
@@ -172,13 +253,17 @@
 				BuildIndependentTargetsInParallel = YES;
 				LastUpgradeCheck = 1430;
 				TargetAttributes = {
-					7FEF835F801865554B1CB876 = {
-						DevelopmentTeam = SUJ594N47C;
+					4DD01A09D99C1BBB31282CA9 = {
 						ProvisioningStyle = Automatic;
 					};
-					A10000000000000000000031 = {
-						DevelopmentTeam = SUJ594N47C;
+					7FEF835F801865554B1CB876 = {
 						ProvisioningStyle = Automatic;
+					};
+					9F9A8C94196443CBE0100E2D = {
+						TestTargetID = 7FEF835F801865554B1CB876;
+					};
+					DF5D04D48D0BAD894339CA0E = {
+						TestTargetID = 4DD01A09D99C1BBB31282CA9;
 					};
 				};
 			};
@@ -200,25 +285,27 @@
 			projectRoot = "";
 			targets = (
 				7FEF835F801865554B1CB876 /* Signstr */,
-				A10000000000000000000031 /* SignstrMac */,
+				4DD01A09D99C1BBB31282CA9 /* SignstrMac */,
+				9F9A8C94196443CBE0100E2D /* SignstrE2ETests */,
+				DF5D04D48D0BAD894339CA0E /* SignstrMacE2ETests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4D17CB95DCFABF6DBC3F8149 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				85ED7C7890DF9D8F3D85ACA7 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		64F1EE3EFA2EE7BFAD82675D /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 				FE058444748D4F3D14BA3F09 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		A10000000000000000000023 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A10000000000000000000006 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -238,27 +325,74 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		A10000000000000000000022 /* Sources */ = {
+		53D866A3485F7159B85B8E76 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A10000000000000000000002 /* MacAppBootstrap.swift in Sources */,
-				A10000000000000000000004 /* MacKeysView.swift in Sources */,
-				A10000000000000000000003 /* MacRootView.swift in Sources */,
-				A10000000000000000000001 /* SignstrMacApp.swift in Sources */,
+				4D92BB2AD278101EF986E578 /* SignstrMacNIP46E2ETests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		88A9E3344426C4DF090B570C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BCF9B4EB299BA335EDFC6BDE /* MacAppBootstrap.swift in Sources */,
+				448658403D4B5EA61FA112E3 /* MacKeysView.swift in Sources */,
+				04FA57BE678B54610DDCBCAC /* MacRootView.swift in Sources */,
+				5D6A28AE8B2139E4E20973E3 /* SignstrMacApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE94DDA0052CFEE177CFB53D /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BC07207B6A6F288EA49473E8 /* SignstrNIP46E2ETests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		6A58688FAABB6D11A1F8611E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 4DD01A09D99C1BBB31282CA9 /* SignstrMac */;
+			targetProxy = 00B55F35E69E07F77A7FCE00 /* PBXContainerItemProxy */;
+		};
+		C92A4E710CB7FE6391804043 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7FEF835F801865554B1CB876 /* Signstr */;
+			targetProxy = B89B2DB5AFF9E287F27E0032 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		0570AD0C0215A89635F5FD9C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.e2e-tests";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.1;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Signstr;
+			};
+			name = Release;
+		};
 		21869B48D031C360B9B69107 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = SUJ594N47C;
 				INFOPLIST_FILE = iOSApp/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
@@ -266,11 +400,10 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr;
 				PRODUCT_NAME = Signstr;
 				SDKROOT = iphoneos;
-				SWIFT_VERSION = 5.10;
+				SWIFT_VERSION = 5.1;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -309,6 +442,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -320,10 +454,10 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.0;
@@ -364,6 +498,7 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
@@ -381,46 +516,43 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				MARKETING_VERSION = 0.1.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
 			};
 			name = Debug;
 		};
-		8639B6A9FCBC61DF7796A811 /* Release */ = {
+		4535BDED85D6367352A4E2B2 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				INFOPLIST_FILE = iOSApp/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
 				);
-				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr;
-				PRODUCT_NAME = Signstr;
-				SDKROOT = iphoneos;
-				SWIFT_VERSION = 5.10;
-				TARGETED_DEVICE_FAMILY = "1,2";
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.mac.e2e-tests";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.1;
+				TEST_TARGET_NAME = SignstrMac;
 			};
-			name = Release;
+			name = Debug;
 		};
-		A10000000000000000000051 /* Debug */ = {
+		5A966018E0CB334A45662F5D /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = SUJ594N47C;
 				INFOPLIST_FILE = MacOSApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -428,21 +560,78 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;
 				PRODUCT_NAME = Signstr;
 				SDKROOT = macosx;
-				SWIFT_VERSION = 5.10;
+				SWIFT_VERSION = 5.1;
 			};
 			name = Debug;
 		};
-		A10000000000000000000052 /* Release */ = {
+		5B2D51A02DF4FBA81608B279 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.e2e-tests";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.1;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Signstr;
+			};
+			name = Debug;
+		};
+		6FC78123D8F72D15376233F8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				COMBINE_HIDPI_IMAGES = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.mac.e2e-tests";
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.1;
+				TEST_TARGET_NAME = SignstrMac;
+			};
+			name = Release;
+		};
+		8639B6A9FCBC61DF7796A811 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				INFOPLIST_FILE = iOSApp/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr;
+				PRODUCT_NAME = Signstr;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.1;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		9B6053C97714B983CAFA92D2 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
+				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
 				INFOPLIST_FILE = MacOSApp/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -450,22 +639,39 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				MARKETING_VERSION = 0.1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;
 				PRODUCT_NAME = Signstr;
 				SDKROOT = macosx;
-				SWIFT_VERSION = 5.10;
+				SWIFT_VERSION = 5.1;
 			};
 			name = Release;
 		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		19C2FBA9CA04D37840ED50B8 /* Build configuration list for PBXNativeTarget "SignstrE2ETests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5B2D51A02DF4FBA81608B279 /* Debug */,
+				0570AD0C0215A89635F5FD9C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signstr" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				21869B48D031C360B9B69107 /* Debug */,
 				8639B6A9FCBC61DF7796A811 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		55F81A8629162FC92DA2E601 /* Build configuration list for PBXNativeTarget "SignstrMacE2ETests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4535BDED85D6367352A4E2B2 /* Debug */,
+				6FC78123D8F72D15376233F8 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -479,11 +685,11 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		A10000000000000000000041 /* Build configuration list for PBXNativeTarget "SignstrMac" */ = {
+		E73001A474A8BC3ED8FF1DAB /* Build configuration list for PBXNativeTarget "SignstrMac" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				A10000000000000000000051 /* Debug */,
-				A10000000000000000000052 /* Release */,
+				5A966018E0CB334A45662F5D /* Debug */,
+				9B6053C97714B983CAFA92D2 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
@@ -499,6 +705,10 @@
 
 /* Begin XCSwiftPackageProductDependency section */
 		54DD18EB4CAA374E35D8FBFF /* SignstrCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = SignstrCore;
+		};
+		C133BE19088830FC90034720 /* SignstrCore */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = SignstrCore;
 		};

@@ -3,9 +3,23 @@ import Foundation
 import SignstrCore
 
 enum MacAppBootstrap {
+    #if DEBUG
+    static let e2eConfiguration = E2ELaunchConfiguration(environment: ProcessInfo.processInfo.environment)
+    #endif
     static let permissionStore = PermissionRuleStore()
-    static let identityStore = IdentityStore(seed: [])
-    static let nsecStore = NsecKeychainStore()
+    static let identityStore: IdentityStore = {
+        #if DEBUG
+        if let e2eConfiguration { return e2eConfiguration.makeIdentityStore() }
+        #endif
+        return IdentityStore(seed: [])
+    }()
+    static let keychainStore = NsecKeychainStore()
+    static let nsecStore: any NsecStoring = {
+        #if DEBUG
+        if let e2eConfiguration { return e2eConfiguration.makeNsecStore() }
+        #endif
+        return keychainStore
+    }()
     static let connectionStore = ConnectionStore()
     static let auditLog = AuditLogStore()
     static let executor = NIP46MethodExecutor(nsecStore: nsecStore, identityStore: identityStore)
@@ -49,7 +63,12 @@ enum MacAppBootstrap {
         connections: connectionStore,
         nsecStore: nsecStore,
         identities: identityStore,
-        coordinator: routingCoordinator
+        coordinator: routingCoordinator,
+        onRequestReceived: {
+            await MainActor.run {
+                NotificationCenter.default.post(name: NIP46RelayListener.requestReceivedNotification, object: nil)
+            }
+        }
     )
 
     static let connectionActivator = ConnectionActivator(
@@ -68,6 +87,14 @@ enum MacAppBootstrap {
 
     static func startListening() async {
         await relayListener.start()
+    }
+
+    static func prepareForLaunch() async {
+        #if DEBUG
+        if let e2eConfiguration {
+            await identityStore.setActive(identityID: e2eConfiguration.identity.id)
+        }
+        #endif
     }
 
     @MainActor
