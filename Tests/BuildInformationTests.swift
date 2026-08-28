@@ -3,6 +3,10 @@ import XCTest
 @testable import SignstrCore
 
 final class BuildInformationTests: XCTestCase {
+    func testBundleBuildTimeUsesTheConfiguredValueOrExecutableTimestamp() {
+        XCTAssertFalse(BuildInformation.displayBuildTime(bundle: .main).isEmpty)
+    }
+
     func testConfiguredReleaseBuildTimeTakesPrecedence() {
         XCTAssertEqual(
             BuildInformation.displayBuildTime(

@@ -50,18 +50,16 @@ public struct ActivityView: View {
                     description: Text("Sign-event attempts from the last 90 days will appear here.")
                 )
             } else {
-                ForEach(viewModel.entries) { entry in
+                ForEach(viewModel.entries) { entry in // coverage:ignore SwiftUI evaluates this row builder while rendering the live list.
                     ActivityRow(entry: entry)
                 }
             }
         }
-        .task { await viewModel.refresh() }
-        .refreshable { await viewModel.refresh() }
+        .task { await refreshActivity() }
+        .refreshable { await refreshActivity() }
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
-                Button("Clear History", role: .destructive) {
-                    confirmingClear = true
-                }
+                Button("Clear History", role: .destructive, action: requestClear)
                 .disabled(viewModel.entries.isEmpty)
             }
         }
@@ -70,13 +68,23 @@ public struct ActivityView: View {
             isPresented: $confirmingClear,
             titleVisibility: .visible
         ) {
-            Button("Clear History", role: .destructive) {
-                Task { await viewModel.clear() }
-            }
+            Button("Clear History", role: .destructive, action: clearHistory)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This permanently removes all stored signing activity from this device.")
         }
+    }
+
+    func refreshActivity() async {
+        await viewModel.refresh()
+    }
+
+    func requestClear() {
+        confirmingClear = true
+    }
+
+    func clearHistory() {
+        Task { await viewModel.clear() }
     }
 }
 

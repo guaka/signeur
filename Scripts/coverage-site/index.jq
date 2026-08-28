@@ -18,6 +18,20 @@ def line_metric($items; $excluded):
     | map({covered: ((map(.count) | max) > 0)})
     | {covered: (map(select(.covered)) | length), count: length};
 
+def source_function:
+    # Swift mangling tokens for closures, default arguments, autoclosures, and property initializers.
+    (.name | test("cf[UuA]|XE[fF][uU]|vpfi") | not);
+
+def function_metric($all_functions; $root; $items):
+    [
+        $all_functions[]
+        | select(source_function)
+        | . as $function
+        | select(any($items[]; . as $file | any($function.filenames[]; . == ($root + $file.relative))))
+    ]
+    | unique_by(.name)
+    | {covered: (map(select(.count > 0)) | length), count: length};
+
 def percentage_number($metric):
     if $metric.count == 0 then 0
     else (($metric.covered * 10000 / $metric.count) | floor) / 100
@@ -50,8 +64,10 @@ def metric_card($label; $metric; $description):
 def github_mark:
     "<svg class=\"github-mark\" viewBox=\"0 0 24 24\" aria-hidden=\"true\" focusable=\"false\"><path d=\"M12 .297C5.37.297 0 5.67 0 12.297c0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.084-.729.084-.729 1.205.084 1.838 1.237 1.838 1.237 1.07 1.835 2.809 1.305 3.495.998.108-.776.418-1.305.762-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297 24 5.67 18.627.297 12 .297Z\"/></svg>";
 
-[
-    .data[0].files[]
+.data[0] as $coverage
+| $coverage.functions as $allFunctions
+| [
+    $coverage.files[]
     | select(.filename | startswith($root))
     | . + {relative: (.filename | ltrimstr($root))}
     | select(.relative | startswith(".build/") | not)
@@ -59,7 +75,7 @@ def github_mark:
 ]
 | map(. as $file | . + {lineMetric: line_metric([$file]; $exclusions[0])}) as $files
 | (line_metric($files; $exclusions[0])) as $lines
-| (metric_sum($files; "functions")) as $functions
+| (function_metric($allFunctions; $root; $files)) as $functions
 | (metric_sum($files; "regions")) as $regions
 | ($files | sort_by(.relative | split("/")[0]) | group_by(.relative | split("/")[0])) as $areas
 | [
@@ -123,11 +139,11 @@ def github_mark:
     "</section>",
     "<section class=\"metrics\" aria-label=\"Coverage totals\">",
     metric_card("Line coverage"; $lines; "Testable executable source lines reached by tests."),
-    metric_card("Function coverage"; $functions; "Functions entered at least once."),
+    metric_card("Function coverage"; $functions; "Source-declared functions entered at least once."),
     metric_card("Region coverage"; $regions; "Control-flow regions exercised."),
     "</section>",
     "<section class=\"section-block\">",
-    "<div class=\"section-heading\"><div><h2>Coverage by area</h2></div><p>SignstrCore only. Tests, generated files, dependencies, and explicitly marked compiler/platform-only lines are excluded.</p></div>",
+    "<div class=\"section-heading\"><div><h2>Coverage by area</h2></div><p>SignstrCore only. Tests, dependencies, compiler-generated functions, and explicitly marked compiler/platform-only lines are excluded.</p></div>",
     "<div class=\"area-grid\">"
 ] + (
     $areas
@@ -147,7 +163,7 @@ def github_mark:
     | sort_by((percentage_number(.lineMetric)), .relative)
     | map(
         .lineMetric as $lines
-        | .summary.functions as $functions
+        | (function_metric($allFunctions; $root; [.])) as $functions
         | .summary.regions as $regions
         | "<tr><td><a href=\"coverage\(.filename).html\"><span class=\"file-area\">\((.relative | split("/")[0]) | html_escape)</span><strong>\((.relative | html_escape))</strong></a></td>"
         + "<td><div class=\"table-metric\"><strong>\(percentage($lines))</strong><small>\($lines.covered) / \($lines.count)</small><div class=\"progress \(tone($lines))\"><span style=\"width: \(percentage($lines))\"></span></div></div></td>"

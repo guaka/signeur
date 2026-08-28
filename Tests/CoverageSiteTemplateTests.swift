@@ -24,10 +24,13 @@ final class CoverageSiteTemplateTests: XCTestCase {
 
         XCTAssertTrue(template.contains("percentage_number($metric) == 100"))
         XCTAssertTrue(template.contains("line_metric($items; $excluded)"))
+        XCTAssertTrue(template.contains("function_metric($all_functions; $root; $items)"))
+        XCTAssertTrue(template.contains("Source-declared functions entered at least once."))
         XCTAssertTrue(template.contains("<th>Lines</th><th>Functions</th><th>Regions</th>"))
         XCTAssertTrue(template.contains("Build \\($generated) UTC"))
         XCTAssertTrue(generator.contains("date -u '+%Y-%m-%d %H:%M'"))
         XCTAssertTrue(generator.contains("coverage:ignore"))
+        XCTAssertTrue(generator.contains("compiler-generated functions"))
         XCTAssertTrue(generator.contains("grep -R -n -H"))
     }
 
