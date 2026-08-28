@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths-ignore:
       - "**/*.md"
+      - ".github/assets/**"
       - LICENSE
   schedule:
     - cron: "23 4 * * 1"
