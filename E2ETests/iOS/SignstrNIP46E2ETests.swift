@@ -54,7 +54,15 @@ final class SignstrNIP46E2ETests: XCTestCase {
 
     private func loadTestPage(in safari: XCUIApplication, until element: XCUIElement) -> Bool {
         for _ in 0..<3 {
-            safari.typeKey("l", modifierFlags: .command)
+            if element.waitForExistence(timeout: 2) { return true }
+
+            let addressField = safari.textFields.firstMatch
+            if addressField.waitForExistence(timeout: 5) {
+                addressField.tap()
+                safari.typeKey("a", modifierFlags: .command)
+            } else {
+                safari.typeKey("l", modifierFlags: .command)
+            }
             safari.typeText(testURL)
             safari.typeText("\n")
             guard safari.webViews.firstMatch.waitForExistence(timeout: 20) else { continue }
