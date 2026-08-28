@@ -54,6 +54,23 @@ final class ActivityViewTests: XCTestCase {
         _ = ActivityView(viewModel: errorViewModel).body
     }
 
+    func testActivityViewActionsRefreshRequestAndClearHistory() async {
+        let provider = StubActivityProvider(entries: [entry(outcome: .signed)])
+        let viewModel = ActivityViewModel(provider: provider)
+        let view = ActivityView(viewModel: viewModel)
+
+        await view.refreshActivity()
+        XCTAssertEqual(viewModel.entries.count, 1)
+        view.requestClear()
+        view.clearHistory()
+
+        for _ in 0..<20 where await provider.clearCount() == 0 {
+            try? await Task.sleep(for: .milliseconds(10))
+        }
+        let clearCount = await provider.clearCount()
+        XCTAssertEqual(clearCount, 1)
+    }
+
     func testRowsFormatEveryOutcomeAndApprovalMode() {
         let expectations: [(AuditOutcome, String, String)] = [
             (.signed, "Signed", "checkmark.circle.fill"),

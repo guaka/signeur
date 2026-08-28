@@ -87,24 +87,38 @@ jq -r --arg root "${repository_root}/" --slurpfile exclusions "${exclusions_json
         | group_by([.file, .line])
         | map({covered: ((map(.count) | max) > 0)})
         | {covered: (map(select(.covered)) | length), count: length};
+    def source_function:
+        # Swift mangling tokens for closures, default arguments, autoclosures, and property initializers.
+        (.name | test("cf[UuA]|XE[fF][uU]|vpfi") | not);
+    def function_metric($all_functions; $root; $items):
+        [
+            $all_functions[]
+            | select(source_function)
+            | . as $function
+            | select(any($items[]; . as $file | any($function.filenames[]; . == ($root + $file.relative))))
+        ]
+        | unique_by(.name)
+        | {covered: (map(select(.count > 0)) | length), count: length};
     def percentage($metric):
         if $metric.count == 0 then "n/a"
         else (((($metric.covered * 10000 / $metric.count) | floor) / 100) | tostring) + "%"
         end;
-    [
-        .data[0].files[]
+    .data[0] as $coverage
+    | $coverage.functions as $allFunctions
+    | [
+        $coverage.files[]
         | select(.filename | startswith($root))
         | . + {relative: (.filename | ltrimstr($root))}
         | select(.relative | startswith(".build/") | not)
         | select(.relative | startswith("Tests/") | not)
     ] as $files
     | (line_metric($files; $exclusions[0])) as $lines
-    | (metric_sum($files; "functions")) as $functions
+    | (function_metric($allFunctions; $root; $files)) as $functions
     | (metric_sum($files; "regions")) as $regions
     | [
         "## Code coverage",
         "",
-        "SignstrCore sources only; tests, generated files, dependencies, and explicitly marked compiler/platform-only lines are excluded.",
+        "SignstrCore sources only; tests, dependencies, compiler-generated functions, and explicitly marked compiler/platform-only lines are excluded.",
         "",
         "| Metric | Covered | Total | Coverage |",
         "| --- | ---: | ---: | ---: |",
