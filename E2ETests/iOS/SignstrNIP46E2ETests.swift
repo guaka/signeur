@@ -33,6 +33,15 @@ final class SignstrNIP46E2ETests: XCTestCase {
 
         signstr.activate()
         approve("Approve Connection", in: signstr)
+
+        // iOS may suspend Safari while Signstr is foregrounded. Bring it back so the
+        // browser can receive the connect response and publish `get_public_key`, then
+        // return to Signstr to approve that follow-up request.
+        safari.activate()
+        XCTAssertTrue(
+            webView.staticTexts["Approve the public-key request in Signstr"].waitForExistence(timeout: 30)
+        )
+        signstr.activate()
         approve("Approve", in: signstr)
 
         safari.activate()
