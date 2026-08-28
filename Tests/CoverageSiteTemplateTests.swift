@@ -13,6 +13,8 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertFalse(template.contains("Get the source"))
         XCTAssertFalse(template.contains("<span></span> AGPL-3.0"))
         XCTAssertTrue(template.contains(">AGPL-3.0</a>"))
+        XCTAssertTrue(template.contains("does not currently keep Nostr keys or signing inside the Secure Enclave"))
+        XCTAssertTrue(template.contains("https://github.com/guaka/signstr/issues/18"))
         XCTAssertTrue(styles.contains(".github-mark { width: 20px; height: 20px; fill: currentColor; }"))
     }
 
