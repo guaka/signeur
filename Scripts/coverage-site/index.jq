@@ -79,7 +79,7 @@ def github_mark:
     "<article class=\"product-card\"><span class=\"card-number\">02</span><span class=\"section-kicker\">Connections</span><h3>Pair a client</h3><p>Scan a Nostr Connect code on iPhone or paste its link on Mac. NIP-46 and NIP-55 are supported.</p></article>",
     "<article class=\"product-card\"><span class=\"card-number\">03</span><span class=\"section-kicker\">Requests</span><h3>Approve or reject</h3><p>Review each request and optionally remember a permission for that client.</p></article>",
     "</section>",
-    "<section class=\"security-callout\"><div><span class=\"section-kicker\">Key storage</span><h2>Keys stay on your device.</h2></div><p>Private keys are stored as biometric-protected Keychain items. Touch ID, Face ID, or the device passcode gates access before a secp256k1 operation runs in memory.</p></section>",
+    "<section class=\"security-callout\"><div><span class=\"section-kicker\">Key storage</span><h2>Keys stay in the device-only Keychain.</h2></div><p>Private keys are stored as biometric-protected Keychain items. Touch ID, Face ID, or the device passcode gates access before a secp256k1 operation runs in memory.</p></section>",
     "<section class=\"nip46-section section-block\" id=\"nip46-test\">",
     "<div class=\"section-heading nip46-heading\"><div><span class=\"section-kicker\">Interactive protocol lab</span><h2>See NIP-46<br><em>in motion.</em></h2></div><p>Create a disposable test client, pair it with Signstr, and watch an encrypted public-key request make the round trip through Nostr relays.</p></div>",
     "<div class=\"protocol-flow\" aria-label=\"NIP-46 connection flow\">",
