@@ -162,6 +162,23 @@ final class ConnectedAppsViewTests: XCTestCase {
         }
     }
 
+    func testConnectedAppRowIdentifiesItsSigningKeyWhenAvailable() {
+        let assigned = ConnectedAppItem(
+            appName: "Amethyst",
+            appPubkey: TestVectors.otherPubkeyHex,
+            methods: ["sign_event"],
+            identityName: "Main"
+        )
+        let unavailable = ConnectedAppItem(
+            appName: "Legacy App",
+            appPubkey: TestVectors.pubkeyHex,
+            methods: ["sign_event"]
+        )
+
+        XCTAssertEqual(ConnectedAppRow(app: assigned).signingKeyLabel, "Signing key: Main")
+        XCTAssertNil(ConnectedAppRow(app: unavailable).signingKeyLabel)
+    }
+
     func testLoadingSigningViewBuildsBody() {
         _ = LoadingSigningView().body
     }

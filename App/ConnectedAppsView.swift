@@ -165,6 +165,12 @@ struct ConnectedAppRow: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
 
+            if let signingKeyLabel {
+                Label(signingKeyLabel, systemImage: "key")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             if let createdAt = app.createdAt {
                 Label {
                     Text("Connected \(createdAt.formatted(date: .abbreviated, time: .omitted))")
@@ -176,6 +182,10 @@ struct ConnectedAppRow: View {
             }
         }
         .padding(.vertical, 4)
+    }
+
+    var signingKeyLabel: String? {
+        app.identityName.map { "Signing key: \($0)" }
     }
 
     private var permissionSummary: String {
