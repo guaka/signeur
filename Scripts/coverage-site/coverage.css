@@ -346,18 +346,21 @@ footer p a { color: var(--muted); }
 
 .tester-shell {
     overflow: hidden;
+    width: 100%;
+    max-width: 1440px;
+    margin-inline: auto;
     border: 1px solid rgba(139, 108, 255, 0.28);
     border-radius: 16px;
     background: rgba(20, 20, 28, 0.96);
     box-shadow: 0 8px 28px rgba(0, 0, 0, 0.18);
 }
 .tester-intro {
-    display: flex;
-    align-items: end;
+    display: grid;
+    grid-template-columns: minmax(0, 720px) auto;
+    align-items: center;
     justify-content: space-between;
-    gap: 32px;
-    min-height: 180px;
-    padding: 24px;
+    gap: clamp(32px, 7vw, 96px);
+    padding: clamp(28px, 4vw, 48px);
 }
 .tester-intro > div { max-width: 700px; }
 .tester-intro h3,
@@ -524,7 +527,15 @@ footer p a { color: var(--muted); }
 .tester-error { border: 1px solid rgba(255, 107, 122, 0.3); background: rgba(255, 107, 122, 0.07); }
 .tester-error strong { font-size: 13px; }
 .tester-error p { margin-top: 3px; font-size: 12px; }
-.tester-privacy { margin: 14px 8px 0; color: #777483; font-size: 11px; text-align: center; }
+.tester-privacy {
+    margin: 0;
+    padding: 14px clamp(28px, 4vw, 48px);
+    border-top: 1px solid var(--border);
+    background: rgba(0, 0, 0, 0.14);
+    color: #777483;
+    font-size: 11px;
+    text-align: left;
+}
 .tester-privacy span { color: var(--green); }
 
 @keyframes tester-pulse {
@@ -557,8 +568,9 @@ footer p a { color: var(--muted); }
     .product-grid { grid-template-columns: 1fr; }
     .product-card { min-height: 220px; padding: 20px; }
     .security-callout { padding: 22px; }
-    .tester-intro { align-items: start; flex-direction: column; min-height: 0; gap: 24px; padding: 22px; }
+    .tester-intro { grid-template-columns: 1fr; align-items: start; justify-content: stretch; gap: 24px; padding: 22px; }
     .tester-start { width: 100%; }
+    .tester-privacy { padding: 14px 22px; }
     .protocol-flow { grid-template-columns: 1fr; }
     .flow-node:last-child { grid-column: auto; }
     .flow-node { min-height: 0; }
