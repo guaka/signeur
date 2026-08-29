@@ -77,16 +77,10 @@ public struct SignerURLRequest: Equatable, Sendable {
     }
 
     private static func method(for typeName: String) throws -> NIP46Method {
-        switch typeName {
-        case "sign_event": return .signEvent
-        case "get_public_key": return .getPublicKey
-        case "nip04_encrypt": return .nip04Encrypt
-        case "nip04_decrypt": return .nip04Decrypt
-        case "nip44_encrypt": return .nip44Encrypt
-        case "nip44_decrypt": return .nip44Decrypt
-        case "ping": return .ping
-        default: throw SignerURLParseError.unsupportedType(typeName)
+        guard let method = NIP46Method(rawValue: typeName) else {
+            throw SignerURLParseError.unsupportedType(typeName)
         }
+        return method
     }
 
     private static func params(for method: NIP46Method, payload: String, items: [String: String]) throws -> [String] {

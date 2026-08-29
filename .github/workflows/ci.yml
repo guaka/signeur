@@ -1,14 +1,19 @@
 name: CI
 
 on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 5 * * 1"
   push:
     branches: [main]
     paths-ignore:
       - "**/*.md"
+      - ".github/assets/**"
       - LICENSE
   pull_request:
     paths-ignore:
       - "**/*.md"
+      - ".github/assets/**"
       - LICENSE
 
 permissions:
@@ -21,7 +26,7 @@ concurrency:
 jobs:
   test-and-build:
     runs-on: macos-15
-    timeout-minutes: 30
+    timeout-minutes: 50
 
     steps:
       - name: Check out repository
@@ -36,31 +41,14 @@ jobs:
       - name: Run Swift tests with coverage
         run: swift test --enable-code-coverage
 
-      - name: Generate coverage report
+      - name: Generate site for live E2E tests
+        run: Scripts/generate-coverage-report.sh coverage-report
+
+      - name: Serve the generated site locally
         run: |
-          Scripts/generate-coverage-report.sh coverage-report
-          cat coverage-report/summary.md >> "$GITHUB_STEP_SUMMARY"
-          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
-            echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "[Browse the annotated coverage report](https://guaka.github.io/signeur/)" >> "$GITHUB_STEP_SUMMARY"
-          fi
-
-      - name: Upload coverage report
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
-        with:
-          name: coverage-report-${{ github.sha }}
-          path: coverage-report
-          retention-days: 14
-
-      - name: Configure GitHub Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
-
-      - name: Upload coverage site
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
-        with:
-          path: coverage-report
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory coverage-report > "$RUNNER_TEMP/signeur-site.log" 2>&1 &
+          echo "SIGNEUR_E2E_TEST_URL=http://127.0.0.1:8765/#nip46-test" >> "$GITHUB_ENV"
+          curl --retry 5 --retry-connrefused --fail --silent http://127.0.0.1:8765/ > /dev/null
 
       - name: Build macOS app
         run: >-
@@ -84,8 +72,52 @@ jobs:
           CODE_SIGNING_ALLOWED=NO
           build
 
+      - name: Run live NIP-46 E2E on macOS
+        id: e2e_macos
+        continue-on-error: true
+        run: Scripts/run-nip46-e2e.sh macos
+
+      - name: Run live NIP-46 E2E on iOS
+        id: e2e_ios
+        continue-on-error: true
+        run: Scripts/run-nip46-e2e.sh ios
+
+      - name: Generate coverage and E2E report
+        env:
+          SIGNEUR_E2E_IOS_STATUS: ${{ steps.e2e_ios.outcome }}
+          SIGNEUR_E2E_MACOS_STATUS: ${{ steps.e2e_macos.outcome }}
+        run: |
+          Scripts/generate-coverage-report.sh coverage-report
+          cat coverage-report/summary.md >> "$GITHUB_STEP_SUMMARY"
+          if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "[Browse coverage and live E2E results](https://guaka.github.io/signeur/)" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Upload coverage and E2E report
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7
+        with:
+          name: coverage-report-${{ github.sha }}
+          path: coverage-report
+          retention-days: 14
+
+      - name: Configure GitHub Pages
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6
+
+      - name: Upload coverage site
+        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5
+        with:
+          path: coverage-report
+
+      - name: Fail when a live E2E platform failed
+        if: >-
+          steps.e2e_ios.outcome == 'failure' || steps.e2e_macos.outcome == 'failure'
+        run: exit 1
+
   deploy-coverage:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: test-and-build
     runs-on: ubuntu-latest
     permissions:

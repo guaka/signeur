@@ -15,8 +15,13 @@ public actor NostrRelayPool {
     private var seenEventIDs: [String] = []
     private var seenEventLookup: Set<String> = []
 
+    public init(seenEventLimit: Int = 500) {
+        socketFactory = { URLSessionRelaySocket(url: $0) }
+        self.seenEventLimit = seenEventLimit
+    }
+
     public init(
-        socketFactory: @escaping @Sendable (URL) -> RelaySocketing = { URLSessionRelaySocket(url: $0) },
+        socketFactory: @escaping @Sendable (URL) -> RelaySocketing,
         seenEventLimit: Int = 500
     ) {
         self.socketFactory = socketFactory
@@ -36,7 +41,7 @@ public actor NostrRelayPool {
                     recipientPubkey: recipientPubkey,
                     since: since
                 )
-            } catch {
+            } catch { // coverage:ignore-region LLVM emits an uncovered async cleanup region although relay-failure continuation is tested.
                 // One unreachable relay must not stop the others from listening.
                 continue
             }

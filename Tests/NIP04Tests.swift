@@ -1,3 +1,4 @@
+import CommonCrypto
 import XCTest
 @testable import SigneurCore
 
@@ -8,6 +9,11 @@ final class NIP04Tests: XCTestCase {
 
     /// Cross-checked against an independent Python implementation (Tools/derive_reference_vectors.py).
     private let referencePayload = "zgC5jLLvz2rjne1LFgo0YJPMj1AjMfVYmW7UrUnOhng=?iv=AAAAAAAAAAAAAAAAAAAAAA=="
+
+    func testKeyAgreementRejectsWrongLengthKeys() {
+        XCTAssertThrowsError(try NostrKeyAgreement.sharedX(privateKey: [], publicKeyXOnly: [UInt8](repeating: 1, count: 32)))
+        XCTAssertThrowsError(try NostrKeyAgreement.sharedX(privateKey: [UInt8](repeating: 1, count: 32), publicKeyXOnly: []))
+    }
 
     func testEncryptMatchesAnIndependentImplementation() throws {
         let payload = try NIP04.encrypt(
@@ -102,5 +108,21 @@ final class NIP04Tests: XCTestCase {
         let plaintext = try? NIP04.decrypt(payload: referencePayload, privateKey: wrongSecret, publicKeyXOnly: peer)
 
         XCTAssertNotEqual(plaintext, "hello from python")
+    }
+
+    func testCryptMapsCommonCryptoFailuresByOperation() {
+        let invalidKey: [UInt8] = []
+        let iv = [UInt8](repeating: 0, count: kCCBlockSizeAES128)
+
+        XCTAssertThrowsError(try NIP04.crypt(
+            operation: CCOperation(kCCEncrypt), data: [1], key: invalidKey, iv: iv
+        )) { error in
+            XCTAssertEqual(error as? NIP04Error, .encryptionFailed)
+        }
+        XCTAssertThrowsError(try NIP04.crypt(
+            operation: CCOperation(kCCDecrypt), data: [1], key: invalidKey, iv: iv
+        )) { error in
+            XCTAssertEqual(error as? NIP04Error, .decryptionFailed)
+        }
     }
 }

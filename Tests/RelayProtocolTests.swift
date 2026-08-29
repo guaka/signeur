@@ -43,6 +43,7 @@ final class RelayFrameTests: XCTestCase {
         XCTAssertNil(RelayFrame.decode("{\"not\":\"an array\"}"))
         XCTAssertNil(RelayFrame.decode("[\"WAT\",\"x\"]"))
         XCTAssertNil(RelayFrame.decode("[\"OK\"]"))
+        XCTAssertNil(RelayFrame.decode("[\"CLOSED\"]"))
         XCTAssertNil(RelayFrame.decode("[\"EVENT\",\"sub-1\",{\"kind\":1}]"), "an event missing id/sig is not usable")
     }
 
@@ -107,6 +108,46 @@ final class RelayConnectionTests: XCTestCase {
         } catch {
             XCTAssertEqual(error as? RelayConnectionError, .rejected("blocked: no"))
         }
+        let rejectionConnectionCount = await socket.connectionsMade()
+        XCTAssertEqual(rejectionConnectionCount, 1, "relay rejections are not retried")
+        await connection.stop()
+    }
+
+    func testPublishReconnectsAfterTheSocketClosesAndRestoresSubscriptions() async throws {
+        let socket = FakeRelaySocket()
+        let connection = RelayConnection(url: URL(string: "wss://relay.one")!, socket: socket)
+        try await connection.start { _ in }
+        try await connection.subscribe(subscriptionID: "sub-1", recipientPubkey: TestVectors.pubkeyHex)
+        await socket.failNextSend()
+
+        try await connection.publish(try makeEvent())
+
+        let reconnectCount = await socket.connectionsMade()
+        XCTAssertEqual(reconnectCount, 2)
+        let frames = await socket.frames()
+        XCTAssertEqual(frames.filter { $0.hasPrefix("[\"REQ\",\"sub-1\"") }.count, 2)
+        XCTAssertEqual(frames.filter { $0.hasPrefix("[\"EVENT\"") }.count, 1)
+        await connection.stop()
+    }
+
+    func testPublishReconnectsAndSucceedsAfterTheFirstAcknowledgementTimesOut() async throws {
+        let socket = FakeRelaySocket(autoAcknowledge: false)
+        let connection = RelayConnection(
+            url: URL(string: "wss://relay.one")!,
+            socket: socket,
+            publishTimeout: 0.1
+        )
+        try await connection.start { _ in }
+        let publish = Task { try await connection.publish(try makeEvent()) }
+
+        while await socket.frames().isEmpty {
+            await Task.yield()
+        }
+        await socket.enableAutoAcknowledge()
+
+        try await publish.value
+        let connectionCount = await socket.connectionsMade()
+        XCTAssertEqual(connectionCount, 2)
         await connection.stop()
     }
 
@@ -237,6 +278,25 @@ final class NostrRelayPoolTests: XCTestCase {
 
         let items = await received.items()
         XCTAssertEqual(items.count, 1, "relays echo each other; the user must be asked once")
+        await pool.stop()
+    }
+
+    func testSeenEventWindowEvictsItsOldestEntry() async throws {
+        let sockets = SocketRegistry()
+        let pool = NostrRelayPool(socketFactory: { url in sockets.socket(for: url) }, seenEventLimit: 1)
+        let received = Collector<NostrEvent>()
+        await pool.setEventHandler { event in await received.append(event) }
+        await pool.subscribe(subscriptionID: "sub-1", recipientPubkey: TestVectors.pubkeyHex, on: [relayA])
+
+        for content in ["first", "second", "first"] {
+            let event = try makeEvent(content: content)
+            let frame = "[\"EVENT\",\"sub-1\"," + (try NostrEventFactory.json(for: event)) + "]"
+            await sockets.socket(for: relayA).deliver(frame)
+            try await Task.sleep(for: .milliseconds(20))
+        }
+
+        let items = await received.items()
+        XCTAssertEqual(items.map(\.content), ["first", "second", "first"])
         await pool.stop()
     }
 

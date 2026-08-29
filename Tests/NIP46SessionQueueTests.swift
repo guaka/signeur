@@ -27,6 +27,13 @@ final class NIP46SessionQueueTests: XCTestCase {
         XCTAssertTrue(pending.isEmpty)
     }
 
+    func testEmptyManagerHasNoActiveSession() async {
+        let manager = makeManager()
+
+        let activeSession = await manager.activeSession()
+        XCTAssertNil(activeSession)
+    }
+
     func testRequestsAreServedInArrivalOrder() async {
         let manager = makeManager()
         _ = await manager.onRequestArrived(makeTestRequest(id: "first"))
@@ -93,6 +100,24 @@ final class NIP46SessionQueueTests: XCTestCase {
         XCTAssertEqual(reject, .completedError(.invalidProtocol))
     }
 
+    func testUnknownRequestIDCannotTimeOut() async {
+        let manager = makeManager()
+
+        let timeout = await manager.onTimeout(requestID: "ghost")
+
+        XCTAssertEqual(timeout, .completedError(.invalidProtocol))
+    }
+
+    func testTransportFailureWhileRejectingIsTerminal() async {
+        let manager = makeManager(transport: RecordingTransport(shouldThrow: true))
+        _ = await manager.onRequestArrived(makeTestRequest(id: "reject-failure"))
+        _ = await manager.activateNextPendingIfNeeded()
+
+        let state = await manager.handleReject(requestID: "reject-failure")
+
+        XCTAssertEqual(state, .completedError(.userRejected))
+    }
+
     func testApprovalSignsWithTheChosenIdentity() async {
         let executor = RecordingExecutor()
         let manager = makeManager(executor: executor)
@@ -138,13 +163,13 @@ final class NIP46SessionQueueTests: XCTestCase {
         XCTAssertTrue(pending.isEmpty, "a failed request must not stay in the queue")
     }
 
-    func testTransportFailureOnApprovalIsTerminal() async {
+    func testRelayFailureOnApprovalIsTerminalAndSpecific() async {
         let manager = makeManager(transport: RecordingTransport(shouldThrow: true))
         _ = await manager.onRequestArrived(makeTestRequest(id: "a"))
         _ = await manager.activateNextPendingIfNeeded()
 
         let state = await manager.handleApprove(requestID: "a", identityID: "id-1")
-        XCTAssertEqual(state, .completedError(.transportFailure))
+        XCTAssertEqual(state, .completedError(.relayUnavailable))
     }
 
     func testRememberChoiceStoresRuleOnlyWhenRequested() async {

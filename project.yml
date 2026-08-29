@@ -52,5 +52,48 @@ targets:
     dependencies:
       - package: SigneurCore
         product: SigneurCore
-scheme:
-  testTargets: []
+  SigneurE2ETests:
+    type: bundle.ui-testing
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - E2ETests/iOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signeur.e2e-tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 5.10
+        TEST_TARGET_NAME: Signeur
+    dependencies:
+      - target: Signeur
+  SigneurMacE2ETests:
+    type: bundle.ui-testing
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - E2ETests/macOS
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signeur.mac.e2e-tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: 5.10
+        TEST_TARGET_NAME: SigneurMac
+    dependencies:
+      - target: SigneurMac
+schemes:
+  Signeur:
+    build:
+      targets:
+        Signeur: all
+        SigneurE2ETests: [test]
+    test:
+      targets:
+        - SigneurE2ETests
+  SigneurMac:
+    build:
+      targets:
+        SigneurMac: all
+        SigneurMacE2ETests: [test]
+    test:
+      targets:
+        - SigneurMacE2ETests

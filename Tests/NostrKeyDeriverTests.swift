@@ -41,6 +41,11 @@ final class NostrKeyDeriverTests: XCTestCase {
         XCTAssertThrowsError(try NostrKeyDeriver.secretKeyBytes(fromNsec: npub))
     }
 
+    func testRejectsNsecWithTheWrongDecodedLength() throws {
+        let shortNsec = try Bech32.encode(hrp: "nsec", bytes: [UInt8](repeating: 1, count: 31))
+        XCTAssertThrowsError(try NostrKeyDeriver.secretKeyBytes(fromNsec: shortNsec))
+    }
+
     func testSignatureVerifiesAgainstDerivedPublicKey() throws {
         let secret = try NostrKeyDeriver.secretKeyBytes(fromNsec: nsec)
         let privateKey = try P256K.Schnorr.PrivateKey(dataRepresentation: Data(secret))

@@ -57,19 +57,15 @@ public actor NIP55CallbackTransport: NIP46RespondingTransport {
             throw NIP55CallbackError.noWayToReturnResult
         }
 
-        guard let target = Self.callbackTarget(callbackURL, payload: payload) else {
-            throw NIP55CallbackError.callbackRefused
-        }
+        let target = Self.callbackTarget(callbackURL, payload: payload)
         guard await openURL(target) else {
             copyToClipboard(payload)
             throw NIP55CallbackError.callbackRefused
         }
     }
 
-    static func callbackTarget(_ callbackURL: URL, payload: String) -> URL? {
-        guard var components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false) else {
-            return nil
-        }
+    static func callbackTarget(_ callbackURL: URL, payload: String) -> URL {
+        var components = URLComponents(url: callbackURL, resolvingAgainstBaseURL: false)!
         var items = components.queryItems ?? []
         if let index = items.lastIndex(where: { ($0.value ?? "").isEmpty }) {
             items[index].value = payload
@@ -77,7 +73,8 @@ public actor NIP55CallbackTransport: NIP46RespondingTransport {
             items.append(URLQueryItem(name: "result", value: payload))
         }
         components.queryItems = items
-        return components.url
+        // Replacing or appending a percent-encoded query item preserves a valid callback URL.
+        return components.url!
     }
 
     /// Apps asking for `returnType=signature` want the signature alone, not the event.

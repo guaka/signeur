@@ -77,10 +77,7 @@ public enum RelayRequest {
         }
         let payload: [Any] = ["REQ", subscriptionID, filter]
         let data = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
-        guard let text = String(data: data, encoding: .utf8) else {
-            throw NostrEventError.malformedJSON
-        }
-        return text
+        return String(decoding: data, as: UTF8.self)
     }
 
     /// Requests the latest replaceable profile events for one author.
@@ -102,10 +99,7 @@ public enum RelayRequest {
             ["authors": [authorPubkey], "kinds": requestedKinds, "limit": requestedKinds.count]
         ]
         let data = try JSONSerialization.data(withJSONObject: payload, options: [.sortedKeys])
-        guard let text = String(data: data, encoding: .utf8) else {
-            throw NostrEventError.malformedJSON
-        }
-        return text
+        return String(decoding: data, as: UTF8.self)
     }
 
     public static func close(subscriptionID: String) -> String {

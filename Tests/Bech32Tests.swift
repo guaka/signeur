@@ -48,6 +48,17 @@ final class Bech32Tests: XCTestCase {
         }
     }
 
+    func testRejectsValidChecksumWithNonZeroTrailingBits() {
+        let charset = Array("qpzry9x8gf2tvdw0s3jn54khce6mua7l")
+        let payload: [UInt8] = [1]
+        let values = payload + Bech32.createChecksum(hrp: "nsec", data: payload)
+        let encoded = "nsec1" + values.map { String(charset[Int($0)]) }.joined()
+
+        XCTAssertThrowsError(try Bech32.decode(encoded, expectedHRP: "nsec")) { error in
+            XCTAssertEqual(error as? Bech32Error, .invalidData)
+        }
+    }
+
     func testRejectsMissingSeparator() {
         XCTAssertThrowsError(try Bech32.decode("nsecqqqqqq", expectedHRP: "nsec")) { error in
             XCTAssertEqual(error as? Bech32Error, .invalidFormat)

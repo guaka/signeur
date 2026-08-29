@@ -3,6 +3,7 @@ import SigneurCore
 
 enum RootSection: String, CaseIterable, Identifiable {
     case requests
+    case activity
     case connected
     case keys
     case help
@@ -12,6 +13,7 @@ enum RootSection: String, CaseIterable, Identifiable {
     var title: String {
         switch self {
         case .requests: return "Requests"
+        case .activity: return "Activity"
         case .connected: return "Connected"
         case .keys: return "Keys"
         case .help: return "Help"
@@ -21,6 +23,7 @@ enum RootSection: String, CaseIterable, Identifiable {
     var icon: String {
         switch self {
         case .requests: return "signature"
+        case .activity: return "clock.arrow.circlepath"
         case .connected: return "link"
         case .keys: return "key.fill"
         case .help: return "questionmark.circle"
@@ -30,6 +33,7 @@ enum RootSection: String, CaseIterable, Identifiable {
 
 struct RootView: View {
     @StateObject private var sessionVM = AppBootstrap.makeSessionViewModel()
+    @StateObject private var activityVM = AppBootstrap.makeActivityViewModel()
     @StateObject private var connectedAppsVM = AppBootstrap.makeConnectedAppsViewModel()
     @StateObject private var keysVM = AppBootstrap.makeKeysViewModel()
     @StateObject private var pairingVM = AppBootstrap.makePairingViewModel()
@@ -102,6 +106,16 @@ struct RootView: View {
         .task {
             guard !didPickInitialSection else { return }
             didPickInitialSection = true
+            await AppBootstrap.prepareForLaunch()
+            #if DEBUG
+            if let pairingURL = AppBootstrap.e2eConfiguration?.pairingURL {
+                if await pairingVM.handleIncomingURL(pairingURL) {
+                    showPairedRequest()
+                } else {
+                    pairingErrorMessage = pairingVM.errorMessage
+                }
+            }
+            #endif
             await keysVM.refresh()
             if keysVM.identities.isEmpty {
                 section = .keys
@@ -118,8 +132,16 @@ struct RootView: View {
                 }
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: NIP46RelayListener.requestReceivedNotification)) { _ in
+            section = .requests
+            Task { await sessionVM.refresh() }
+        }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.didEnterBackgroundNotification)) { _ in
             Task { await AppBootstrap.lockKeySession() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.didBecomeActiveNotification)) { _ in
+            guard didPickInitialSection else { return }
+            Task { await AppBootstrap.resumeListening() }
         }
     }
 
@@ -170,6 +192,8 @@ struct RootView: View {
                 ],
                 onConnectionApproved: showApprovedConnection
             )
+        case .activity:
+            ActivityView(viewModel: activityVM)
         case .connected:
             ConnectedAppsView(viewModel: connectedAppsVM)
         case .keys:
@@ -186,15 +210,7 @@ struct RootView: View {
 }
 
 private struct SigneurHelpView: View {
-    private let buildTime: String = {
-        guard let value = Bundle.main.object(forInfoDictionaryKey: "SigneurBuildTime") as? String,
-              !value.isEmpty,
-              !value.hasPrefix("$(")
-        else {
-            return "Development build"
-        }
-        return value
-    }()
+    private let buildTime = BuildInformation.displayBuildTime()
 
     var body: some View {
         ScrollView {

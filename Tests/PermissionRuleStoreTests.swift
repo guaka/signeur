@@ -2,6 +2,17 @@ import XCTest
 @testable import SigneurCore
 
 final class PermissionRuleStoreTests: XCTestCase {
+    func testCorruptRuleStorageFailsClosedForApprovalAndRevocation() async {
+        let defaults = makeEphemeralDefaults()
+        defaults.set(Data("not json".utf8), forKey: "signeur.permission.rules")
+        let store = PermissionRuleStore(defaults: defaults)
+
+        let approved = await store.shouldAutoApprove(request: makeTestRequest())
+        XCTAssertFalse(approved)
+        await store.revoke(appPubkey: TestVectors.pubkeyHex)
+        XCTAssertEqual(defaults.data(forKey: "signeur.permission.rules"), Data("not json".utf8))
+    }
+
     func testNothingIsAutoApprovedByDefault() async {
         let store = PermissionRuleStore(defaults: makeEphemeralDefaults())
         let approved = await store.shouldAutoApprove(request: makeTestRequest())

@@ -3,6 +3,7 @@ import { createHash, webcrypto } from "node:crypto";
 import test from "node:test";
 import {
     buildNostrConnectURI,
+    browserError,
     connectRequestID,
     createNIP46RequestEvent,
     decryptNIP46Payload,
@@ -10,6 +11,7 @@ import {
     friendlyError,
     NIP46BrowserSession,
     parseNIP46Response,
+    permissionDisplayName,
     publicKeyFromSecret,
     validateConnectResponse,
     validateUserPubkey
@@ -43,8 +45,11 @@ function browserElements() {
         success: { hidden: true },
         npub: { textContent: "" },
         hexPubkey: { textContent: "" },
+        permissions: { textContent: "" },
         error: { hidden: true },
+        errorTitle: { textContent: "" },
         errorText: { textContent: "" },
+        errorCode: { textContent: "" },
         steps,
         flowSteps
     };
@@ -145,10 +150,27 @@ test("authenticates an encrypted NIP-46 request and response round trip", () => 
 test("validates and presents public-key and common error states", () => {
     assert.equal(validateUserPubkey(userPubkey), userPubkey);
     assert.throws(() => validateUserPubkey("npub-not-hex"), /invalid user public key/);
-    assert.equal(friendlyError(new Error("userRejected")), "The request was declined in Signeur.");
-    assert.match(friendlyError(new Error("Pairing timed out.")), /No response arrived/);
-    assert.match(friendlyError(new Error("No Nostr relay could be reached.")), /could not reach a Nostr relay/);
-    assert.match(friendlyError(new Error("expected pairing secret")), /could not be authenticated/);
+    assert.match(friendlyError(new Error("userRejected")), /declined in Signeur/);
+    assert.match(friendlyError(new Error("Pairing timed out.")), /No reply arrived/);
+    assert.match(friendlyError(new Error("No Nostr relay could be reached.")), /could not keep a Nostr relay/);
+    assert.match(friendlyError(new Error("expected pairing secret")), /pairing secret/);
+    assert.deepEqual(browserError(new Error("userRejected")), {
+        code: "WEB-1001",
+        title: "Request declined",
+        message: "The request was declined in Signeur. Start again when you are ready to approve it."
+    });
+    const codes = [
+        "userRejected", "expected pairing secret", "malformed response", "invalid user public key",
+        "Pairing timed out.", "All relay connections closed.", "modern secure browser",
+        "Copying was blocked", "unexpected"
+    ].map((message) => browserError(new Error(message)).code);
+    assert.equal(new Set(codes).size, codes.length);
+});
+
+test("uses readable names for acquired permissions", () => {
+    assert.equal(permissionDisplayName("get_public_key"), "Read public key");
+    assert.equal(permissionDisplayName("ping"), "Ping");
+    assert.equal(permissionDisplayName("nip44_encrypt"), "nip44_encrypt");
 });
 
 test("renders browser progress and a connected npub", () => {
@@ -160,11 +182,13 @@ test("renders browser progress and a connected npub", () => {
     assert.equal(elements.steps[2].classList.contains("done"), true);
     assert.equal(elements.statusText.textContent, "Approve the public-key request in Signeur");
 
+    session.permissions = ["get_public_key", "ping"];
     session.succeed(userPubkey);
     assert.equal(elements.success.hidden, false);
     assert.equal(elements.error.hidden, true);
     assert.match(elements.npub.textContent, /^npub1/);
     assert.equal(elements.hexPubkey.textContent, userPubkey);
+    assert.equal(elements.permissions.textContent, "Read public key · Ping");
     assert.equal(elements.statusDot.className, "tester-status-dot success");
 });
 
@@ -175,13 +199,18 @@ test("renders actionable browser errors and resets sensitive session state", () 
     let poolDestroyed = false;
     session.clientSecret = new Uint8Array([1]);
     session.signerPubkey = userPubkey;
+    session.permissions = ["get_public_key"];
     session.subscription = { close() { subscriptionClosed = true; } };
     session.pool = { destroy() { poolDestroyed = true; } };
 
     session.fail(new Error("userRejected"));
     assert.equal(elements.panel.hidden, false);
     assert.equal(elements.error.hidden, false);
-    assert.equal(elements.errorText.textContent, "The request was declined in Signeur.");
+    assert.equal(elements.errorTitle.textContent, "Request declined");
+    assert.equal(elements.errorText.textContent, "The request was declined in Signeur. Start again when you are ready to approve it.");
+    assert.equal(elements.errorCode.textContent, "WEB-1001");
+    assert.match(session.lastError, /WEB-1001/);
+    assert.equal(elements.statusText.textContent, "Test stopped · WEB-1001");
     assert.equal(elements.statusDot.className, "tester-status-dot error");
 
     session.reset();
@@ -189,6 +218,61 @@ test("renders actionable browser errors and resets sensitive session state", () 
     assert.equal(poolDestroyed, true);
     assert.equal(session.clientSecret, null);
     assert.equal(session.signerPubkey, null);
+    assert.deepEqual(session.permissions, []);
+    assert.equal(session.lastError, null);
+    assert.equal(elements.permissions.textContent, "");
     assert.equal(elements.panel.hidden, true);
     assert.equal(elements.intro.hidden, false);
+});
+
+test("refreshes the relay subscription when mobile Safari becomes visible again", () => {
+    const elements = browserElements();
+    const session = new NIP46BrowserSession(elements);
+    const subscriptions = [];
+    session.pool = {
+        subscribeMany(_relays, filter, callbacks) {
+            const subscription = { filter, callbacks, closed: false, close() { this.closed = true; } };
+            subscriptions.push(subscription);
+            return subscription;
+        }
+    };
+    session.clientPubkey = userPubkey;
+    session.relays = ["wss://relay.one"];
+    session.subscriptionSince = 1_700_000_000;
+    session.phase = "public-key";
+
+    session.subscribe();
+    session.resumeWhenVisible();
+
+    assert.equal(subscriptions.length, 2);
+    assert.equal(subscriptions[0].closed, true);
+    assert.equal(subscriptions[1].filter.since, 1_700_000_000);
+    subscriptions[0].callbacks.onclose([{ reason: "backgrounded" }]);
+    assert.equal(session.phase, "public-key", "a superseded subscription cannot fail the active session");
+});
+
+test("recovers an active mobile relay subscription before showing an error", async () => {
+    const elements = browserElements();
+    const session = new NIP46BrowserSession(elements);
+    let subscribed = 0;
+    session.pool = {
+        ensureRelay: async (relay) => ({ url: relay }),
+        subscribeMany() {
+            subscribed += 1;
+            return { close() {} };
+        }
+    };
+    session.clientPubkey = userPubkey;
+    session.relays = ["wss://relay.one"];
+    session.subscriptionSince = 1_700_000_000;
+    session.phase = "public-key";
+    session.subscribe();
+    const generation = session.subscriptionGeneration;
+
+    await session.handleSubscriptionClose(generation, [{ reason: "backgrounded" }]);
+
+    assert.equal(subscribed, 2);
+    assert.equal(session.phase, "public-key");
+    assert.equal(elements.error.hidden, true);
+    assert.equal(elements.statusText.textContent, "Reconnecting to Nostr relays");
 });

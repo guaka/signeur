@@ -2,6 +2,26 @@ import XCTest
 @testable import SigneurCore
 
 final class IdentityStoreTests: XCTestCase {
+    func testFirstIdentityBecomesActiveWhenTheStoredSelectionIsMissing() async {
+        let store = IdentityStore(
+            defaults: makeEphemeralDefaults(),
+            seed: [Identity(id: "id-1", displayName: "Main")]
+        )
+
+        let activeID = await store.activeIdentityID()
+        XCTAssertEqual(activeID, "id-1")
+    }
+
+    func testUpdatingOrMarkingAMissingIdentityIsANoOp() async {
+        let store = IdentityStore(defaults: makeEphemeralDefaults())
+
+        await store.updateNIP05("nobody@example.com", for: "missing")
+        await store.markUsed(identityID: "missing")
+
+        let identities = await store.list()
+        XCTAssertTrue(identities.isEmpty)
+    }
+
     func testSeedIsUsedWhenNothingPersisted() async {
         let store = IdentityStore(defaults: makeEphemeralDefaults(), seed: [Identity(id: "a", displayName: "A")])
         let identities = await store.list()

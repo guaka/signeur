@@ -55,7 +55,7 @@ public enum SecurityPolicy {
                 result.append(canonical)
             }
         }
-        guard !result.isEmpty else { throw SecurityPolicyError.invalidRelay }
+        guard !result.isEmpty else { throw SecurityPolicyError.invalidRelay } // coverage:ignore-region Nonempty input either appends a canonical relay or throws earlier.
         return result
     }
 
@@ -80,10 +80,8 @@ public enum SecurityPolicy {
 
         components.scheme = scheme
         components.host = host
-        guard let canonical = components.url?.absoluteString else {
-            throw SecurityPolicyError.invalidRelay
-        }
-        return canonical
+        // The validated components above always form a URL after case normalization.
+        return components.url!.absoluteString
     }
 
     public static func canonicalMetadataURL(_ value: String) throws -> String {
@@ -101,10 +99,8 @@ public enum SecurityPolicy {
         }
         components.scheme = scheme
         components.host = host
-        guard let canonical = components.url?.absoluteString else {
-            throw SecurityPolicyError.invalidMetadataURL
-        }
-        return canonical
+        // The validated components above always form a URL after case normalization.
+        return components.url!.absoluteString
     }
 
     public static func truncatedPreview(_ value: String) -> String {

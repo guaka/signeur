@@ -2,6 +2,22 @@ import XCTest
 @testable import SigneurCore
 
 final class NIP46SessionStateMachineTests: XCTestCase {
+    func testEveryFailureHasUniqueUnderstandableUserCopyAndDiagnosticCode() {
+        let failures: [SessionFailureReason] = [
+            .userRejected, .invalidProtocol, .timeout, .signingFailed, .transportFailure,
+            .connectionNotRegistered, .identityKeyUnavailable, .responseEncryptionFailed,
+            .relayUnavailable, .keyAuthenticationFailed, .keyAuthenticationCanceled,
+            .keychainInteractionNotAllowed, .keychainPermissionMissing,
+            .keychainProtectionUnavailable, .keychainUnavailable, .storedKeyInvalid,
+            .keychainUnexpectedError, .unauthorizedSigningAttempt
+        ]
+        let messages = failures.map(\.userMessage)
+
+        XCTAssertEqual(Set(messages).count, failures.count)
+        XCTAssertTrue(messages.allSatisfy { $0.contains("N46-") })
+        XCTAssertTrue(messages.allSatisfy { $0.contains(" ") })
+    }
+
     func testExpiryTransitionsToExpired() {
         var machine = NIP46SessionStateMachine()
         _ = machine.transition(on: .onRequestArrived)

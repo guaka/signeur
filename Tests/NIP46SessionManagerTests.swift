@@ -1,4 +1,5 @@
 import XCTest
+import Security
 @testable import SigneurCore
 
 final class NIP46SessionManagerTests: XCTestCase {
@@ -151,6 +152,62 @@ final class NIP46SessionManagerTests: XCTestCase {
         XCTAssertEqual(state, .completedError(.signingFailed))
     }
 
+    func testDeliveryFailuresPreserveSafeActionableCategories() {
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NIP46RelayTransportError.unknownApp),
+            .connectionNotRegistered
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NIP46RelayTransportError.noKeyForIdentity),
+            .identityKeyUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NIP46RelayTransportError.encryptionFailed),
+            .responseEncryptionFailed
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NostrRelayPoolError.allRelaysFailed),
+            .relayUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: RelayConnectionError.publishTimedOut),
+            .relayUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: RelaySocketError.closed),
+            .relayUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: URLError(.cannotConnectToHost)),
+            .relayUnavailable
+        )
+        XCTAssertEqual(
+            NIP46SessionManager.deliveryFailureReason(for: NSError(domain: "test", code: 1)),
+            .transportFailure
+        )
+    }
+
+    func testKeyExecutionFailuresPreserveSafeActionableCategories() {
+        let mappings: [(Error, SessionFailureReason)] = [
+            (NsecStoreError.authenticationFailed, .keyAuthenticationFailed),
+            (NsecStoreError.authenticationCanceled, .keyAuthenticationCanceled),
+            (NsecStoreError.protectionUnavailable, .keychainProtectionUnavailable),
+            (NsecStoreError.invalidInput, .storedKeyInvalid),
+            (NIP46ExecutionError.invalidStoredKey, .storedKeyInvalid),
+            (NIP46ExecutionError.noKeyStoredForIdentity, .identityKeyUnavailable),
+            (NsecStoreError.unexpectedStatus(errSecInteractionNotAllowed), .keychainInteractionNotAllowed),
+            (NsecStoreError.unexpectedStatus(errSecMissingEntitlement), .keychainPermissionMissing),
+            (NsecStoreError.unexpectedStatus(-34010), .keychainProtectionUnavailable),
+            (NsecStoreError.unexpectedStatus(errSecNotAvailable), .keychainUnavailable),
+            (NsecStoreError.unexpectedStatus(errSecDecode), .keychainUnexpectedError),
+            (NIP46ExecutionError.signingFailed, .signingFailed)
+        ]
+
+        for (error, expected) in mappings {
+            XCTAssertEqual(NIP46SessionManager.executionFailureReason(for: error), expected)
+        }
+    }
+
     func testHandleApproveRejectsBadIdentity() async {
         let manager = NIP46SessionManager(
             validator: NIP46Validator(),
@@ -161,7 +218,7 @@ final class NIP46SessionManagerTests: XCTestCase {
         _ = await manager.onRequestArrived(Self.request(id: "identity"))
         _ = await manager.activateNextPendingIfNeeded()
 
-        let state = await manager.handleApprove(requestID: "identity", identityID: "not valid id")
+        let state = await manager.handleApprove(requestID: "identity", identityID: "\n")
 
         XCTAssertEqual(state, SessionState.completedError(.unauthorizedSigningAttempt))
     }
@@ -181,6 +238,193 @@ final class NIP46SessionManagerTests: XCTestCase {
         XCTAssertTrue(guardUnderTest.canExecute(session: session))
     }
 
+    func testSuccessfulSignEventRecordsManualSafeMetadata() async {
+        let auditLog = RecordingAuditLog()
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: RecordingTransport(),
+            authorizationGuard: AuthorizationGuard(),
+            auditLog: auditLog
+        )
+        _ = await manager.onRequestArrived(
+            makeTestRequest(
+                id: "audit-success",
+                appName: "App",
+                payload: "{\"kind\":42,\"content\":\"private event content\"}"
+            )
+        )
+
+        let state = await manager.handleApprove(requestID: "audit-success", identityID: "identity-a")
+        let entries = await auditLog.entries()
+
+        XCTAssertEqual(state, .completedSuccess)
+        XCTAssertEqual(entries.count, 1)
+        XCTAssertEqual(entries.first?.appName, "App")
+        XCTAssertEqual(entries.first?.method, "sign_event")
+        XCTAssertEqual(entries.first?.outcome, .signed)
+        XCTAssertEqual(entries.first?.eventKind, 42)
+        XCTAssertEqual(entries.first?.approvalMode, .manual)
+        let encodedEntry = try? JSONEncoder().encode(entries.first)
+        let encodedText = encodedEntry.flatMap { String(data: $0, encoding: .utf8) }
+        XCTAssertFalse(encodedText?.contains("private event content") ?? true)
+    }
+
+    func testRememberedApprovalRecordsItsSource() async {
+        let auditLog = RecordingAuditLog()
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: RecordingTransport(),
+            authorizationGuard: AuthorizationGuard(),
+            auditLog: auditLog
+        )
+        _ = await manager.onRequestArrived(Self.request(id: "audit-remembered"))
+
+        _ = await manager.handleApprove(
+            requestID: "audit-remembered",
+            identityID: "identity-a",
+            approvalMode: .remembered
+        )
+
+        let entries = await auditLog.entries()
+        XCTAssertEqual(entries.first?.approvalMode, .remembered)
+    }
+
+    func testRejectedExpiredAndInvalidRequestsAreAudited() async {
+        let auditLog = RecordingAuditLog()
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: RecordingTransport(),
+            authorizationGuard: AuthorizationGuard(),
+            auditLog: auditLog
+        )
+        _ = await manager.onRequestArrived(Self.request(id: "audit-rejected"))
+        _ = await manager.handleReject(requestID: "audit-rejected")
+        _ = await manager.onRequestArrived(Self.request(id: "audit-expired"))
+        _ = await manager.onTimeout(requestID: "audit-expired")
+        _ = await manager.onRequestArrived(
+            makeTestRequest(
+                id: "audit-invalid",
+                params: ["not an event"],
+                appName: nil,
+                appPubkey: "bad"
+            )
+        )
+
+        let entries = await auditLog.entries()
+        XCTAssertEqual(entries.map(\.outcome), [.rejected, .expired, .invalidRequest])
+        XCTAssertEqual(entries[0].approvalMode, .manual)
+        XCTAssertEqual(entries[1].approvalMode, .notApplicable)
+        XCTAssertEqual(entries[2].appName, "Unknown app")
+        XCTAssertNil(entries[2].eventKind)
+    }
+
+    func testSigningDeliveryAndAuthorizationFailuresAreAudited() async {
+        let signingAudit = RecordingAuditLog()
+        let signingManager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(shouldThrow: true),
+            transport: RecordingTransport(),
+            authorizationGuard: AuthorizationGuard(),
+            auditLog: signingAudit
+        )
+        _ = await signingManager.onRequestArrived(Self.request(id: "audit-sign-failure"))
+        _ = await signingManager.handleApprove(requestID: "audit-sign-failure", identityID: "identity-a")
+
+        let deliveryAudit = RecordingAuditLog()
+        let deliveryManager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: RecordingTransport(shouldThrow: true),
+            authorizationGuard: AuthorizationGuard(),
+            auditLog: deliveryAudit
+        )
+        _ = await deliveryManager.onRequestArrived(Self.request(id: "audit-delivery-failure"))
+        _ = await deliveryManager.handleApprove(requestID: "audit-delivery-failure", identityID: "identity-a")
+
+        let unauthorizedAudit = RecordingAuditLog()
+        let unauthorizedManager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: RecordingTransport(),
+            authorizationGuard: AuthorizationGuard(),
+            auditLog: unauthorizedAudit
+        )
+        _ = await unauthorizedManager.onRequestArrived(Self.request(id: "audit-unauthorized"))
+        _ = await unauthorizedManager.handleApprove(requestID: "audit-unauthorized", identityID: "\n")
+
+        let signingEntries = await signingAudit.entries()
+        let deliveryEntries = await deliveryAudit.entries()
+        let unauthorizedEntries = await unauthorizedAudit.entries()
+        XCTAssertEqual(signingEntries.map(\.outcome), [.signingFailed])
+        XCTAssertEqual(deliveryEntries.map(\.outcome), [.deliveryFailed])
+        XCTAssertEqual(unauthorizedEntries.map(\.outcome), [.unauthorized])
+
+        let guardAudit = RecordingAuditLog()
+        let guardManager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: RecordingTransport(),
+            authorizationGuard: DenyingAuthorization(),
+            auditLog: guardAudit
+        )
+        _ = await guardManager.onRequestArrived(Self.request(id: "audit-guard-denied"))
+        _ = await guardManager.handleApprove(requestID: "audit-guard-denied", identityID: "identity-a")
+        let guardEntries = await guardAudit.entries()
+        XCTAssertEqual(guardEntries.map(\.outcome), [.unauthorized])
+    }
+
+    func testAuditEntryIsRecordedOnlyOnceAcrossRacingActions() async {
+        let auditLog = RecordingAuditLog()
+        let executor = SuspendingExecutor()
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: executor,
+            transport: RecordingTransport(),
+            authorizationGuard: AuthorizationGuard(),
+            auditLog: auditLog
+        )
+        _ = await manager.onRequestArrived(Self.request(id: "audit-race"))
+
+        let approval = Task {
+            await manager.handleApprove(requestID: "audit-race", identityID: "identity-a")
+        }
+        await executor.waitUntilStarted()
+        _ = await manager.handleReject(requestID: "audit-race")
+        _ = await manager.onTimeout(requestID: "audit-race")
+        await executor.release()
+        _ = await approval.value
+
+        let entries = await auditLog.entries()
+        XCTAssertEqual(entries.map(\.outcome), [.signed])
+    }
+
+    func testNonSignMethodsAreNotAuditedAndAuditFailureDoesNotFailSigning() async {
+        let auditLog = RecordingAuditLog(shouldThrow: true)
+        let manager = NIP46SessionManager(
+            validator: NIP46Validator(),
+            executor: RecordingExecutor(),
+            transport: RecordingTransport(),
+            authorizationGuard: AuthorizationGuard(),
+            auditLog: auditLog
+        )
+        _ = await manager.onRequestArrived(
+            makeTestRequest(id: "not-signing", method: .ping, params: [])
+        )
+        _ = await manager.handleApprove(requestID: "not-signing", identityID: "identity-a")
+        let attemptsAfterPing = await auditLog.appendAttempts()
+        XCTAssertEqual(attemptsAfterPing, 0)
+
+        _ = await manager.onRequestArrived(Self.request(id: "audit-write-fails"))
+        let state = await manager.handleApprove(requestID: "audit-write-fails", identityID: "identity-a")
+
+        XCTAssertEqual(state, .completedSuccess)
+        let attemptsAfterSigning = await auditLog.appendAttempts()
+        XCTAssertEqual(attemptsAfterSigning, 1)
+    }
+
     private static func request(id: String) -> NIP46Request {
         .init(
             id: id,
@@ -193,6 +437,35 @@ final class NIP46SessionManagerTests: XCTestCase {
             rawPayloadPreview: "{\"kind\":1}"
         )
     }
+}
+
+private actor RecordingAuditLog: AuditLogProviding {
+    private var recordedEntries: [AuditEntry] = []
+    private var attempts = 0
+    private let shouldThrow: Bool
+
+    init(shouldThrow: Bool = false) {
+        self.shouldThrow = shouldThrow
+    }
+
+    func append(_ entry: AuditEntry) async throws {
+        attempts += 1
+        if shouldThrow { throw StubStorageError() }
+        recordedEntries.append(entry)
+    }
+
+    func list() async throws -> [AuditEntry] { recordedEntries }
+
+    func clear() async {
+        recordedEntries = []
+    }
+
+    func entries() -> [AuditEntry] { recordedEntries }
+    func appendAttempts() -> Int { attempts }
+}
+
+private struct DenyingAuthorization: RequestAuthorization {
+    func canExecute(session: NIP46Session) -> Bool { false }
 }
 
 private actor SuspendingExecutor: NIP46RequestExecuting {

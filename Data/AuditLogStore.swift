@@ -1,6 +1,12 @@
 import Foundation
 
-public actor AuditLogStore {
+public protocol AuditLogProviding: Sendable {
+    func append(_ entry: AuditEntry) async throws
+    func list() async throws -> [AuditEntry]
+    func clear() async
+}
+
+public actor AuditLogStore: AuditLogProviding {
     private let defaults: UserDefaults
     private let key = "signeur.audit.entries"
     private let retentionDays: Int
@@ -10,21 +16,29 @@ public actor AuditLogStore {
         self.retentionDays = retentionDays
     }
 
-    public func append(_ entry: AuditEntry) throws {
-        var entries = try list()
+    public func append(_ entry: AuditEntry) async throws {
+        var entries = try await list()
         entries.append(entry)
         entries = prune(entries)
         defaults.set(try JSONEncoder().encode(entries), forKey: key)
     }
 
-    public func list() throws -> [AuditEntry] {
+    public func list() async throws -> [AuditEntry] {
         guard let data = defaults.data(forKey: key) else { return [] }
-        return try JSONDecoder().decode([AuditEntry].self, from: data)
+        let entries = try JSONDecoder().decode([AuditEntry].self, from: data)
+        let retained = prune(entries)
+        if retained != entries {
+            defaults.set(try JSONEncoder().encode(retained), forKey: key)
+        }
+        return retained
     }
 
-    public func pruneExpired() throws {
-        let entries = try list()
-        defaults.set(try JSONEncoder().encode(prune(entries)), forKey: key)
+    public func clear() async {
+        defaults.removeObject(forKey: key)
+    }
+
+    public func pruneExpired() async throws {
+        _ = try await list()
     }
 
     private func prune(_ entries: [AuditEntry]) -> [AuditEntry] {

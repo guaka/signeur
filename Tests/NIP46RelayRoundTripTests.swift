@@ -68,6 +68,15 @@ final class ConnectionStoreTests: XCTestCase {
         XCTAssertEqual(connection?.usesLegacyEncryption, true)
     }
 
+    func testMarkingAnUnknownConnectionIsANoOp() async {
+        let store = ConnectionStore(defaults: makeEphemeralDefaults())
+
+        await store.markUsed(appPubkey: TestVectors.otherPubkeyHex)
+
+        let connections = await store.all()
+        XCTAssertTrue(connections.isEmpty)
+    }
+
     func testRemovingAConnectionForgetsIt() async {
         let store = ConnectionStore(defaults: makeEphemeralDefaults())
         await store.upsert(makeConnection(approved: true))
@@ -326,6 +335,23 @@ final class NIP46RelayListenerTests: XCTestCase {
 
         let pending = await setup.manager.pendingSessions()
         XCTAssertEqual(pending.first?.request.method, .getPublicKey)
+    }
+
+    func testResumeAfterSuspensionReopensRelayAndRestoresSubscription() async throws {
+        let sockets = SocketRegistry()
+        let setup = try await makeListener(socketFactory: { url in sockets.socket(for: url) })
+
+        await setup.listener.start()
+        let socket = sockets.socket(for: URL(string: "wss://relay.one")!)
+        let initialConnectionCount = await socket.connectionsMade()
+        XCTAssertEqual(initialConnectionCount, 1)
+
+        await setup.listener.resumeAfterSuspension()
+
+        let resumedConnectionCount = await socket.connectionsMade()
+        XCTAssertEqual(resumedConnectionCount, 2)
+        let frames = await socket.frames()
+        XCTAssertEqual(frames.filter { $0.hasPrefix("[\"REQ\"") }.count, 2)
     }
 
     func testAnEventFromAnUnknownAppIsIgnored() async throws {

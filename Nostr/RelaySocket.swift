@@ -83,7 +83,7 @@ public actor URLSessionRelaySocket: RelaySocketing {
             return text
         case let .data(data):
             return String(decoding: data, as: UTF8.self)
-        @unknown default:
+        @unknown default: // coverage:ignore Reserved for WebSocket message cases added by a future SDK.
             throw RelaySocketError.closed
         }
     }

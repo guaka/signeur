@@ -162,6 +162,39 @@ final class ConnectedAppsViewTests: XCTestCase {
         }
     }
 
+    func testConnectedAppRowIdentifiesItsSigningKeyWhenAvailable() {
+        let assigned = ConnectedAppItem(
+            appName: "Amethyst",
+            appPubkey: TestVectors.otherPubkeyHex,
+            methods: ["sign_event"],
+            identityName: "Main"
+        )
+        let unavailable = ConnectedAppItem(
+            appName: "Legacy App",
+            appPubkey: TestVectors.pubkeyHex,
+            methods: ["sign_event"]
+        )
+
+        XCTAssertEqual(ConnectedAppRow(app: assigned).signingKeyLabel, "Signing key: Main")
+        XCTAssertNil(ConnectedAppRow(app: unavailable).signingKeyLabel)
+    }
+
+    func testAppFaviconURLUsesTheHTTPSOriginAndRejectsUnsafeMetadataURLs() {
+        XCTAssertEqual(
+            appFaviconURL(for: "https://Example.com/apps/client?theme=dark")?.absoluteString,
+            "https://example.com/favicon.ico"
+        )
+        XCTAssertNil(appFaviconURL(for: nil))
+        XCTAssertNil(appFaviconURL(for: "http://example.com"))
+        XCTAssertNil(appFaviconURL(for: "http://localhost:3000"))
+    }
+
+    func testAppIconViewBuildsRemoteAndFallbackStates() {
+        _ = AppIconView(appName: "Amethyst", appURL: "https://example.com").body
+        _ = AppIconView(appName: "Local", appURL: nil).body
+        _ = AppIconView(appName: nil, appURL: nil).body
+    }
+
     func testLoadingSigningViewBuildsBody() {
         _ = LoadingSigningView().body
     }

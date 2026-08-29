@@ -36,6 +36,19 @@ protocol NsecKeychainBackend: Sendable {
     func delete(query: [String: Any]) -> OSStatus
     func add(query: [String: Any]) -> OSStatus
     func copyMatching(query: [String: Any], result: inout CFTypeRef?) -> OSStatus
+    func makeAccessControl() -> SecAccessControl?
+}
+
+extension NsecKeychainBackend {
+    func makeAccessControl() -> SecAccessControl? {
+        var error: Unmanaged<CFError>?
+        return SecAccessControlCreateWithFlags(
+            nil,
+            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
+            .userPresence,
+            &error
+        )
+    }
 }
 
 struct DefaultNsecKeychainBackend: NsecKeychainBackend {
@@ -75,21 +88,13 @@ public actor NsecKeychainStore: NsecStoring {
         else {
             throw NsecStoreError.invalidInput
         }
-        guard let data = trimmed.data(using: .utf8) else {
-            throw NsecStoreError.invalidInput
-        }
+        let data = Data(trimmed.utf8)
 
         unlockCache.removeValue(for: identityID)
         let query = Self.makeItemQuery(service: service, identityID: identityID)
         _ = keychain.delete(query: query)
 
-        var accessControlError: Unmanaged<CFError>?
-        guard let accessControl = SecAccessControlCreateWithFlags(
-            nil,
-            kSecAttrAccessibleWhenUnlockedThisDeviceOnly,
-            .userPresence,
-            &accessControlError
-        ) else {
+        guard let accessControl = keychain.makeAccessControl() else {
             throw NsecStoreError.protectionUnavailable
         }
 

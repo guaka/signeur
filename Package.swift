@@ -22,6 +22,7 @@ let package = Package(
             path: ".",
             exclude: [
                 "Tests",
+                "E2ETests",
                 "plan.md",
                 "iOSApp",
                 "MacOSApp",

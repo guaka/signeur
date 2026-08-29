@@ -107,6 +107,33 @@ final class NostrProfileLookupTests: XCTestCase {
         XCTAssertEqual(profile?.suggestedName, "alice@trustroots.org")
     }
 
+    func testKind10390RejectsTooShortAUsername() async throws {
+        let event = try trustrootsProfileEvent(username: "abc")
+        let lookup = RelayNostrProfileLookup(
+            relays: [],
+            eventFetcher: StubProfileEventFetcher(events: [event]),
+            nip05Verifier: StubNIP05Verifier(validIdentifiers: [])
+        )
+
+        let profile = await lookup.lookup(pubkey: TestVectors.pubkeyHex)
+        XCTAssertNil(profile)
+    }
+
+    func testEqualTimestampProfilesUseEventIDAsTieBreaker() async throws {
+        let alpha = try profileEvent(createdAt: 100, content: #"{"display_name":"Alpha"}"#)
+        let beta = try profileEvent(createdAt: 100, content: #"{"display_name":"Beta"}"#)
+        let expectedName = alpha.id < beta.id ? "Alpha" : "Beta"
+        let lookup = RelayNostrProfileLookup(
+            relays: [],
+            eventFetcher: StubProfileEventFetcher(events: [beta, alpha]),
+            nip05Verifier: StubNIP05Verifier(validIdentifiers: [])
+        )
+
+        let profile = await lookup.lookup(pubkey: TestVectors.pubkeyHex)
+
+        XCTAssertEqual(profile?.displayName, expectedName)
+    }
+
     func testKind10390RequiresTheNostrootsUsernameNamespaceAndNIP05Verification() async throws {
         let wrongNamespace = try NostrEventFactory.sign(
             UnsignedNostrEvent(

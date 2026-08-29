@@ -150,12 +150,14 @@ actor FakeRelaySocket: RelaySocketing {
     private(set) var sentFrames: [String] = []
     private(set) var connectCount = 0
     private(set) var isClosed = false
+    private var isConnected = false
 
     private var incoming: [String] = []
     private var waiter: CheckedContinuation<String, Error>?
+    private var remainingSendFailures = 0
     private let failOnConnect: Bool
     /// Answers every published event with an OK, the way a healthy relay does.
-    private let autoAcknowledge: Bool
+    private var autoAcknowledge: Bool
 
     init(autoAcknowledge: Bool = true, failOnConnect: Bool = false) {
         self.autoAcknowledge = autoAcknowledge
@@ -163,11 +165,18 @@ actor FakeRelaySocket: RelaySocketing {
     }
 
     func connect() async throws {
+        guard !isConnected else { return }
         if failOnConnect { throw RelaySocketError.notConnected }
         connectCount += 1
+        isConnected = true
+        isClosed = false
     }
 
     func send(_ text: String) async throws {
+        if remainingSendFailures > 0 {
+            remainingSendFailures -= 1
+            throw RelaySocketError.closed
+        }
         sentFrames.append(text)
         guard autoAcknowledge, text.hasPrefix("[\"EVENT\"") else { return }
         guard
@@ -192,6 +201,7 @@ actor FakeRelaySocket: RelaySocketing {
 
     func close() async {
         isClosed = true
+        isConnected = false
         waiter?.resume(throwing: RelaySocketError.closed)
         waiter = nil
     }
@@ -206,7 +216,10 @@ actor FakeRelaySocket: RelaySocketing {
     }
 
     func frames() -> [String] { sentFrames }
+    func connectionsMade() -> Int { connectCount }
     func closedYet() -> Bool { isClosed }
+    func failNextSend() { remainingSendFailures += 1 }
+    func enableAutoAcknowledge() { autoAcknowledge = true }
     func resetFrames() { sentFrames.removeAll() }
 }
 

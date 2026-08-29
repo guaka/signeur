@@ -3,10 +3,25 @@ import Foundation
 import SigneurCore
 
 enum MacAppBootstrap {
+    #if DEBUG
+    static let e2eConfiguration = E2ELaunchConfiguration(environment: ProcessInfo.processInfo.environment)
+    #endif
     static let permissionStore = PermissionRuleStore()
-    static let identityStore = IdentityStore(seed: [])
-    static let nsecStore = NsecKeychainStore()
+    static let identityStore: IdentityStore = {
+        #if DEBUG
+        if let e2eConfiguration { return e2eConfiguration.makeIdentityStore() }
+        #endif
+        return IdentityStore(seed: [])
+    }()
+    static let keychainStore = NsecKeychainStore()
+    static let nsecStore: any NsecStoring = {
+        #if DEBUG
+        if let e2eConfiguration { return e2eConfiguration.makeNsecStore() }
+        #endif
+        return keychainStore
+    }()
     static let connectionStore = ConnectionStore()
+    static let auditLog = AuditLogStore()
     static let executor = NIP46MethodExecutor(nsecStore: nsecStore, identityStore: identityStore)
     static let relayPool = NostrRelayPool()
     static let profileLookup = RelayNostrProfileLookup()
@@ -39,7 +54,8 @@ enum MacAppBootstrap {
         executor: executor,
         transport: RoutingTransport(callbackTransport: callbackTransport, relayTransport: relayTransport),
         authorizationGuard: AuthorizationGuard(),
-        permissionEvaluator: permissionStore
+        permissionEvaluator: permissionStore,
+        auditLog: auditLog
     )
 
     static let relayListener = NIP46RelayListener(
@@ -47,7 +63,12 @@ enum MacAppBootstrap {
         connections: connectionStore,
         nsecStore: nsecStore,
         identities: identityStore,
-        coordinator: routingCoordinator
+        coordinator: routingCoordinator,
+        onRequestReceived: {
+            await MainActor.run {
+                NotificationCenter.default.post(name: NIP46RelayListener.requestReceivedNotification, object: nil)
+            }
+        }
     )
 
     static let connectionActivator = ConnectionActivator(
@@ -68,6 +89,14 @@ enum MacAppBootstrap {
         await relayListener.start()
     }
 
+    static func prepareForLaunch() async {
+        #if DEBUG
+        if let e2eConfiguration {
+            await identityStore.setActive(identityID: e2eConfiguration.identity.id)
+        }
+        #endif
+    }
+
     @MainActor
     static func makeSessionViewModel() -> SessionViewModel {
         SessionViewModel(
@@ -86,6 +115,11 @@ enum MacAppBootstrap {
                 identities: identityStore
             )
         )
+    }
+
+    @MainActor
+    static func makeActivityViewModel() -> ActivityViewModel {
+        ActivityViewModel(provider: auditLog)
     }
 
     @MainActor

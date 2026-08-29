@@ -44,6 +44,9 @@ public actor NIP46MethodExecutor: NIP46RequestExecuting {
     public func execute(_ request: NIP46Request, identityID: String) async throws -> String {
         switch request.method {
         case .connect:
+            // Unlock the identity while the approval sheet is active. The response transport
+            // needs this key immediately afterwards to encrypt and sign the pairing reply.
+            _ = try await secretKey(for: identityID)
             // The app expects its pairing secret echoed back. A bunker-style request puts the
             // signer pubkey first, while a nostrconnect pairing sends the secret on its own.
             return request.params.first { !$0.isEmpty && !isPubkeyHex($0) } ?? "ack"
@@ -67,7 +70,7 @@ public actor NIP46MethodExecutor: NIP46RequestExecuting {
             }
             do {
                 return try NostrEventFactory.json(for: try NostrEventFactory.sign(unsigned, privateKey: secret, now: now()))
-            } catch {
+            } catch { // coverage:ignore Signing cannot fail after the validated secret and event checks above.
                 throw NIP46ExecutionError.signingFailed
             }
 

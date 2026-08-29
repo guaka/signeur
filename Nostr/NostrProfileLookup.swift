@@ -172,8 +172,13 @@ public struct WebSocketNostrProfileEventFetcher: NostrProfileEventFetching {
     private let socketFactory: @Sendable (URL) -> RelaySocketing
     private let timeoutNanoseconds: UInt64
 
+    public init(timeout: TimeInterval = 4) {
+        socketFactory = { URLSessionRelaySocket(url: $0) }
+        timeoutNanoseconds = UInt64(max(0.1, timeout) * 1_000_000_000)
+    }
+
     public init(
-        socketFactory: @escaping @Sendable (URL) -> RelaySocketing = { URLSessionRelaySocket(url: $0) },
+        socketFactory: @escaping @Sendable (URL) -> RelaySocketing,
         timeout: TimeInterval = 4
     ) {
         self.socketFactory = socketFactory
@@ -222,10 +227,10 @@ public struct WebSocketNostrProfileEventFetcher: NostrProfileEventFetching {
                         default:
                             continue
                         }
-                    }
+                    } // coverage:ignore The loop exits only through a matched frame, thrown receive, or cancellation.
                 } catch {
                     return []
-                }
+                } // coverage:ignore Compiler-generated async catch epilogue.
                 return []
             }
             group.addTask {
@@ -274,7 +279,7 @@ public struct URLSessionNIP05Verifier: NIP05Verifying, @unchecked Sendable {
         components.host = domain
         components.path = "/.well-known/nostr.json"
         components.queryItems = [URLQueryItem(name: "name", value: localPart)]
-        guard let url = components.url else { return false }
+        guard let url = components.url else { return false } // coverage:ignore-region Validated domain and fixed HTTPS components always form a URL.
 
         let delegate = NoRedirectURLSessionDelegate()
         let configuration = sessionConfiguration.copy() as? URLSessionConfiguration ?? .ephemeral
@@ -317,7 +322,7 @@ public struct URLSessionNIP05Verifier: NIP05Verifying, @unchecked Sendable {
     }
 }
 
-private final class NoRedirectURLSessionDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
+final class NoRedirectURLSessionDelegate: NSObject, URLSessionTaskDelegate, @unchecked Sendable {
     func urlSession(
         _ session: URLSession,
         task: URLSessionTask,

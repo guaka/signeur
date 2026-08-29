@@ -33,6 +33,7 @@ final class SecurityPolicyTests: XCTestCase {
         XCTAssertThrowsError(
             try SecurityPolicy.sanitizeRelays((0...SecurityPolicy.maxRelays).map { "wss://relay\($0).example" })
         )
+        XCTAssertThrowsError(try SecurityPolicy.sanitizeRelays([]))
     }
 
     func testMetadataURLPolicyAllowsHTTPSAndHTTPOnlyOnLoopback() throws {

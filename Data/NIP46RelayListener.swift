@@ -2,6 +2,8 @@ import Foundation
 
 /// Decodes an incoming NIP-46 request event and hands it to the approval flow.
 public actor NIP46RelayListener {
+    public static let requestReceivedNotification = Notification.Name("signeur.nip46.request-received")
+
     public struct DecodedRequest: Equatable, Sendable {
         public let request: NIP46Request
         public let usedLegacyEncryption: Bool
@@ -14,6 +16,7 @@ public actor NIP46RelayListener {
     private let coordinator: RequestRoutingCoordinator
     private let logger: RedactedLogger
     private let now: @Sendable () -> Date
+    private let onRequestReceived: @Sendable () async -> Void
 
     public init(
         pool: NostrRelayPool,
@@ -22,7 +25,8 @@ public actor NIP46RelayListener {
         identities: IdentityStore,
         coordinator: RequestRoutingCoordinator,
         logger: RedactedLogger = RedactedLogger(),
-        now: @escaping @Sendable () -> Date = { Date() }
+        now: @escaping @Sendable () -> Date = { Date() }, // coverage:ignore Compiler-generated default-argument thunk.
+        onRequestReceived: @escaping @Sendable () async -> Void = {}
     ) {
         self.pool = pool
         self.connections = connections
@@ -31,6 +35,7 @@ public actor NIP46RelayListener {
         self.coordinator = coordinator
         self.logger = logger
         self.now = now
+        self.onRequestReceived = onRequestReceived
     }
 
     /// Subscribes on every relay of every approved connection.
@@ -39,6 +44,13 @@ public actor NIP46RelayListener {
             await self?.handle(event)
         }
         await resubscribe()
+    }
+
+    /// iOS may suspend and close relay WebSockets while Safari is in front. Start
+    /// from fresh sockets when the app becomes active, then replay recent requests.
+    public func resumeAfterSuspension() async {
+        await pool.stop()
+        await start()
     }
 
     public func resubscribe() async {
@@ -93,6 +105,7 @@ public actor NIP46RelayListener {
             metadata: ["method": decoded.request.method.rawValue, "app": event.pubkey]
         )
         await coordinator.routeIncomingRequest(decoded.request)
+        await onRequestReceived()
     }
 
     func decode(event: NostrEvent, for connection: AppConnection) async -> DecodedRequest? {
@@ -138,11 +151,10 @@ public actor NIP46RelayListener {
         guard rawParams.count <= 32 else { return nil }
         let params = rawParams.map { value -> String in
             if let text = value as? String { return text }
-            if let nested = try? JSONSerialization.data(withJSONObject: value, options: [.fragmentsAllowed]) {
-                return String(decoding: nested, as: UTF8.self)
-            }
-            return ""
-        } ?? []
+            // Values came from JSONSerialization, so serializing the fragment cannot fail.
+            let nested = try! JSONSerialization.data(withJSONObject: value, options: [.fragmentsAllowed])
+            return String(decoding: nested, as: UTF8.self)
+        }
 
         return NIP46Request(
             id: id,

@@ -92,7 +92,7 @@ public struct ConnectedAppsView: View {
             }
             ForEach(viewModel.apps) { app in
                 NavigationLink {
-                    ConnectedAppDetailView(app: app) {
+                    ConnectedAppDetailView(app: app) { // coverage:ignore SwiftUI evaluates this lazy destination on navigation.
                         await viewModel.revoke(app)
                     }
                 } label: {
@@ -146,6 +146,7 @@ struct ConnectedAppRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 7) {
             HStack {
+                AppIconView(appName: app.appName, appURL: app.appURL, size: 28)
                 Text(app.appName)
                     .font(.headline)
                 Spacer()
@@ -165,6 +166,12 @@ struct ConnectedAppRow: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(2)
 
+            if let signingKeyLabel {
+                Label(signingKeyLabel, systemImage: "key")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             if let createdAt = app.createdAt {
                 Label {
                     Text("Connected \(createdAt.formatted(date: .abbreviated, time: .omitted))")
@@ -178,7 +185,11 @@ struct ConnectedAppRow: View {
         .padding(.vertical, 4)
     }
 
-    private var permissionSummary: String {
+    var signingKeyLabel: String? {
+        app.identityName.map { "Signing key: \($0)" }
+    }
+
+    var permissionSummary: String {
         let requested = app.requestedPermissions
         if !requested.isEmpty {
             return requested.map(permissionDisplayName).joined(separator: ", ")
@@ -188,7 +199,7 @@ struct ConnectedAppRow: View {
             : app.methods.map(permissionDisplayName).joined(separator: ", ")
     }
 
-    private func activityLabel(for date: Date) -> String {
+    func activityLabel(for date: Date) -> String {
         let calendar = Calendar.current
         let time = date.formatted(date: .omitted, time: .shortened)
         if calendar.isDateInToday(date) {
@@ -205,16 +216,19 @@ struct ConnectedAppDetailView: View {
     @Environment(\.dismiss) private var dismiss
     let app: ConnectedAppItem
     let disconnect: () async -> Void
-    @State private var confirmingDisconnect = false
+    @State private var confirmingDisconnect = false // coverage:ignore SwiftUI synthesizes and owns this storage.
 
     var body: some View {
         List {
             Section {
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(app.appName)
-                        .font(.title2.bold())
-                    if let appURL = app.appURL, let url = URL(string: appURL) {
-                        Link(appURL, destination: url)
+                HStack(alignment: .top, spacing: 12) {
+                    AppIconView(appName: app.appName, appURL: app.appURL, size: 44)
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text(app.appName)
+                            .font(.title2.bold())
+                        if let appURL = app.appURL, let url = URL(string: appURL) {
+                            Link(appURL, destination: url)
+                        }
                     }
                 }
                 .padding(.vertical, 4)
@@ -274,9 +288,7 @@ struct ConnectedAppDetailView: View {
             }
 
             Section {
-                Button("Disconnect App", role: .destructive) {
-                    confirmingDisconnect = true
-                }
+                Button("Disconnect App", role: .destructive, action: requestDisconnect)
             }
         }
         .navigationTitle("Connection")
@@ -285,15 +297,21 @@ struct ConnectedAppDetailView: View {
             isPresented: $confirmingDisconnect,
             titleVisibility: .visible
         ) {
-            Button("Disconnect", role: .destructive) {
-                Task {
-                    await disconnect()
-                    dismiss()
-                }
-            }
+            Button("Disconnect", role: .destructive, action: confirmDisconnect)
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Signeur will stop listening for this app and forget its remembered approvals.")
+        }
+    }
+
+    func requestDisconnect() {
+        confirmingDisconnect = true
+    }
+
+    func confirmDisconnect() {
+        Task {
+            await disconnect()
+            dismiss()
         }
     }
 }

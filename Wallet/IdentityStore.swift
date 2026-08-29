@@ -53,6 +53,10 @@ public actor IdentityStore {
             let encoded = try? JSONEncoder().encode(seed)
             defaults.set(encoded, forKey: identitiesKey)
         }
+        let activeID = defaults.string(forKey: activeIdentityKey)
+        if !identities.isEmpty, !identities.contains(where: { $0.id == activeID }) {
+            defaults.set(identities[0].id, forKey: activeIdentityKey)
+        }
     }
 
     public func list() -> [Identity] {

@@ -2,6 +2,13 @@ import Foundation
 import XCTest
 
 final class AppConfigurationRegressionTests: XCTestCase {
+    func testMacAppUsesASingleWindowScene() throws {
+        let source = try String(contentsOf: repositoryFile("MacOSApp/SigneurMacApp.swift"))
+
+        XCTAssertTrue(source.contains("Window(\"Signeur\", id: \"main\")"))
+        XCTAssertFalse(source.contains("WindowGroup"))
+    }
+
     func testMacTargetCarriesItsKeychainEntitlements() throws {
         let entitlementsData = try Data(contentsOf: repositoryFile("MacOSApp/SigneurMac.entitlements"))
         let entitlements = try XCTUnwrap(
@@ -67,12 +74,41 @@ final class AppConfigurationRegressionTests: XCTestCase {
         XCTAssertTrue(source.contains("await AppBootstrap.lockKeySession()"))
     }
 
+    func testIOSRefreshesRelaySubscriptionsAfterReturningToTheForeground() throws {
+        let root = try String(contentsOf: repositoryFile("iOSApp/RootView.swift"))
+        let bootstrap = try String(contentsOf: repositoryFile("iOSApp/AppBootstrap.swift"))
+
+        XCTAssertTrue(root.contains("UIApplication.didBecomeActiveNotification"))
+        XCTAssertTrue(root.contains("await AppBootstrap.resumeListening()"))
+        XCTAssertTrue(bootstrap.contains("await relayListener.resumeAfterSuspension()"))
+    }
+
     func testBothHelpScreensLinkToThePublishedGuide() throws {
         for path in ["MacOSApp/MacRootView.swift", "iOSApp/RootView.swift"] {
             let source = try String(contentsOf: repositoryFile(path))
 
             XCTAssertTrue(source.contains("Open the Signeur guide and NIP-46 tester"), path)
             XCTAssertTrue(source.contains("https://guaka.github.io/signeur/"), path)
+        }
+    }
+
+    func testBothAppsExposeActivityUsingTheSharedAuditStore() throws {
+        let platformFiles = [
+            ("iOSApp/RootView.swift", "AppBootstrap.makeActivityViewModel()"),
+            ("MacOSApp/MacRootView.swift", "MacAppBootstrap.makeActivityViewModel()")
+        ]
+        for (path, factory) in platformFiles {
+            let source = try String(contentsOf: repositoryFile(path))
+            XCTAssertTrue(source.contains("case activity"), path)
+            XCTAssertTrue(source.contains(factory), path)
+            XCTAssertTrue(source.contains("ActivityView(viewModel: activityVM)"), path)
+        }
+
+        for path in ["iOSApp/AppBootstrap.swift", "MacOSApp/MacAppBootstrap.swift"] {
+            let source = try String(contentsOf: repositoryFile(path))
+            XCTAssertTrue(source.contains("static let auditLog = AuditLogStore()"), path)
+            XCTAssertTrue(source.contains("auditLog: auditLog"), path)
+            XCTAssertTrue(source.contains("ActivityViewModel(provider: auditLog)"), path)
         }
     }
 

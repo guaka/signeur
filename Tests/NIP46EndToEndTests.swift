@@ -12,6 +12,7 @@ final class NIP46EndToEndTests: XCTestCase {
         let manager: NIP46SessionManager
         let coordinator: RequestRoutingCoordinator
         let listener: NIP46RelayListener
+        let identities: IdentityStore
         let connections: ConnectionStore
         let activator: ConnectionActivator
         let pool: NostrRelayPool
@@ -20,7 +21,16 @@ final class NIP46EndToEndTests: XCTestCase {
         let signerPubkey: String
     }
 
-    private func makeHarness() async throws -> Harness {
+    private actor RequestReceipt {
+        private var count = 0
+
+        func record() { count += 1 }
+        func recordedCount() -> Int { count }
+    }
+
+    private func makeHarness(
+        onRequestReceived: @escaping @Sendable () async -> Void = {}
+    ) async throws -> Harness {
         let appPubkey = try NostrKeyDeriver.derivePublicKeyHex(fromNsec: appNsec)
         let sockets = SocketRegistry()
         let pool = NostrRelayPool(socketFactory: { url in sockets.socket(for: url) })
@@ -56,13 +66,15 @@ final class NIP46EndToEndTests: XCTestCase {
             identities: identities,
             coordinator: coordinator,
             logger: RedactedLogger(emit: { _ in }),
-            now: { Date(timeIntervalSince1970: 1_700_000_000) }
+            now: { Date(timeIntervalSince1970: 1_700_000_000) },
+            onRequestReceived: onRequestReceived
         )
 
         return Harness(
             manager: manager,
             coordinator: coordinator,
             listener: listener,
+            identities: identities,
             connections: connections,
             activator: activator,
             pool: pool,
@@ -89,6 +101,30 @@ final class NIP46EndToEndTests: XCTestCase {
         let reply = try XCTUnwrap(replyBody)
         XCTAssertEqual(reply["result"] as? String, "s3cret", "the app checks this against the secret in its code")
         XCTAssertEqual(reply["id"] as? String, session.request.id)
+        await harness.pool.stop()
+    }
+
+    @MainActor
+    func testPairingThroughTheApprovalScreenUsesTheActiveIdentityForItsReply() async throws {
+        let harness = try await makeHarness()
+        _ = try await harness.coordinator.routeScannedPayload(pairingLink(for: harness.appPubkey))
+        let viewModel = SessionViewModel(
+            sessionManager: harness.manager,
+            identityStore: harness.identities,
+            connectionRegistry: harness.activator
+        )
+
+        await viewModel.refresh()
+        XCTAssertEqual(viewModel.selectedIdentityID, "id-1")
+        let approved = await viewModel.approve()
+        XCTAssertTrue(approved)
+
+        let connection = await harness.connections.connection(forAppPubkey: harness.appPubkey)
+        XCTAssertEqual(connection?.identityID, "id-1")
+        XCTAssertEqual(connection?.isApproved, true)
+        let replyBody = try await lastReply(from: harness)
+        let reply = try XCTUnwrap(replyBody)
+        XCTAssertEqual(reply["result"] as? String, "s3cret")
         await harness.pool.stop()
     }
 
@@ -176,7 +212,8 @@ final class NIP46EndToEndTests: XCTestCase {
     }
 
     func testGetPublicKeyOverTheRelayReturnsTheIdentityKey() async throws {
-        let harness = try await makeHarness()
+        let receipt = RequestReceipt()
+        let harness = try await makeHarness(onRequestReceived: { await receipt.record() })
         try await connect(harness)
 
         let event = try makeNIP46Event(
@@ -192,6 +229,8 @@ final class NIP46EndToEndTests: XCTestCase {
         let replyBody = try await lastReply(from: harness)
         let reply = try XCTUnwrap(replyBody)
         XCTAssertEqual(reply["result"] as? String, harness.signerPubkey)
+        let receivedCount = await receipt.recordedCount()
+        XCTAssertEqual(receivedCount, 1, "the app shell must be told to show each relay request")
         await harness.pool.stop()
     }
 

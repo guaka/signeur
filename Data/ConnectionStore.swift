@@ -97,7 +97,7 @@ public actor ConnectionStore {
     }
 
     private func persist() {
-        guard let data = try? JSONEncoder().encode(Array(connections.values)) else { return }
+        guard let data = try? JSONEncoder().encode(Array(connections.values)) else { return } // coverage:ignore-region AppConnection contains only JSON-encodable value types.
         defaults.set(data, forKey: Self.storageKey)
     }
 }

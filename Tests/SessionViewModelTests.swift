@@ -5,8 +5,9 @@ import XCTest
 final class SessionViewModelTests: XCTestCase {
     private func makeViewModel(
         executor: RecordingExecutor = RecordingExecutor(),
-        transport: RecordingTransport = RecordingTransport(),
+        transport: any NIP46RespondingTransport = RecordingTransport(),
         permissionEvaluator: PermissionRuleEvaluating? = nil,
+        auditLog: AuditLogProviding? = nil,
         identities: [Identity] = [Identity(id: "id-1", displayName: "Main", npub: TestVectors.npub)],
         activeIdentityID: String? = "id-1",
         connectionRegistry: ConnectionRegistering? = nil
@@ -20,7 +21,8 @@ final class SessionViewModelTests: XCTestCase {
             executor: executor,
             transport: transport,
             authorizationGuard: AuthorizationGuard(),
-            permissionEvaluator: permissionEvaluator
+            permissionEvaluator: permissionEvaluator,
+            auditLog: auditLog
         )
         return (
             SessionViewModel(
@@ -37,6 +39,15 @@ final class SessionViewModelTests: XCTestCase {
         await viewModel.refresh()
 
         XCTAssertNil(viewModel.currentSession)
+        XCTAssertEqual(viewModel.sessionState, .idle)
+    }
+
+    func testIdleApprovalAndRejectionAreNoOps() async {
+        let (viewModel, _) = await makeViewModel()
+
+        let approved = await viewModel.approve()
+        XCTAssertFalse(approved)
+        await viewModel.reject()
         XCTAssertEqual(viewModel.sessionState, .idle)
     }
 
@@ -138,7 +149,12 @@ final class SessionViewModelTests: XCTestCase {
         let permissions = PermissionRuleStore(defaults: makeEphemeralDefaults())
         await permissions.saveRememberRule(for: makeTestRequest(id: "seed", payload: "{\"kind\":1}"))
         let executor = RecordingExecutor()
-        let (viewModel, manager) = await makeViewModel(executor: executor, permissionEvaluator: permissions)
+        let auditLog = SessionAuditLog()
+        let (viewModel, manager) = await makeViewModel(
+            executor: executor,
+            permissionEvaluator: permissions,
+            auditLog: auditLog
+        )
         _ = await manager.onRequestArrived(makeTestRequest(id: "a", payload: "{\"kind\":1}"))
 
         await viewModel.refresh()
@@ -147,6 +163,8 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(signCount, 1)
         XCTAssertNil(viewModel.currentSession, "a remembered request should not stop on the approval screen")
         XCTAssertEqual(viewModel.sessionState, .idle)
+        let entries = await auditLog.entries()
+        XCTAssertEqual(entries.first?.approvalMode, .remembered)
     }
 
     func testUnrememberedRequestStillWaitsForTheUser() async {
@@ -204,7 +222,46 @@ final class SessionViewModelTests: XCTestCase {
         XCTAssertEqual(signCount, 1)
         XCTAssertEqual(activated, [TestVectors.pubkeyHex])
         XCTAssertTrue(forgotten.isEmpty)
-        XCTAssertEqual(registered.count, 0)
+        XCTAssertEqual(registered, [TestVectors.pubkeyHex])
+    }
+
+    func testApproveConnectionStartsListeningBeforePublishingConnectResponse() async {
+        let trace = ConnectionApprovalTrace()
+        let registry = SpyConnectionRegistry(trace: trace)
+        let transport = TracingTransport(trace: trace)
+        let (viewModel, manager) = await makeViewModel(
+            transport: transport,
+            connectionRegistry: registry
+        )
+        _ = await manager.onRequestArrived(
+            makeTestRequest(id: "connect", method: .connect, params: ["pairing-secret"])
+        )
+        await viewModel.refresh()
+
+        _ = await viewModel.approve()
+
+        let events = await trace.recordedEvents()
+        XCTAssertEqual(events, ["activate", "response"])
+    }
+
+    func testFailedConnectResponseRollsBackActivatedConnection() async {
+        let registry = SpyConnectionRegistry()
+        let (viewModel, manager) = await makeViewModel(
+            transport: RecordingTransport(shouldThrow: true),
+            connectionRegistry: registry
+        )
+        _ = await manager.onRequestArrived(
+            makeTestRequest(id: "connect", method: .connect, params: ["pairing-secret"])
+        )
+        await viewModel.refresh()
+
+        let approved = await viewModel.approve()
+
+        XCTAssertFalse(approved)
+        let activated = await registry.activatedApps()
+        let forgotten = await registry.forgottenApps()
+        XCTAssertEqual(activated, [TestVectors.pubkeyHex])
+        XCTAssertEqual(forgotten, [TestVectors.pubkeyHex])
     }
 
     func testRejectingAConnectionForgetsTheApp() async {
@@ -251,10 +308,42 @@ final class SessionViewModelTests: XCTestCase {
     }
 }
 
+private actor SessionAuditLog: AuditLogProviding {
+    private var recordedEntries: [AuditEntry] = []
+
+    func append(_ entry: AuditEntry) async throws {
+        recordedEntries.append(entry)
+    }
+
+    func list() async throws -> [AuditEntry] { recordedEntries }
+    func clear() async { recordedEntries = [] }
+    func entries() -> [AuditEntry] { recordedEntries }
+}
+
+private actor ConnectionApprovalTrace {
+    private var events: [String] = []
+
+    func record(_ event: String) { events.append(event) }
+    func recordedEvents() -> [String] { events }
+}
+
+private struct TracingTransport: NIP46RespondingTransport {
+    let trace: ConnectionApprovalTrace
+
+    func sendResponse(_ response: NIP46Response, to appPubkey: String) async throws {
+        await trace.record("response")
+    }
+}
+
 private actor SpyConnectionRegistry: ConnectionRegistering {
     private(set) var activatedApps: [String] = []
     private(set) var forgottenApps: [String] = []
     private(set) var registeredApps: [String] = []
+    private let trace: ConnectionApprovalTrace?
+
+    init(trace: ConnectionApprovalTrace? = nil) {
+        self.trace = trace
+    }
 
     func register(pairing: DeepLinkRequest, identityID: String) async {
         registeredApps.append(pairing.clientPubkey)
@@ -262,6 +351,7 @@ private actor SpyConnectionRegistry: ConnectionRegistering {
 
     func activate(appPubkey: String) async {
         activatedApps.append(appPubkey)
+        await trace?.record("activate")
     }
 
     func forget(appPubkey: String) async {
