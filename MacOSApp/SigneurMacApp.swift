@@ -1,9 +1,9 @@
 import SwiftUI
 
 @main
-struct SignstrMacApp: App {
+struct SigneurMacApp: App {
     var body: some Scene {
-        Window("Signstr", id: "main") {
+        Window("Signeur", id: "main") {
             MacRootView()
                 .frame(minWidth: 760, minHeight: 520)
         }

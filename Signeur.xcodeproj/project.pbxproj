@@ -10,18 +10,18 @@
 		04FA57BE678B54610DDCBCAC /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E05D20CC3A0DBF3029A7BA7C /* MacRootView.swift */; };
 		2FC25B35CB9CA1766C9FF9B6 /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2493B00260209BF73ABED587 /* AppBootstrap.swift */; };
 		448658403D4B5EA61FA112E3 /* MacKeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7ADB4705B701F0C95838A4D /* MacKeysView.swift */; };
-		4D92BB2AD278101EF986E578 /* SignstrMacNIP46E2ETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1525ABE184BE7DF1BA760382 /* SignstrMacNIP46E2ETests.swift */; };
-		5D6A28AE8B2139E4E20973E3 /* SignstrMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12ADB6E24381450D32A33FC5 /* SignstrMacApp.swift */; };
+		4D92BB2AD278101EF986E578 /* SigneurMacNIP46E2ETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1525ABE184BE7DF1BA760382 /* SigneurMacNIP46E2ETests.swift */; };
+		5D6A28AE8B2139E4E20973E3 /* SigneurMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12ADB6E24381450D32A33FC5 /* SigneurMacApp.swift */; };
 		693224F8539BD50AAB880C6C /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5828E017BF2141ADAC636001 /* QRScannerView.swift */; };
-		75526CF33D96A82C9A436864 /* SignstrApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EC48704DAA538A7A126386 /* SignstrApp.swift */; };
+		75526CF33D96A82C9A436864 /* SigneurApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EC48704DAA538A7A126386 /* SigneurApp.swift */; };
 		7643A9F4FBAAAAD519694943 /* KeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2979112A34823CCD9AC6E712 /* KeysView.swift */; };
 		830BEEB7C49D5AAACE6E7A42 /* ScanPairingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */; };
 		85ED7C7890DF9D8F3D85ACA7 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = E96D3D56275F269957427230 /* Assets.xcassets */; };
-		AAC546BFAF73EA492B069F79 /* SignstrCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SignstrCore */; };
-		BC07207B6A6F288EA49473E8 /* SignstrNIP46E2ETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10FC75909BDBFB0750F9902 /* SignstrNIP46E2ETests.swift */; };
+		AAC546BFAF73EA492B069F79 /* SigneurCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SigneurCore */; };
+		BC07207B6A6F288EA49473E8 /* SigneurNIP46E2ETests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F10FC75909BDBFB0750F9902 /* SigneurNIP46E2ETests.swift */; };
 		BCF9B4EB299BA335EDFC6BDE /* MacAppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 63B23AD4881055928B62159E /* MacAppBootstrap.swift */; };
 		CDB30EA3E1803BB82CE07D63 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E35BDB324C62DA47954D66 /* RootView.swift */; };
-		EEC6778CF65151E02257B14D /* SignstrCore in Frameworks */ = {isa = PBXBuildFile; productRef = C133BE19088830FC90034720 /* SignstrCore */; };
+		EEC6778CF65151E02257B14D /* SigneurCore in Frameworks */ = {isa = PBXBuildFile; productRef = C133BE19088830FC90034720 /* SigneurCore */; };
 		FE058444748D4F3D14BA3F09 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D6E5FCCD24114D1BBFE33E27 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -31,40 +31,40 @@
 			containerPortal = 1DBE78AD74E32221A74B783B /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 4DD01A09D99C1BBB31282CA9;
-			remoteInfo = SignstrMac;
+			remoteInfo = SigneurMac;
 		};
 		B89B2DB5AFF9E287F27E0032 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1DBE78AD74E32221A74B783B /* Project object */;
 			proxyType = 1;
 			remoteGlobalIDString = 7FEF835F801865554B1CB876;
-			remoteInfo = Signstr;
+			remoteInfo = Signeur;
 		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		0E6CC16CE2DCCE4D5AF61056 /* SignstrMacE2ETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SignstrMacE2ETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		12ADB6E24381450D32A33FC5 /* SignstrMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrMacApp.swift; sourceTree = "<group>"; };
-		1525ABE184BE7DF1BA760382 /* SignstrMacNIP46E2ETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrMacNIP46E2ETests.swift; sourceTree = "<group>"; };
+		0E6CC16CE2DCCE4D5AF61056 /* SigneurMacE2ETests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = SigneurMacE2ETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		12ADB6E24381450D32A33FC5 /* SigneurMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigneurMacApp.swift; sourceTree = "<group>"; };
+		1525ABE184BE7DF1BA760382 /* SigneurMacNIP46E2ETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigneurMacNIP46E2ETests.swift; sourceTree = "<group>"; };
 		2493B00260209BF73ABED587 /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
 		2979112A34823CCD9AC6E712 /* KeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeysView.swift; sourceTree = "<group>"; };
-		35CBAF6BFF8A6E72F4BF6679 /* SignstrMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SignstrMac.entitlements; sourceTree = "<group>"; };
+		35CBAF6BFF8A6E72F4BF6679 /* SigneurMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SigneurMac.entitlements; sourceTree = "<group>"; };
 		44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPairingSheet.swift; sourceTree = "<group>"; };
-		454B407AFBBED585459D15E5 /* Signstr.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Signstr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		454B407AFBBED585459D15E5 /* Signeur.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Signeur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		5828E017BF2141ADAC636001 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 		63B23AD4881055928B62159E /* MacAppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAppBootstrap.swift; sourceTree = "<group>"; };
-		71169EB591042A135201B437 /* signstr-nip46-e2e */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "signstr-nip46-e2e"; path = .; sourceTree = SOURCE_ROOT; };
-		83B0F888F9F18E14EEE451F2 /* SignstrE2ETests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SignstrE2ETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		71169EB591042A135201B437 /* signeur-nip46-e2e */ = {isa = PBXFileReference; lastKnownFileType = folder; name = "signeur-nip46-e2e"; path = .; sourceTree = SOURCE_ROOT; };
+		83B0F888F9F18E14EEE451F2 /* SigneurE2ETests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = SigneurE2ETests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		87E35BDB324C62DA47954D66 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
-		9B2F6498688B8267A85F62DF /* SignstrMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SignstrMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B2F6498688B8267A85F62DF /* SigneurMac.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = SigneurMac.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A8E188E9389781728AE09DB1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		AF6F95DF1B5E0A00D11B2045 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		C7ADB4705B701F0C95838A4D /* MacKeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacKeysView.swift; sourceTree = "<group>"; };
 		D6E5FCCD24114D1BBFE33E27 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		E05D20CC3A0DBF3029A7BA7C /* MacRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacRootView.swift; sourceTree = "<group>"; };
 		E96D3D56275F269957427230 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		F10FC75909BDBFB0750F9902 /* SignstrNIP46E2ETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrNIP46E2ETests.swift; sourceTree = "<group>"; };
-		F5EC48704DAA538A7A126386 /* SignstrApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrApp.swift; sourceTree = "<group>"; };
+		F10FC75909BDBFB0750F9902 /* SigneurNIP46E2ETests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigneurNIP46E2ETests.swift; sourceTree = "<group>"; };
+		F5EC48704DAA538A7A126386 /* SigneurApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigneurApp.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -72,7 +72,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAC546BFAF73EA492B069F79 /* SignstrCore in Frameworks */,
+				AAC546BFAF73EA492B069F79 /* SigneurCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,7 +80,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				EEC6778CF65151E02257B14D /* SignstrCore in Frameworks */,
+				EEC6778CF65151E02257B14D /* SigneurCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -97,7 +97,7 @@
 				5828E017BF2141ADAC636001 /* QRScannerView.swift */,
 				87E35BDB324C62DA47954D66 /* RootView.swift */,
 				44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */,
-				F5EC48704DAA538A7A126386 /* SignstrApp.swift */,
+				F5EC48704DAA538A7A126386 /* SigneurApp.swift */,
 			);
 			path = iOSApp;
 			sourceTree = "<group>";
@@ -117,7 +117,7 @@
 		3A58DC622B45B979BD4703B9 /* macOS */ = {
 			isa = PBXGroup;
 			children = (
-				1525ABE184BE7DF1BA760382 /* SignstrMacNIP46E2ETests.swift */,
+				1525ABE184BE7DF1BA760382 /* SigneurMacNIP46E2ETests.swift */,
 			);
 			name = macOS;
 			path = E2ETests/macOS;
@@ -126,7 +126,7 @@
 		984EE607D9FCB29A7C37ECF7 /* iOS */ = {
 			isa = PBXGroup;
 			children = (
-				F10FC75909BDBFB0750F9902 /* SignstrNIP46E2ETests.swift */,
+				F10FC75909BDBFB0750F9902 /* SigneurNIP46E2ETests.swift */,
 			);
 			name = iOS;
 			path = E2ETests/iOS;
@@ -140,8 +140,8 @@
 				63B23AD4881055928B62159E /* MacAppBootstrap.swift */,
 				C7ADB4705B701F0C95838A4D /* MacKeysView.swift */,
 				E05D20CC3A0DBF3029A7BA7C /* MacRootView.swift */,
-				35CBAF6BFF8A6E72F4BF6679 /* SignstrMac.entitlements */,
-				12ADB6E24381450D32A33FC5 /* SignstrMacApp.swift */,
+				35CBAF6BFF8A6E72F4BF6679 /* SigneurMac.entitlements */,
+				12ADB6E24381450D32A33FC5 /* SigneurMacApp.swift */,
 			);
 			path = MacOSApp;
 			sourceTree = "<group>";
@@ -149,10 +149,10 @@
 		CA31E179C1F5B8BEE2F8878A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				454B407AFBBED585459D15E5 /* Signstr.app */,
-				83B0F888F9F18E14EEE451F2 /* SignstrE2ETests.xctest */,
-				9B2F6498688B8267A85F62DF /* SignstrMac.app */,
-				0E6CC16CE2DCCE4D5AF61056 /* SignstrMacE2ETests.xctest */,
+				454B407AFBBED585459D15E5 /* Signeur.app */,
+				83B0F888F9F18E14EEE451F2 /* SigneurE2ETests.xctest */,
+				9B2F6498688B8267A85F62DF /* SigneurMac.app */,
+				0E6CC16CE2DCCE4D5AF61056 /* SigneurMacE2ETests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -160,7 +160,7 @@
 		F7490F3E7937D1E861469E1A /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				71169EB591042A135201B437 /* signstr-nip46-e2e */,
+				71169EB591042A135201B437 /* signeur-nip46-e2e */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -168,9 +168,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		4DD01A09D99C1BBB31282CA9 /* SignstrMac */ = {
+		4DD01A09D99C1BBB31282CA9 /* SigneurMac */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = E73001A474A8BC3ED8FF1DAB /* Build configuration list for PBXNativeTarget "SignstrMac" */;
+			buildConfigurationList = E73001A474A8BC3ED8FF1DAB /* Build configuration list for PBXNativeTarget "SigneurMac" */;
 			buildPhases = (
 				88A9E3344426C4DF090B570C /* Sources */,
 				4D17CB95DCFABF6DBC3F8149 /* Resources */,
@@ -180,17 +180,17 @@
 			);
 			dependencies = (
 			);
-			name = SignstrMac;
+			name = SigneurMac;
 			packageProductDependencies = (
-				C133BE19088830FC90034720 /* SignstrCore */,
+				C133BE19088830FC90034720 /* SigneurCore */,
 			);
-			productName = SignstrMac;
-			productReference = 9B2F6498688B8267A85F62DF /* SignstrMac.app */;
+			productName = SigneurMac;
+			productReference = 9B2F6498688B8267A85F62DF /* SigneurMac.app */;
 			productType = "com.apple.product-type.application";
 		};
-		7FEF835F801865554B1CB876 /* Signstr */ = {
+		7FEF835F801865554B1CB876 /* Signeur */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signstr" */;
+			buildConfigurationList = 2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signeur" */;
 			buildPhases = (
 				1D123076BD61D92936CD0C14 /* Sources */,
 				64F1EE3EFA2EE7BFAD82675D /* Resources */,
@@ -200,17 +200,17 @@
 			);
 			dependencies = (
 			);
-			name = Signstr;
+			name = Signeur;
 			packageProductDependencies = (
-				54DD18EB4CAA374E35D8FBFF /* SignstrCore */,
+				54DD18EB4CAA374E35D8FBFF /* SigneurCore */,
 			);
-			productName = Signstr;
-			productReference = 454B407AFBBED585459D15E5 /* Signstr.app */;
+			productName = Signeur;
+			productReference = 454B407AFBBED585459D15E5 /* Signeur.app */;
 			productType = "com.apple.product-type.application";
 		};
-		9F9A8C94196443CBE0100E2D /* SignstrE2ETests */ = {
+		9F9A8C94196443CBE0100E2D /* SigneurE2ETests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 19C2FBA9CA04D37840ED50B8 /* Build configuration list for PBXNativeTarget "SignstrE2ETests" */;
+			buildConfigurationList = 19C2FBA9CA04D37840ED50B8 /* Build configuration list for PBXNativeTarget "SigneurE2ETests" */;
 			buildPhases = (
 				CE94DDA0052CFEE177CFB53D /* Sources */,
 			);
@@ -219,16 +219,16 @@
 			dependencies = (
 				C92A4E710CB7FE6391804043 /* PBXTargetDependency */,
 			);
-			name = SignstrE2ETests;
+			name = SigneurE2ETests;
 			packageProductDependencies = (
 			);
-			productName = SignstrE2ETests;
-			productReference = 83B0F888F9F18E14EEE451F2 /* SignstrE2ETests.xctest */;
+			productName = SigneurE2ETests;
+			productReference = 83B0F888F9F18E14EEE451F2 /* SigneurE2ETests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		DF5D04D48D0BAD894339CA0E /* SignstrMacE2ETests */ = {
+		DF5D04D48D0BAD894339CA0E /* SigneurMacE2ETests */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 55F81A8629162FC92DA2E601 /* Build configuration list for PBXNativeTarget "SignstrMacE2ETests" */;
+			buildConfigurationList = 55F81A8629162FC92DA2E601 /* Build configuration list for PBXNativeTarget "SigneurMacE2ETests" */;
 			buildPhases = (
 				53D866A3485F7159B85B8E76 /* Sources */,
 			);
@@ -237,11 +237,11 @@
 			dependencies = (
 				6A58688FAABB6D11A1F8611E /* PBXTargetDependency */,
 			);
-			name = SignstrMacE2ETests;
+			name = SigneurMacE2ETests;
 			packageProductDependencies = (
 			);
-			productName = SignstrMacE2ETests;
-			productReference = 0E6CC16CE2DCCE4D5AF61056 /* SignstrMacE2ETests.xctest */;
+			productName = SigneurMacE2ETests;
+			productReference = 0E6CC16CE2DCCE4D5AF61056 /* SigneurMacE2ETests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
 /* End PBXNativeTarget section */
@@ -267,7 +267,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signstr" */;
+			buildConfigurationList = 6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signeur" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -284,10 +284,10 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				7FEF835F801865554B1CB876 /* Signstr */,
-				4DD01A09D99C1BBB31282CA9 /* SignstrMac */,
-				9F9A8C94196443CBE0100E2D /* SignstrE2ETests */,
-				DF5D04D48D0BAD894339CA0E /* SignstrMacE2ETests */,
+				7FEF835F801865554B1CB876 /* Signeur */,
+				4DD01A09D99C1BBB31282CA9 /* SigneurMac */,
+				9F9A8C94196443CBE0100E2D /* SigneurE2ETests */,
+				DF5D04D48D0BAD894339CA0E /* SigneurMacE2ETests */,
 			);
 		};
 /* End PBXProject section */
@@ -321,7 +321,7 @@
 				693224F8539BD50AAB880C6C /* QRScannerView.swift in Sources */,
 				CDB30EA3E1803BB82CE07D63 /* RootView.swift in Sources */,
 				830BEEB7C49D5AAACE6E7A42 /* ScanPairingSheet.swift in Sources */,
-				75526CF33D96A82C9A436864 /* SignstrApp.swift in Sources */,
+				75526CF33D96A82C9A436864 /* SigneurApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -329,7 +329,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4D92BB2AD278101EF986E578 /* SignstrMacNIP46E2ETests.swift in Sources */,
+				4D92BB2AD278101EF986E578 /* SigneurMacNIP46E2ETests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -340,7 +340,7 @@
 				BCF9B4EB299BA335EDFC6BDE /* MacAppBootstrap.swift in Sources */,
 				448658403D4B5EA61FA112E3 /* MacKeysView.swift in Sources */,
 				04FA57BE678B54610DDCBCAC /* MacRootView.swift in Sources */,
-				5D6A28AE8B2139E4E20973E3 /* SignstrMacApp.swift in Sources */,
+				5D6A28AE8B2139E4E20973E3 /* SigneurMacApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -348,7 +348,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BC07207B6A6F288EA49473E8 /* SignstrNIP46E2ETests.swift in Sources */,
+				BC07207B6A6F288EA49473E8 /* SigneurNIP46E2ETests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -357,12 +357,12 @@
 /* Begin PBXTargetDependency section */
 		6A58688FAABB6D11A1F8611E /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 4DD01A09D99C1BBB31282CA9 /* SignstrMac */;
+			target = 4DD01A09D99C1BBB31282CA9 /* SigneurMac */;
 			targetProxy = 00B55F35E69E07F77A7FCE00 /* PBXContainerItemProxy */;
 		};
 		C92A4E710CB7FE6391804043 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			target = 7FEF835F801865554B1CB876 /* Signstr */;
+			target = 7FEF835F801865554B1CB876 /* Signeur */;
 			targetProxy = B89B2DB5AFF9E287F27E0032 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
@@ -379,11 +379,11 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.e2e-tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signeur.e2e-tests";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.1;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Signstr;
+				TEST_TARGET_NAME = Signeur;
 			};
 			name = Release;
 		};
@@ -400,8 +400,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr;
-				PRODUCT_NAME = Signstr;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur;
+				PRODUCT_NAME = Signeur;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.1;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -539,10 +539,10 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.mac.e2e-tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signeur.mac.e2e-tests";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.1;
-				TEST_TARGET_NAME = SignstrMac;
+				TEST_TARGET_NAME = SigneurMac;
 			};
 			name = Debug;
 		};
@@ -550,7 +550,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;
+				CODE_SIGN_ENTITLEMENTS = MacOSApp/SigneurMac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				DEVELOPMENT_TEAM = SUJ594N47C;
@@ -560,8 +560,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;
-				PRODUCT_NAME = Signstr;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur.mac;
+				PRODUCT_NAME = Signeur;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.1;
 			};
@@ -578,11 +578,11 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.e2e-tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signeur.e2e-tests";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.1;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_TARGET_NAME = Signstr;
+				TEST_TARGET_NAME = Signeur;
 			};
 			name = Debug;
 		};
@@ -598,10 +598,10 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.mac.e2e-tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signeur.mac.e2e-tests";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.1;
-				TEST_TARGET_NAME = SignstrMac;
+				TEST_TARGET_NAME = SigneurMac;
 			};
 			name = Release;
 		};
@@ -617,8 +617,8 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr;
-				PRODUCT_NAME = Signstr;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur;
+				PRODUCT_NAME = Signeur;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.1;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -629,7 +629,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;
+				CODE_SIGN_ENTITLEMENTS = MacOSApp/SigneurMac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -639,8 +639,8 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;
-				PRODUCT_NAME = Signstr;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur.mac;
+				PRODUCT_NAME = Signeur;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.1;
 			};
@@ -649,7 +649,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		19C2FBA9CA04D37840ED50B8 /* Build configuration list for PBXNativeTarget "SignstrE2ETests" */ = {
+		19C2FBA9CA04D37840ED50B8 /* Build configuration list for PBXNativeTarget "SigneurE2ETests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5B2D51A02DF4FBA81608B279 /* Debug */,
@@ -658,7 +658,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signstr" */ = {
+		2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signeur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				21869B48D031C360B9B69107 /* Debug */,
@@ -667,7 +667,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		55F81A8629162FC92DA2E601 /* Build configuration list for PBXNativeTarget "SignstrMacE2ETests" */ = {
+		55F81A8629162FC92DA2E601 /* Build configuration list for PBXNativeTarget "SigneurMacE2ETests" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				4535BDED85D6367352A4E2B2 /* Debug */,
@@ -676,7 +676,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signstr" */ = {
+		6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signeur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2DAEFF806CD73F2B72471A2E /* Debug */,
@@ -685,7 +685,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		E73001A474A8BC3ED8FF1DAB /* Build configuration list for PBXNativeTarget "SignstrMac" */ = {
+		E73001A474A8BC3ED8FF1DAB /* Build configuration list for PBXNativeTarget "SigneurMac" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				5A966018E0CB334A45662F5D /* Debug */,
@@ -704,13 +704,13 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		54DD18EB4CAA374E35D8FBFF /* SignstrCore */ = {
+		54DD18EB4CAA374E35D8FBFF /* SigneurCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = SignstrCore;
+			productName = SigneurCore;
 		};
-		C133BE19088830FC90034720 /* SignstrCore */ = {
+		C133BE19088830FC90034720 /* SigneurCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = SignstrCore;
+			productName = SigneurCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

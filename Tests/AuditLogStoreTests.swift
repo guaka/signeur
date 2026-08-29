@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class AuditLogStoreTests: XCTestCase {
     private func entry(
@@ -84,7 +84,7 @@ final class AuditLogStoreTests: XCTestCase {
             method: "sign_event",
             outcome: "approved"
         )
-        defaults.set(try JSONEncoder().encode([legacy]), forKey: "signstr.audit.entries")
+        defaults.set(try JSONEncoder().encode([legacy]), forKey: "signeur.audit.entries")
 
         let entries = try await AuditLogStore(defaults: defaults).list()
 
@@ -102,7 +102,7 @@ final class AuditLogStoreTests: XCTestCase {
             method: "sign_event",
             outcome: "custom-old-value"
         )
-        defaults.set(try JSONEncoder().encode([legacy]), forKey: "signstr.audit.entries")
+        defaults.set(try JSONEncoder().encode([legacy]), forKey: "signeur.audit.entries")
 
         let entries = try await AuditLogStore(defaults: defaults).list()
 
@@ -129,7 +129,7 @@ final class AuditLogStoreTests: XCTestCase {
                 outcome: outcome
             )
         }
-        defaults.set(try JSONEncoder().encode(legacyEntries), forKey: "signstr.audit.entries")
+        defaults.set(try JSONEncoder().encode(legacyEntries), forKey: "signeur.audit.entries")
 
         let entries = try await AuditLogStore(defaults: defaults).list()
 

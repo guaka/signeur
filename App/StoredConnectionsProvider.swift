@@ -1,6 +1,6 @@
 import Foundation
 
-/// Lists the apps Signstr answers for, annotated with any permissions the user chose to remember.
+/// Lists the apps Signeur answers for, annotated with any permissions the user chose to remember.
 public struct StoredConnectionsProvider: ConnectedAppsProviding {
     private let connections: ConnectionStore
     private let permissions: ConnectedAppsProviding?

@@ -65,7 +65,7 @@ public actor RelayConnection {
         try await waitForAcknowledgement(of: event.id)
     }
 
-    /// iOS can close a WebSocket while Signstr is suspended behind Safari. Reopen it
+    /// iOS can close a WebSocket while Signeur is suspended behind Safari. Reopen it
     /// once and restore subscriptions before retrying the response publish.
     private func reconnect() async throws {
         let previousReader = readerTask

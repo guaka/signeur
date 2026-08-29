@@ -1,6 +1,6 @@
 import SwiftUI
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 @MainActor
 final class ConnectedAppsViewTests: XCTestCase {

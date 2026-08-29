@@ -14,7 +14,7 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertFalse(template.contains("<span></span> AGPL-3.0"))
         XCTAssertTrue(template.contains(">AGPL-3.0</a>"))
         XCTAssertTrue(template.contains("does not currently keep Nostr keys or signing inside the Secure Enclave"))
-        XCTAssertTrue(template.contains("https://github.com/guaka/signstr/issues/18"))
+        XCTAssertTrue(template.contains("https://github.com/guaka/signeur/issues/18"))
         XCTAssertTrue(styles.contains(".github-mark { width: 20px; height: 20px; fill: currentColor; }"))
     }
 
@@ -87,8 +87,8 @@ final class CoverageSiteTemplateTests: XCTestCase {
         XCTAssertTrue(template.contains("e2e_card(\"iOS\"; $e2eIOSStatus)"))
         XCTAssertTrue(template.contains("e2e_card(\"macOS\"; $e2eMacOSStatus)"))
         XCTAssertTrue(template.contains("Last checked"))
-        XCTAssertTrue(generator.contains("SIGNSTR_E2E_IOS_STATUS"))
-        XCTAssertTrue(generator.contains("SIGNSTR_E2E_MACOS_STATUS"))
+        XCTAssertTrue(generator.contains("SIGNEUR_E2E_IOS_STATUS"))
+        XCTAssertTrue(generator.contains("SIGNEUR_E2E_MACOS_STATUS"))
     }
 
     private func repositoryFile(_ relativePath: String) -> URL {

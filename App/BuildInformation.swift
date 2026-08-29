@@ -2,7 +2,7 @@ import Foundation
 
 public enum BuildInformation {
     public static func displayBuildTime(bundle: Bundle = .main) -> String {
-        let configuredValue = bundle.object(forInfoDictionaryKey: "SignstrBuildTime") as? String
+        let configuredValue = bundle.object(forInfoDictionaryKey: "SigneurBuildTime") as? String
         let executableDate = bundle.executableURL.flatMap {
             try? $0.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate
         }

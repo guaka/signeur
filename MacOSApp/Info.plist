@@ -18,24 +18,24 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>SignstrBuildTime</key>
-	<string>$(SIGNSTR_BUILD_TIME)</string>
+	<key>SigneurBuildTime</key>
+	<string>$(SIEGNUR_BUILD_TIME)</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Signstr uses biometrics to unlock your Nostr key for signing and decryption.</string>
+	<string>Signeur uses biometrics to unlock your Nostr key for signing and decryption.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>org.trustroots.signstr.mac.nostrconnect</string>
+			<string>org.trustroots.signeur.mac.nostrconnect</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>nostrconnect</string>
 				<string>nostrsigner</string>
-				<string>signstr</string>
+				<string>signeur</string>
 			</array>
 		</dict>
 	</array>

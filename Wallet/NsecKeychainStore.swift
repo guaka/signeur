@@ -24,7 +24,7 @@ public enum NsecStoreError: Error, Equatable, LocalizedError {
                 return "Keychain could not create protected storage. Please try again. (error -34010)"
             }
             if status == errSecMissingEntitlement {
-                return "This build of Signstr is missing Keychain permission. (error \(status))"
+                return "This build of Signeur is missing Keychain permission. (error \(status))"
             }
             let detail = SecCopyErrorMessageString(status, nil) as String? ?? "unknown error"
             return "Keychain error \(status): \(detail)"
@@ -67,7 +67,7 @@ struct DefaultNsecKeychainBackend: NsecKeychainBackend {
 
 public actor NsecKeychainStore: NsecStoring {
     public static let defaultUnlockDuration: TimeInterval = 5 * 60
-    private let service = "com.k.signstr.nsec"
+    private let service = "com.k.signeur.nsec"
     private let keychain: NsecKeychainBackend
     private var unlockCache: NsecUnlockCache
 
@@ -174,7 +174,7 @@ public actor NsecKeychainStore: NsecStoring {
             kSecAttrAccount as String: identityID,
             // macOS otherwise uses its legacy file-based Keychain, which does
             // not support the iOS-style accessibility and user-presence policy
-            // attached to Signstr's private keys. iOS ignores this key.
+            // attached to Signeur's private keys. iOS ignores this key.
             kSecUseDataProtectionKeychain as String: true
         ]
     }

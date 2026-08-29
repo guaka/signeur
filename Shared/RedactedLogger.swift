@@ -18,7 +18,7 @@ public struct RedactedLogger: Sendable {
     }
 
     public func log(event: String, metadata: [String: String]) {
-        emit("[signstr] \(event) \(redact(metadata))")
+        emit("[signeur] \(event) \(redact(metadata))")
     }
 
     public func redact(_ metadata: [String: String]) -> [String: String] {

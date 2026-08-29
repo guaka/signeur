@@ -1,6 +1,6 @@
 import SwiftUI
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 @MainActor
 final class ActivityViewTests: XCTestCase {
@@ -21,7 +21,7 @@ final class ActivityViewTests: XCTestCase {
         await viewModel.refresh()
 
         XCTAssertTrue(viewModel.entries.isEmpty)
-        XCTAssertEqual(viewModel.errorMessage, "Signstr could not load activity history.")
+        XCTAssertEqual(viewModel.errorMessage, "Signeur could not load activity history.")
     }
 
     func testViewModelClearForwardsAndRefreshes() async {

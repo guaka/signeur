@@ -5,7 +5,7 @@ public enum NIP55CallbackError: Error, Equatable {
     case callbackRefused
 }
 
-/// Answers apps that opened Signstr through `nostrsigner:`, by returning to their callback URL.
+/// Answers apps that opened Signeur through `nostrsigner:`, by returning to their callback URL.
 ///
 /// When a caller supplies no callback there is no way back on iOS, so the result is put on
 /// the clipboard for the user to paste.

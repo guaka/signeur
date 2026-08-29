@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 #if DEBUG
 final class E2ELaunchConfigurationTests: XCTestCase {

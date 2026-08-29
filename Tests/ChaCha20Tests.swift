@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class ChaCha20Tests: XCTestCase {
     /// RFC 8439 section 2.4.2 known-answer test.

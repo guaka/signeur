@@ -1,6 +1,6 @@
 import SwiftUI
 import UIKit
-import SignstrCore
+import SigneurCore
 
 struct KeysView: View {
     @ObservedObject var viewModel: KeysViewModel

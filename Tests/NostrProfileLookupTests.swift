@@ -1,6 +1,6 @@
 import XCTest
 import Foundation
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class NostrProfileLookupTests: XCTestCase {
     func testDefaultRelaysIncludeNomadwikiAndTrustroots() {

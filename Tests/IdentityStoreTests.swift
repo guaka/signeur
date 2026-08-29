@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class IdentityStoreTests: XCTestCase {
     func testFirstIdentityBecomesActiveWhenTheStoredSelectionIsMissing() async {

@@ -2,20 +2,20 @@
 import PackageDescription
 
 let package = Package(
-    name: "signstr",
+    name: "signeur",
     platforms: [
         .iOS(.v17),
         .macOS(.v14)
     ],
     products: [
-        .library(name: "SignstrCore", targets: ["SignstrCore"])
+        .library(name: "SigneurCore", targets: ["SigneurCore"])
     ],
     dependencies: [
         .package(url: "https://github.com/21-dot-dev/swift-secp256k1.git", from: "0.21.0")
     ],
     targets: [
         .target(
-            name: "SignstrCore",
+            name: "SigneurCore",
             dependencies: [
                 .product(name: "P256K", package: "swift-secp256k1")
             ],
@@ -43,8 +43,8 @@ let package = Package(
             ]
         ),
         .testTarget(
-            name: "SignstrCoreTests",
-            dependencies: ["SignstrCore"],
+            name: "SigneurCoreTests",
+            dependencies: ["SigneurCore"],
             path: "Tests",
             resources: [
                 .copy("Vectors/nip44.vectors.json")

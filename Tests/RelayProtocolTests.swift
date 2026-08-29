@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class RelayFrameTests: XCTestCase {
     func testDecodesAnEventFrame() throws {

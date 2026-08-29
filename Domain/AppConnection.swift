@@ -1,6 +1,6 @@
 import Foundation
 
-/// A remote app Signstr answers for: which key it uses, and where to reply.
+/// A remote app Signeur answers for: which key it uses, and where to reply.
 public struct AppConnection: Codable, Equatable, Sendable, Identifiable {
     public var id: String { appPubkey }
 

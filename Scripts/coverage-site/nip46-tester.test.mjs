@@ -55,7 +55,7 @@ function browserElements() {
     };
 }
 
-test("builds a Signstr-compatible nostrconnect URI", () => {
+test("builds a Signeur-compatible nostrconnect URI", () => {
     const uri = buildNostrConnectURI({
         clientPubkey,
         relays: ["wss://relay.one", "wss://relay.two"],
@@ -80,7 +80,7 @@ test("rejects incomplete connection URI inputs", () => {
     assert.throws(() => buildNostrConnectURI({ clientPubkey, relays: ["wss://relay.one"], secret: "" }));
 });
 
-test("matches Signstr's deterministic connect response ID", async () => {
+test("matches Signeur's deterministic connect response ID", async () => {
     const secret = "pairing-secret";
     const expected = "connect-" + createHash("sha256")
         .update(`${clientPubkey}:${secret}`)
@@ -150,14 +150,14 @@ test("authenticates an encrypted NIP-46 request and response round trip", () => 
 test("validates and presents public-key and common error states", () => {
     assert.equal(validateUserPubkey(userPubkey), userPubkey);
     assert.throws(() => validateUserPubkey("npub-not-hex"), /invalid user public key/);
-    assert.match(friendlyError(new Error("userRejected")), /declined in Signstr/);
+    assert.match(friendlyError(new Error("userRejected")), /declined in Signeur/);
     assert.match(friendlyError(new Error("Pairing timed out.")), /No reply arrived/);
     assert.match(friendlyError(new Error("No Nostr relay could be reached.")), /could not keep a Nostr relay/);
     assert.match(friendlyError(new Error("expected pairing secret")), /pairing secret/);
     assert.deepEqual(browserError(new Error("userRejected")), {
         code: "WEB-1001",
         title: "Request declined",
-        message: "The request was declined in Signstr. Start again when you are ready to approve it."
+        message: "The request was declined in Signeur. Start again when you are ready to approve it."
     });
     const codes = [
         "userRejected", "expected pairing secret", "malformed response", "invalid user public key",
@@ -180,7 +180,7 @@ test("renders browser progress and a connected npub", () => {
     session.setPhase("public-key");
     assert.equal(elements.steps[3].classList.contains("active"), true);
     assert.equal(elements.steps[2].classList.contains("done"), true);
-    assert.equal(elements.statusText.textContent, "Approve the public-key request in Signstr");
+    assert.equal(elements.statusText.textContent, "Approve the public-key request in Signeur");
 
     session.permissions = ["get_public_key", "ping"];
     session.succeed(userPubkey);
@@ -207,7 +207,7 @@ test("renders actionable browser errors and resets sensitive session state", () 
     assert.equal(elements.panel.hidden, false);
     assert.equal(elements.error.hidden, false);
     assert.equal(elements.errorTitle.textContent, "Request declined");
-    assert.equal(elements.errorText.textContent, "The request was declined in Signstr. Start again when you are ready to approve it.");
+    assert.equal(elements.errorText.textContent, "The request was declined in Signeur. Start again when you are ready to approve it.");
     assert.equal(elements.errorCode.textContent, "WEB-1001");
     assert.match(session.lastError, /WEB-1001/);
     assert.equal(elements.statusText.textContent, "Test stopped · WEB-1001");

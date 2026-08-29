@@ -2,8 +2,8 @@ import Foundation
 
 public actor PermissionRuleStore: ConnectedAppsProviding, PermissionRuleEvaluating {
     private let defaults: UserDefaults
-    private let key = "signstr.permission.rules"
-    private let appNamesKey = "signstr.permission.appnames"
+    private let key = "signeur.permission.rules"
+    private let appNamesKey = "signeur.permission.appnames"
 
     public init(defaults: UserDefaults = .standard) {
         self.defaults = defaults

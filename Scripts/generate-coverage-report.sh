@@ -5,7 +5,7 @@ set -euo pipefail
 readonly output_dir="${1:-coverage-report}"
 readonly repository_root="$(git rev-parse --show-toplevel)"
 readonly coverage_assets="${repository_root}/Scripts/coverage-site"
-readonly coverage_json="$(find "${repository_root}/.build" -path '*/codecov/signstr.json' -type f -print -quit)"
+readonly coverage_json="$(find "${repository_root}/.build" -path '*/codecov/signeur.json' -type f -print -quit)"
 
 if [[ -z "${coverage_json}" ]]; then
     echo "Coverage JSON not found. Run 'swift test --enable-code-coverage' first." >&2
@@ -15,7 +15,7 @@ fi
 readonly codecov_dir="$(dirname "${coverage_json}")"
 readonly build_dir="$(dirname "${codecov_dir}")"
 readonly profile_data="${codecov_dir}/default.profdata"
-readonly test_binary="${build_dir}/signstrPackageTests.xctest/Contents/MacOS/signstrPackageTests"
+readonly test_binary="${build_dir}/signeurPackageTests.xctest/Contents/MacOS/signeurPackageTests"
 
 if [[ ! -f "${profile_data}" || ! -x "${test_binary}" ]]; then
     echo "Coverage profile or instrumented test binary is missing." >&2
@@ -51,7 +51,7 @@ xcrun llvm-cov show "${test_binary}" \
     -show-line-counts-or-regions
 
 cp "${repository_root}/iOSApp/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png" \
-    "${output_dir}/signstr-icon.png"
+    "${output_dir}/signeur-icon.png"
 cp "${coverage_assets}/coverage.css" "${output_dir}/coverage.css"
 "${coverage_assets}/node_modules/.bin/esbuild" \
     "${coverage_assets}/nip46-tester.source.mjs" \
@@ -67,9 +67,9 @@ jq -r \
     --arg root "${repository_root}/" \
     --arg generated "$(date -u '+%Y-%m-%d %H:%M')" \
     --slurpfile exclusions "${exclusions_json}" \
-    --arg e2eGenerated "${SIGNSTR_E2E_GENERATED:-$(date -u '+%Y-%m-%d %H:%M UTC')}" \
-    --arg e2eIOSStatus "${SIGNSTR_E2E_IOS_STATUS:-not-run}" \
-    --arg e2eMacOSStatus "${SIGNSTR_E2E_MACOS_STATUS:-not-run}" \
+    --arg e2eGenerated "${SIGNEUR_E2E_GENERATED:-$(date -u '+%Y-%m-%d %H:%M UTC')}" \
+    --arg e2eIOSStatus "${SIGNEUR_E2E_IOS_STATUS:-not-run}" \
+    --arg e2eMacOSStatus "${SIGNEUR_E2E_MACOS_STATUS:-not-run}" \
     -f "${coverage_assets}/index.jq" \
     "${coverage_json}" > "${output_dir}/index.html"
 
@@ -139,7 +139,7 @@ jq -r --arg root "${repository_root}/" --slurpfile exclusions "${exclusions_json
     | [
         "## Code coverage",
         "",
-        "SignstrCore sources only; tests, dependencies, compiler-generated functions, skipped regions, and explicitly documented non-testable code are excluded.",
+        "SigneurCore sources only; tests, dependencies, compiler-generated functions, skipped regions, and explicitly documented non-testable code are excluded.",
         "",
         "| Metric | Covered | Total | Coverage |",
         "| --- | ---: | ---: | ---: |",

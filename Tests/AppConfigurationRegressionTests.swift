@@ -3,14 +3,14 @@ import XCTest
 
 final class AppConfigurationRegressionTests: XCTestCase {
     func testMacAppUsesASingleWindowScene() throws {
-        let source = try String(contentsOf: repositoryFile("MacOSApp/SignstrMacApp.swift"))
+        let source = try String(contentsOf: repositoryFile("MacOSApp/SigneurMacApp.swift"))
 
-        XCTAssertTrue(source.contains("Window(\"Signstr\", id: \"main\")"))
+        XCTAssertTrue(source.contains("Window(\"Signeur\", id: \"main\")"))
         XCTAssertFalse(source.contains("WindowGroup"))
     }
 
     func testMacTargetCarriesItsKeychainEntitlements() throws {
-        let entitlementsData = try Data(contentsOf: repositoryFile("MacOSApp/SignstrMac.entitlements"))
+        let entitlementsData = try Data(contentsOf: repositoryFile("MacOSApp/SigneurMac.entitlements"))
         let entitlements = try XCTUnwrap(
             PropertyListSerialization.propertyList(from: entitlementsData, format: nil) as? [String: Any]
         )
@@ -18,9 +18,9 @@ final class AppConfigurationRegressionTests: XCTestCase {
 
         XCTAssertEqual(groups, ["$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)"])
 
-        let project = try String(contentsOf: repositoryFile("Signstr.xcodeproj/project.pbxproj"))
-        XCTAssertTrue(project.contains("CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;"))
-        XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;"))
+        let project = try String(contentsOf: repositoryFile("Signeur.xcodeproj/project.pbxproj"))
+        XCTAssertTrue(project.contains("CODE_SIGN_ENTITLEMENTS = MacOSApp/SigneurMac.entitlements;"))
+        XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur.mac;"))
         XCTAssertTrue(project.contains("DEVELOPMENT_TEAM = SUJ594N47C;"))
     }
 
@@ -87,8 +87,8 @@ final class AppConfigurationRegressionTests: XCTestCase {
         for path in ["MacOSApp/MacRootView.swift", "iOSApp/RootView.swift"] {
             let source = try String(contentsOf: repositoryFile(path))
 
-            XCTAssertTrue(source.contains("Open the Signstr guide and NIP-46 tester"), path)
-            XCTAssertTrue(source.contains("https://guaka.github.io/signstr/"), path)
+            XCTAssertTrue(source.contains("Open the Signeur guide and NIP-46 tester"), path)
+            XCTAssertTrue(source.contains("https://guaka.github.io/signeur/"), path)
         }
     }
 

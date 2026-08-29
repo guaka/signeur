@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class PairingRequestFactoryTests: XCTestCase {
     private let pairing = DeepLinkRequest(
@@ -191,7 +191,7 @@ final class PairingViewModelTests: XCTestCase {
         XCTAssertFalse(queued)
         XCTAssertEqual(
             viewModel.errorMessage,
-            "This app asked for \"decrypt_zap_event\", which Signstr cannot do yet."
+            "This app asked for \"decrypt_zap_event\", which Signeur cannot do yet."
         )
         XCTAssertEqual(pending.count, 0)
     }
@@ -319,7 +319,7 @@ final class PairingViewModelTests: XCTestCase {
         let (viewModel, manager) = makeViewModel()
         let wrapped = "nostrconnect://\(TestVectors.otherPubkeyHex)?relay=wss://relay.one&secret=s3cret&name=Damus"
             .addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
-        let url = URL(string: "signstr://pair?uri=\(wrapped)")!
+        let url = URL(string: "signeur://pair?uri=\(wrapped)")!
 
         let paired = await viewModel.handleDeepLink(url)
 

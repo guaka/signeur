@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 @MainActor
 final class KeysViewModelTests: XCTestCase {

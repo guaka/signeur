@@ -9,7 +9,7 @@ public enum SecurityPolicyError: Error, Equatable, Sendable {
     case valueTooLarge
 }
 
-/// Central limits and URL/key validation for data that crosses Signstr's trust boundary.
+/// Central limits and URL/key validation for data that crosses Signeur's trust boundary.
 public enum SecurityPolicy {
     public static let maxIdentifierBytes = 256
     public static let maxSecretBytes = 256

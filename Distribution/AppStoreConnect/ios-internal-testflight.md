@@ -1,12 +1,12 @@
-# Signstr iOS internal TestFlight
+# Signeur iOS internal TestFlight
 
 ## App record
 
 - Platform: iOS
-- Name: Signstr
+- Name: Signeur
 - Primary language: English (U.S.)
-- Bundle ID: `org.trustroots.signstr`
-- SKU: `signstr-ios`
+- Bundle ID: `org.trustroots.signeur`
+- SKU: `signeur-ios`
 - Internal group: `Trustroots Foundation`
 - Distribution milestone: internal TestFlight only
 
@@ -21,18 +21,18 @@ Do not add `ITSAppUsesNonExemptEncryption` to the app until the Foundation has a
 
 ## Beta description
 
-Signstr is a Nostr signing app. It stores an imported secret key in the iOS Keychain and lets the owner review and approve Nostr Connect requests from other apps without sharing the secret key.
+Signeur is a Nostr signing app. It stores an imported secret key in the iOS Keychain and lets the owner review and approve Nostr Connect requests from other apps without sharing the secret key.
 
 ## Testing notes
 
-Import a test Nostr secret key and authenticate with Face ID when prompted. Scan a Nostr Connect QR code from a compatible client. Review the client name, relay, requested permissions, and public key before approving or declining. After approval, confirm the client appears under Connected, can request a signature, reconnects after Signstr is relaunched, and stops working after it is disconnected.
+Import a test Nostr secret key and authenticate with Face ID when prompted. Scan a Nostr Connect QR code from a compatible client. Review the client name, relay, requested permissions, and public key before approving or declining. After approval, confirm the client appears under Connected, can request a signature, reconnects after Signeur is relaunched, and stops working after it is disconnected.
 
 The secret key is stored locally in the iOS Keychain. Test only with a disposable key; do not use a key that controls valuable funds or an important identity.
 
 ## Build and upload
 
 1. Add the maintainer's Apple Account to the Trustroots Foundation developer team and App Store Connect with Developer and App Manager access as needed.
-2. Register `org.trustroots.signstr` and create the app record above.
+2. Register `org.trustroots.signeur` and create the app record above.
 3. Set an unused integer build number. Build numbers must always increase.
 4. Run:
 
@@ -50,7 +50,7 @@ The secret key is stored locally in the iOS Keychain. Test only with a disposabl
 - Import a disposable key and unlock it with Face ID.
 - Approve and decline QR pairing requests.
 - Sign from an approved client.
-- Relaunch Signstr and confirm the key and connection persist.
+- Relaunch Signeur and confirm the key and connection persist.
 - Disconnect the client and confirm subsequent requests are rejected.
 
 External TestFlight, screenshots, pricing, and public App Review are intentionally out of scope for 0.1.0.

@@ -6,7 +6,7 @@ readonly platform="${1:-all}"
 readonly repository_root="$(git rev-parse --show-toplevel)"
 
 run_ios() {
-    local destination_id="${SIGNSTR_IOS_DESTINATION_ID:-}"
+    local destination_id="${SIGNEUR_IOS_DESTINATION_ID:-}"
     if [[ -z "${destination_id}" ]]; then
         destination_id="$(xcrun simctl list devices available | sed -nE '/iPhone/ s/.*\(([0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{12})\).*/\1/p' | head -n 1)"
     fi
@@ -17,24 +17,24 @@ run_ios() {
     xcrun simctl boot "${destination_id}" 2>/dev/null || true
     xcrun simctl bootstatus "${destination_id}" -b
     xcodebuild \
-        -project "${repository_root}/Signstr.xcodeproj" \
-        -scheme Signstr \
+        -project "${repository_root}/Signeur.xcodeproj" \
+        -scheme Signeur \
         -destination "platform=iOS Simulator,id=${destination_id}" \
         -parallel-testing-enabled NO \
         -retry-tests-on-failure \
         -test-iterations 2 \
         -skipPackagePluginValidation \
-        -only-testing:SignstrE2ETests \
+        -only-testing:SigneurE2ETests \
         test
 }
 
 run_macos() {
     xcodebuild \
-        -project "${repository_root}/Signstr.xcodeproj" \
-        -scheme SignstrMac \
+        -project "${repository_root}/Signeur.xcodeproj" \
+        -scheme SigneurMac \
         -destination 'platform=macOS' \
         -skipPackagePluginValidation \
-        -only-testing:SignstrMacE2ETests \
+        -only-testing:SigneurMacE2ETests \
         CODE_SIGN_STYLE=Manual \
         CODE_SIGN_IDENTITY=- \
         DEVELOPMENT_TEAM= \

@@ -1,15 +1,15 @@
-# Signstr 0.1.0 distribution
+# Signeur 0.1.0 distribution
 
 Start with [NEXT_STEPS.md](NEXT_STEPS.md) for the ordered Foundation and maintainer handoff.
 
 Trustroots Foundation owns and signs the iOS and macOS releases. The release identities are:
 
-- iOS: `org.trustroots.signstr`
-- macOS: `org.trustroots.signstr.mac`
+- iOS: `org.trustroots.signeur`
+- macOS: `org.trustroots.signeur.mac`
 - Version/tag: `0.1.0` / `v0.1.0`
-- Mac artifact: `Signstr-0.1.0-macOS.dmg`
+- Mac artifact: `Signeur-0.1.0-macOS.dmg`
 
-These bundle identifiers create a clean installation boundary. Existing `com.k.*` builds remain separate and their Keychain items are not migrated. The URL schemes (`nostrconnect`, `nostrsigner`, and `signstr`) and platform icons are unchanged.
+These bundle identifiers create a clean installation boundary. Existing `com.k.*` builds remain separate and their Keychain items are not migrated. The URL schemes (`nostrconnect`, `nostrsigner`, and `signeur`) and platform icons are unchanged.
 
 `MARKETING_VERSION` and the initial `CURRENT_PROJECT_VERSION` live in `project.yml`. Release automation overrides the build number with GitHub's monotonically increasing run number. Local iOS archives require an explicitly supplied, unused build number.
 
@@ -39,13 +39,13 @@ The protected GitHub environment named `macos-release` already exists, is limite
 | `DEVELOPER_ID_APPLICATION_P12_BASE64` | Base64-encoded Foundation Developer ID Application certificate plus private key |
 | `DEVELOPER_ID_APPLICATION_P12_PASSWORD` | Password protecting that PKCS#12 file |
 | `TEMP_KEYCHAIN_PASSWORD` | Random single-purpose password for the ephemeral CI Keychain |
-| `MACOS_DEVELOPER_ID_PROFILE_BASE64` | Base64-encoded Developer ID provisioning profile for `org.trustroots.signstr.mac` and its Keychain group |
+| `MACOS_DEVELOPER_ID_PROFILE_BASE64` | Base64-encoded Developer ID provisioning profile for `org.trustroots.signeur.mac` and its Keychain group |
 | `MACOS_PROVISIONING_PROFILE_NAME` | The profile's exact Name field |
 | `APP_STORE_CONNECT_KEY_ID` | App Store Connect API key ID authorized for notarization |
 | `APP_STORE_CONNECT_ISSUER_ID` | API issuer ID |
 | `APP_STORE_CONNECT_PRIVATE_KEY` | Complete contents of the `.p8` private key |
 
-The Developer ID profile must authorize the Keychain group `<Foundation Team ID>.org.trustroots.signstr.mac`. App Sandbox must remain disabled for this direct-download build. Release configuration enables Hardened Runtime.
+The Developer ID profile must authorize the Keychain group `<Foundation Team ID>.org.trustroots.signeur.mac`. App Sandbox must remain disabled for this direct-download build. Release configuration enables Hardened Runtime.
 
 ## macOS release
 

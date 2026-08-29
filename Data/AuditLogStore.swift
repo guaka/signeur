@@ -8,7 +8,7 @@ public protocol AuditLogProviding: Sendable {
 
 public actor AuditLogStore: AuditLogProviding {
     private let defaults: UserDefaults
-    private let key = "signstr.audit.entries"
+    private let key = "signeur.audit.entries"
     private let retentionDays: Int
 
     public init(defaults: UserDefaults = .standard, retentionDays: Int = 90) {
