@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class AuditLogStoreTests: XCTestCase {
     private func entry(daysAgo: Int, outcome: String = "approved") -> AuditEntry {

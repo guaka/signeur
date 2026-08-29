@@ -9,17 +9,17 @@
 /* Begin PBXBuildFile section */
 		2FC25B35CB9CA1766C9FF9B6 /* AppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2493B00260209BF73ABED587 /* AppBootstrap.swift */; };
 		693224F8539BD50AAB880C6C /* QRScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5828E017BF2141ADAC636001 /* QRScannerView.swift */; };
-		75526CF33D96A82C9A436864 /* SignstrApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EC48704DAA538A7A126386 /* SignstrApp.swift */; };
+		75526CF33D96A82C9A436864 /* SigneurApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5EC48704DAA538A7A126386 /* SigneurApp.swift */; };
 		7643A9F4FBAAAAD519694943 /* KeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2979112A34823CCD9AC6E712 /* KeysView.swift */; };
 		830BEEB7C49D5AAACE6E7A42 /* ScanPairingSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */; };
-		AAC546BFAF73EA492B069F79 /* SignstrCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SignstrCore */; };
+		AAC546BFAF73EA492B069F79 /* SigneurCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SigneurCore */; };
 		CDB30EA3E1803BB82CE07D63 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87E35BDB324C62DA47954D66 /* RootView.swift */; };
 		FE058444748D4F3D14BA3F09 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = D6E5FCCD24114D1BBFE33E27 /* Assets.xcassets */; };
-		A10000000000000000000001 /* SignstrMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* SignstrMacApp.swift */; };
+		A10000000000000000000001 /* SigneurMacApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000011 /* SigneurMacApp.swift */; };
 		A10000000000000000000002 /* MacAppBootstrap.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000012 /* MacAppBootstrap.swift */; };
 		A10000000000000000000003 /* MacRootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000013 /* MacRootView.swift */; };
 		A10000000000000000000004 /* MacKeysView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000014 /* MacKeysView.swift */; };
-		A10000000000000000000005 /* SignstrCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SignstrCore */; };
+		A10000000000000000000005 /* SigneurCore in Frameworks */ = {isa = PBXBuildFile; productRef = 54DD18EB4CAA374E35D8FBFF /* SigneurCore */; };
 		A10000000000000000000006 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A10000000000000000000018 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
@@ -27,21 +27,21 @@
 		2493B00260209BF73ABED587 /* AppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppBootstrap.swift; sourceTree = "<group>"; };
 		2979112A34823CCD9AC6E712 /* KeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeysView.swift; sourceTree = "<group>"; };
 		44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanPairingSheet.swift; sourceTree = "<group>"; };
-		454B407AFBBED585459D15E5 /* Signstr.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Signstr.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		542DB560650D80632A1CCD72 /* signstr */ = {isa = PBXFileReference; lastKnownFileType = folder; name = signstr; path = .; sourceTree = SOURCE_ROOT; };
+		454B407AFBBED585459D15E5 /* Signeur.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Signeur.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		542DB560650D80632A1CCD72 /* signeur */ = {isa = PBXFileReference; lastKnownFileType = folder; name = signeur; path = .; sourceTree = SOURCE_ROOT; };
 		5828E017BF2141ADAC636001 /* QRScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QRScannerView.swift; sourceTree = "<group>"; };
 		87E35BDB324C62DA47954D66 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		AF6F95DF1B5E0A00D11B2045 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D6E5FCCD24114D1BBFE33E27 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		F5EC48704DAA538A7A126386 /* SignstrApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrApp.swift; sourceTree = "<group>"; };
-		A10000000000000000000011 /* SignstrMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignstrMacApp.swift; sourceTree = "<group>"; };
+		F5EC48704DAA538A7A126386 /* SigneurApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigneurApp.swift; sourceTree = "<group>"; };
+		A10000000000000000000011 /* SigneurMacApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SigneurMacApp.swift; sourceTree = "<group>"; };
 		A10000000000000000000012 /* MacAppBootstrap.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacAppBootstrap.swift; sourceTree = "<group>"; };
 		A10000000000000000000013 /* MacRootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacRootView.swift; sourceTree = "<group>"; };
 		A10000000000000000000014 /* MacKeysView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacKeysView.swift; sourceTree = "<group>"; };
 		A10000000000000000000015 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		A10000000000000000000016 /* Signstr.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Signstr.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		A10000000000000000000016 /* Signeur.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Signeur.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A10000000000000000000018 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		A10000000000000000000019 /* SignstrMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SignstrMac.entitlements; sourceTree = "<group>"; };
+		A10000000000000000000019 /* SigneurMac.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = SigneurMac.entitlements; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -49,7 +49,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAC546BFAF73EA492B069F79 /* SignstrCore in Frameworks */,
+				AAC546BFAF73EA492B069F79 /* SigneurCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -57,7 +57,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A10000000000000000000005 /* SignstrCore in Frameworks */,
+				A10000000000000000000005 /* SigneurCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -74,7 +74,7 @@
 				5828E017BF2141ADAC636001 /* QRScannerView.swift */,
 				87E35BDB324C62DA47954D66 /* RootView.swift */,
 				44A7DD398FF062C7748919F1 /* ScanPairingSheet.swift */,
-				F5EC48704DAA538A7A126386 /* SignstrApp.swift */,
+				F5EC48704DAA538A7A126386 /* SigneurApp.swift */,
 			);
 			path = iOSApp;
 			sourceTree = "<group>";
@@ -92,8 +92,8 @@
 		CA31E179C1F5B8BEE2F8878A /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				454B407AFBBED585459D15E5 /* Signstr.app */,
-				A10000000000000000000016 /* Signstr.app */,
+				454B407AFBBED585459D15E5 /* Signeur.app */,
+				A10000000000000000000016 /* Signeur.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -104,10 +104,10 @@
 				A10000000000000000000012 /* MacAppBootstrap.swift */,
 				A10000000000000000000014 /* MacKeysView.swift */,
 				A10000000000000000000013 /* MacRootView.swift */,
-				A10000000000000000000011 /* SignstrMacApp.swift */,
+				A10000000000000000000011 /* SigneurMacApp.swift */,
 				A10000000000000000000018 /* Assets.xcassets */,
 				A10000000000000000000015 /* Info.plist */,
-				A10000000000000000000019 /* SignstrMac.entitlements */,
+				A10000000000000000000019 /* SigneurMac.entitlements */,
 			);
 			path = MacOSApp;
 			sourceTree = "<group>";
@@ -115,7 +115,7 @@
 		F7490F3E7937D1E861469E1A /* Packages */ = {
 			isa = PBXGroup;
 			children = (
-				542DB560650D80632A1CCD72 /* signstr */,
+				542DB560650D80632A1CCD72 /* signeur */,
 			);
 			name = Packages;
 			sourceTree = "<group>";
@@ -123,9 +123,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		7FEF835F801865554B1CB876 /* Signstr */ = {
+		7FEF835F801865554B1CB876 /* Signeur */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signstr" */;
+			buildConfigurationList = 2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signeur" */;
 			buildPhases = (
 				1D123076BD61D92936CD0C14 /* Sources */,
 				64F1EE3EFA2EE7BFAD82675D /* Resources */,
@@ -135,17 +135,17 @@
 			);
 			dependencies = (
 			);
-			name = Signstr;
+			name = Signeur;
 			packageProductDependencies = (
-				54DD18EB4CAA374E35D8FBFF /* SignstrCore */,
+				54DD18EB4CAA374E35D8FBFF /* SigneurCore */,
 			);
-			productName = Signstr;
-			productReference = 454B407AFBBED585459D15E5 /* Signstr.app */;
+			productName = Signeur;
+			productReference = 454B407AFBBED585459D15E5 /* Signeur.app */;
 			productType = "com.apple.product-type.application";
 		};
-		A10000000000000000000031 /* SignstrMac */ = {
+		A10000000000000000000031 /* SigneurMac */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = A10000000000000000000041 /* Build configuration list for PBXNativeTarget "SignstrMac" */;
+			buildConfigurationList = A10000000000000000000041 /* Build configuration list for PBXNativeTarget "SigneurMac" */;
 			buildPhases = (
 				A10000000000000000000022 /* Sources */,
 				A10000000000000000000023 /* Resources */,
@@ -155,12 +155,12 @@
 			);
 			dependencies = (
 			);
-			name = SignstrMac;
+			name = SigneurMac;
 			packageProductDependencies = (
-				54DD18EB4CAA374E35D8FBFF /* SignstrCore */,
+				54DD18EB4CAA374E35D8FBFF /* SigneurCore */,
 			);
-			productName = Signstr;
-			productReference = A10000000000000000000016 /* Signstr.app */;
+			productName = Signeur;
+			productReference = A10000000000000000000016 /* Signeur.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -182,7 +182,7 @@
 					};
 				};
 			};
-			buildConfigurationList = 6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signstr" */;
+			buildConfigurationList = 6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signeur" */;
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -199,8 +199,8 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				7FEF835F801865554B1CB876 /* Signstr */,
-				A10000000000000000000031 /* SignstrMac */,
+				7FEF835F801865554B1CB876 /* Signeur */,
+				A10000000000000000000031 /* SigneurMac */,
 			);
 		};
 /* End PBXProject section */
@@ -234,7 +234,7 @@
 				693224F8539BD50AAB880C6C /* QRScannerView.swift in Sources */,
 				CDB30EA3E1803BB82CE07D63 /* RootView.swift in Sources */,
 				830BEEB7C49D5AAACE6E7A42 /* ScanPairingSheet.swift in Sources */,
-				75526CF33D96A82C9A436864 /* SignstrApp.swift in Sources */,
+				75526CF33D96A82C9A436864 /* SigneurApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -245,7 +245,7 @@
 				A10000000000000000000002 /* MacAppBootstrap.swift in Sources */,
 				A10000000000000000000004 /* MacKeysView.swift in Sources */,
 				A10000000000000000000003 /* MacRootView.swift in Sources */,
-				A10000000000000000000001 /* SignstrMacApp.swift in Sources */,
+				A10000000000000000000001 /* SigneurMacApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -267,8 +267,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr;
-				PRODUCT_NAME = Signstr;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur;
+				PRODUCT_NAME = Signeur;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -406,8 +406,8 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr;
-				PRODUCT_NAME = Signstr;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur;
+				PRODUCT_NAME = Signeur;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.10;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -418,7 +418,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;
+				CODE_SIGN_ENTITLEMENTS = MacOSApp/SigneurMac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = SUJ594N47C;
@@ -429,8 +429,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;
-				PRODUCT_NAME = Signstr;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur.mac;
+				PRODUCT_NAME = Signeur;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.10;
 			};
@@ -440,7 +440,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;
+				CODE_SIGN_ENTITLEMENTS = MacOSApp/SigneurMac.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -451,8 +451,8 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
 				MARKETING_VERSION = 0.1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;
-				PRODUCT_NAME = Signstr;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur.mac;
+				PRODUCT_NAME = Signeur;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.10;
 			};
@@ -461,7 +461,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signstr" */ = {
+		2C473266CE9D7551466C6756 /* Build configuration list for PBXNativeTarget "Signeur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				21869B48D031C360B9B69107 /* Debug */,
@@ -470,7 +470,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signstr" */ = {
+		6EA4149A3F8BB0E348AA5424 /* Build configuration list for PBXProject "Signeur" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				2DAEFF806CD73F2B72471A2E /* Debug */,
@@ -479,7 +479,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		A10000000000000000000041 /* Build configuration list for PBXNativeTarget "SignstrMac" */ = {
+		A10000000000000000000041 /* Build configuration list for PBXNativeTarget "SigneurMac" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				A10000000000000000000051 /* Debug */,
@@ -498,9 +498,9 @@
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		54DD18EB4CAA374E35D8FBFF /* SignstrCore */ = {
+		54DD18EB4CAA374E35D8FBFF /* SigneurCore */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = SignstrCore;
+			productName = SigneurCore;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

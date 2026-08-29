@@ -1,6 +1,6 @@
 import SwiftUI
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 @MainActor
 final class IncomingRequestViewTests: XCTestCase {
@@ -27,7 +27,7 @@ final class IncomingRequestViewTests: XCTestCase {
         method: NIP46Method = .signEvent,
         params: [String]? = nil,
         appName: String? = "Fixture Client",
-        appURL: String? = "https://signstr.app",
+        appURL: String? = "https://signeur.app",
         appPubkey: String = TestVectors.otherPubkeyHex,
         requestedPermissions: [String] = [],
         relays: [String] = [],

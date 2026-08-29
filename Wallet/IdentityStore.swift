@@ -35,8 +35,8 @@ public struct Identity: Codable, Equatable, Sendable, Identifiable {
 }
 
 public actor IdentityStore {
-    private let activeIdentityKey = "signstr.active.identity"
-    private let identitiesKey = "signstr.identities"
+    private let activeIdentityKey = "signeur.active.identity"
+    private let identitiesKey = "signeur.identities"
     private let defaults: UserDefaults
     private var identities: [Identity]
 

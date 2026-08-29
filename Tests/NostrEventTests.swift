@@ -1,6 +1,6 @@
 import P256K
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class NostrEventTests: XCTestCase {
     private let pubkey = TestVectors.pubkeyHex

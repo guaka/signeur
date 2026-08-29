@@ -42,7 +42,7 @@ jobs:
           cat coverage-report/summary.md >> "$GITHUB_STEP_SUMMARY"
           if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "[Browse the annotated coverage report](https://guaka.github.io/signstr/)" >> "$GITHUB_STEP_SUMMARY"
+            echo "[Browse the annotated coverage report](https://guaka.github.io/signeur/)" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload coverage report
@@ -65,8 +65,8 @@ jobs:
       - name: Build macOS app
         run: >-
           xcodebuild
-          -project Signstr.xcodeproj
-          -scheme SignstrMac
+          -project Signeur.xcodeproj
+          -scheme SigneurMac
           -configuration Debug
           -destination 'platform=macOS'
           -skipPackagePluginValidation
@@ -76,8 +76,8 @@ jobs:
       - name: Build iOS app
         run: >-
           xcodebuild
-          -project Signstr.xcodeproj
-          -scheme Signstr
+          -project Signeur.xcodeproj
+          -scheme Signeur
           -configuration Debug
           -destination 'generic/platform=iOS Simulator'
           -skipPackagePluginValidation

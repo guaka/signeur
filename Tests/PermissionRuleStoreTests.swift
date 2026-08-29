@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class PermissionRuleStoreTests: XCTestCase {
     func testNothingIsAutoApprovedByDefault() async {

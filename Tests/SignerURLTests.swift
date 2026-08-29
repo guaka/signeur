@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class SignerURLRequestTests: XCTestCase {
     private let eventJSON = #"{"kind":1,"content":"gm","created_at":1700000000}"#
@@ -111,6 +111,47 @@ final class SignerURLRequestTests: XCTestCase {
         }
         XCTAssertEqual(request.appPubkey, "nostrsigner:Damus")
         XCTAssertEqual(request.rawPayloadPreview, eventJSON, "the user sees the event they are signing")
+    }
+
+    func testRejectsUnsupportedCompressionType() {
+        XCTAssertThrowsError(
+            try SignerURLRequest.parse("nostrsigner:abc?compressionType=zip&type=sign_event")
+        ) { error in
+            XCTAssertEqual(error as? SignerURLParseError, .unsupportedCompression("zip"))
+        }
+    }
+
+    func testRejectsUnsafeCallbackScheme() {
+        XCTAssertThrowsError(
+            try SignerURLRequest.parse(url(payload: eventJSON, query: "type=sign_event&callbackUrl=javascript:alert(1)"))
+        ) { error in
+            XCTAssertEqual(error as? SignerURLParseError, .invalidCallback)
+        }
+    }
+
+    func testRejectsRequestPayloadThatExceedsLimits() {
+        let payload = String(repeating: "x", count: SecurityPolicy.maxRequestPayloadBytes + SecurityPolicy.maxRelayURLBytes + 1)
+        XCTAssertThrowsError(
+            try SignerURLRequest.parse("nostrsigner:\(payload)?type=sign_event")
+        ) { error in
+            XCTAssertEqual(error as? SignerURLParseError, .payloadTooLarge)
+        }
+    }
+
+    func testMissingPeerForEncryptionIsReportedAsMissingPeerPubkey() {
+        XCTAssertThrowsError(
+            try SignerURLRequest.parse(url(payload: "hello", query: "type=nip04_decrypt"))
+        ) { error in
+            XCTAssertEqual(error as? SignerURLParseError, .missingPeerPubkey)
+        }
+    }
+
+    func testRequestIdentifierFallsBackToUnknownWhenCallbackAndNameAreAbsent() throws {
+        let request = try SignerURLRequest.parse(url(payload: eventJSON, query: "type=sign_event"))
+
+        XCTAssertEqual(request.appIdentifier, "nostrsigner:unknown")
+        XCTAssertEqual(request.appName, nil)
+        XCTAssertNil(request.callbackURL)
     }
 }
 

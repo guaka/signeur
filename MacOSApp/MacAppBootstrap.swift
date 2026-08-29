@@ -1,6 +1,6 @@
 import AppKit
 import Foundation
-import SignstrCore
+import SigneurCore
 
 enum MacAppBootstrap {
     static let permissionStore = PermissionRuleStore()

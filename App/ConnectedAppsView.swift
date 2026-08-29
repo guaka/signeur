@@ -125,7 +125,7 @@ public struct ConnectedAppsView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: { _ in
-            Text("Signstr will stop listening for this app and forget its remembered approvals.")
+            Text("Signeur will stop listening for this app and forget its remembered approvals.")
         }
 #endif
     }
@@ -247,7 +247,7 @@ struct ConnectedAppDetailView: View {
 
             Section("Remembered approvals") {
                 if app.methods.first == "asks you every time" {
-                    Text("Signstr asks before every sensitive action.")
+                    Text("Signeur asks before every sensitive action.")
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(app.methods, id: \.self) { method in
@@ -293,7 +293,7 @@ struct ConnectedAppDetailView: View {
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("Signstr will stop listening for this app and forget its remembered approvals.")
+            Text("Signeur will stop listening for this app and forget its remembered approvals.")
         }
     }
 }

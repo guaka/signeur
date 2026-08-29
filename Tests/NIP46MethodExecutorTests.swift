@@ -1,6 +1,6 @@
 import P256K
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class NIP46MethodExecutorTests: XCTestCase {
     private let peerPubkey = "c6047f9441ed7d6d3045406e95c07cd85c778e4b8cef3ca7abac09b95c709ee5"
@@ -164,6 +164,26 @@ final class NIP46MethodExecutorTests: XCTestCase {
         )
 
         XCTAssertEqual(decrypted, "legacy message")
+    }
+
+    func testSwitchRelaysIsAcknowledged() async throws {
+        let result = try await makeExecutor().execute(makeTestRequest(method: .switchRelays, params: []), identityID: "id-1")
+
+        XCTAssertEqual(result, "ack")
+    }
+
+    func testLogoutIsAcknowledged() async throws {
+        let result = try await makeExecutor().execute(makeTestRequest(method: .logout, params: []), identityID: "id-1")
+
+        XCTAssertEqual(result, "ack")
+    }
+
+    func testMissingPubkeyForNip04DecryptIsRejected() async {
+        let request = makeTestRequest(method: .nip04Decrypt, params: ["payload"])
+
+        await assertThrows(.missingParameter("nip04_decrypt expects [pubkey, payload]")) {
+            try await self.makeExecutor().execute(request, identityID: "id-1")
+        }
     }
 
     func testEncryptRejectsANonPubkeyFirstParameter() async {

@@ -1,15 +1,15 @@
-name: Signstr
+name: Signeur
 options:
   minimumXcodeGenVersion: 2.38.0
 packages:
-  SignstrCore:
+  SigneurCore:
     path: .
 settings:
   base:
     MARKETING_VERSION: 0.1.0
     CURRENT_PROJECT_VERSION: 1
 targets:
-  Signstr:
+  Signeur:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
@@ -17,8 +17,8 @@ targets:
       - iOSApp
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signstr
-        PRODUCT_NAME: Signstr
+        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signeur
+        PRODUCT_NAME: Signeur
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         INFOPLIST_FILE: iOSApp/Info.plist
         SWIFT_VERSION: 5.10
@@ -27,9 +27,9 @@ targets:
         Debug:
           DEVELOPMENT_TEAM: SUJ594N47C
     dependencies:
-      - package: SignstrCore
-        product: SignstrCore
-  SignstrMac:
+      - package: SigneurCore
+        product: SigneurCore
+  SigneurMac:
     type: application
     platform: macOS
     deploymentTarget: "14.0"
@@ -37,10 +37,10 @@ targets:
       - MacOSApp
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signstr.mac
-        PRODUCT_NAME: Signstr
+        PRODUCT_BUNDLE_IDENTIFIER: org.trustroots.signeur.mac
+        PRODUCT_NAME: Signeur
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
-        CODE_SIGN_ENTITLEMENTS: MacOSApp/SignstrMac.entitlements
+        CODE_SIGN_ENTITLEMENTS: MacOSApp/SigneurMac.entitlements
         INFOPLIST_FILE: MacOSApp/Info.plist
         SWIFT_VERSION: 5.10
         CODE_SIGN_STYLE: Automatic
@@ -50,7 +50,7 @@ targets:
         Release:
           ENABLE_HARDENED_RUNTIME: YES
     dependencies:
-      - package: SignstrCore
-        product: SignstrCore
+      - package: SigneurCore
+        product: SigneurCore
 scheme:
   testTargets: []

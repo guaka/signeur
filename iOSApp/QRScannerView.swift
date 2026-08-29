@@ -25,7 +25,7 @@ final class QRScannerViewController: UIViewController {
     var onFailure: ((String) -> Void)?
 
     private let captureSession = AVCaptureSession()
-    private let sessionQueue = DispatchQueue(label: "com.k.signstr.scanner")
+    private let sessionQueue = DispatchQueue(label: "com.k.signeur.scanner")
     private var previewLayer: AVCaptureVideoPreviewLayer?
     private var isConfigured = false
     private var isPaused = false
@@ -65,12 +65,12 @@ final class QRScannerViewController: UIViewController {
                     if granted {
                         self.configureSession()
                     } else {
-                        self.onFailure?("Signstr needs camera access to scan a pairing code. Enable it in Settings.")
+                        self.onFailure?("Signeur needs camera access to scan a pairing code. Enable it in Settings.")
                     }
                 }
             }
         case .denied, .restricted:
-            onFailure?("Camera access is turned off. Enable it for Signstr in Settings.")
+            onFailure?("Camera access is turned off. Enable it for Signeur in Settings.")
         @unknown default:
             onFailure?("Camera access is unavailable.")
         }

@@ -16,9 +16,9 @@ cd "$repository_root"
 version="$(Scripts/verify-release-version.sh "$RELEASE_TAG")"
 signing_identity="${MACOS_SIGNING_IDENTITY:-Developer ID Application}"
 release_root="$repository_root/.release/macos-$version"
-archive_path="$release_root/Signstr.xcarchive"
+archive_path="$release_root/Signeur.xcarchive"
 stage_path="$release_root/dmg"
-dmg_path="$release_root/Signstr-$version-macOS.dmg"
+dmg_path="$release_root/Signeur-$version-macOS.dmg"
 checksum_path="$dmg_path.sha256"
 build_time="$(date -u '+%Y-%d-%m %H:%M UTC')"
 
@@ -29,31 +29,31 @@ fi
 mkdir -p "$stage_path"
 
 xcodebuild archive \
-  -project Signstr.xcodeproj \
-  -scheme SignstrMac \
+  -project Signeur.xcodeproj \
+  -scheme SigneurMac \
   -configuration Release \
   -destination 'generic/platform=macOS' \
   -archivePath "$archive_path" \
   -skipPackagePluginValidation \
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
   CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
-  SIGNSTR_BUILD_TIME="$build_time" \
+  SIEGNUR_BUILD_TIME="$build_time" \
   CODE_SIGN_STYLE=Manual \
   CODE_SIGN_IDENTITY="$signing_identity" \
   PROVISIONING_PROFILE_SPECIFIER="$MACOS_PROVISIONING_PROFILE_SPECIFIER" \
   ARCHS='arm64 x86_64' \
   ONLY_ACTIVE_ARCH=NO
 
-app_path="$archive_path/Products/Applications/Signstr.app"
+app_path="$archive_path/Products/Applications/Signeur.app"
 info_plist="$app_path/Contents/Info.plist"
-binary_path="$app_path/Contents/MacOS/Signstr"
+binary_path="$app_path/Contents/MacOS/Signeur"
 entitlements_path="$release_root/entitlements.plist"
 
 bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$info_plist")"
 bundle_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$info_plist")"
 build_number="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$info_plist")"
 
-[[ "$bundle_id" == "org.trustroots.signstr.mac" ]] || { echo "Unexpected bundle identifier: $bundle_id" >&2; exit 1; }
+[[ "$bundle_id" == "org.trustroots.signeur.mac" ]] || { echo "Unexpected bundle identifier: $bundle_id" >&2; exit 1; }
 [[ "$bundle_version" == "$version" ]] || { echo "Unexpected app version: $bundle_version" >&2; exit 1; }
 [[ "$build_number" == "$BUILD_NUMBER" ]] || { echo "Unexpected build number: $build_number" >&2; exit 1; }
 
@@ -65,12 +65,12 @@ architectures="$(lipo -archs "$binary_path")"
 
 codesign --verify --deep --strict --verbose=2 "$app_path"
 codesign -d --entitlements :- "$app_path" >"$entitlements_path"
-/usr/libexec/PlistBuddy -c 'Print :keychain-access-groups' "$entitlements_path" | grep -F "$APPLE_TEAM_ID.org.trustroots.signstr.mac" >/dev/null
+/usr/libexec/PlistBuddy -c 'Print :keychain-access-groups' "$entitlements_path" | grep -F "$APPLE_TEAM_ID.org.trustroots.signeur.mac" >/dev/null
 codesign -dvv "$app_path" 2>&1 | grep -F 'flags=0x10000(runtime)' >/dev/null
 
-ditto "$app_path" "$stage_path/Signstr.app"
+ditto "$app_path" "$stage_path/Signeur.app"
 ln -s /Applications "$stage_path/Applications"
-hdiutil create -volname Signstr -srcfolder "$stage_path" -ov -format UDZO "$dmg_path"
+hdiutil create -volname Signeur -srcfolder "$stage_path" -ov -format UDZO "$dmg_path"
 codesign --force --timestamp --sign "$signing_identity" "$dmg_path"
 
 xcrun notarytool submit "$dmg_path" \

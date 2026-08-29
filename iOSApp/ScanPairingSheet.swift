@@ -1,6 +1,6 @@
 import SwiftUI
 import UIKit
-import SignstrCore
+import SigneurCore
 
 struct ScanPairingSheet: View {
     @ObservedObject var viewModel: PairingViewModel

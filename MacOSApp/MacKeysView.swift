@@ -1,5 +1,5 @@
 import AppKit
-import SignstrCore
+import SigneurCore
 import SwiftUI
 
 struct MacKeysView: View {

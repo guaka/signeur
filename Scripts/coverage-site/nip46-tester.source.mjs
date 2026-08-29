@@ -23,8 +23,8 @@ export function buildNostrConnectURI({
     clientPubkey,
     relays,
     secret,
-    name = "Signstr NIP-46 tester",
-    url = "https://guaka.github.io/signstr/",
+    name = "Signeur NIP-46 tester",
+    url = "https://guaka.github.io/signeur/",
     permissions = ["get_public_key", "ping"]
 }) {
     if (!/^[0-9a-f]{64}$/.test(clientPubkey)) {
@@ -60,10 +60,10 @@ export function parseNIP46Response(plaintext) {
     try {
         response = JSON.parse(plaintext);
     } catch {
-        throw new Error("Signstr returned a response that was not valid JSON.");
+        throw new Error("Signeur returned a response that was not valid JSON.");
     }
     if (!response || typeof response !== "object" || typeof response.id !== "string") {
-        throw new Error("Signstr returned a malformed NIP-46 response.");
+        throw new Error("Signeur returned a malformed NIP-46 response.");
     }
     if (response.error != null) {
         const validString = typeof response.error === "string";
@@ -71,11 +71,11 @@ export function parseNIP46Response(plaintext) {
             && Number.isInteger(response.error.code)
             && typeof response.error.message === "string";
         if (!validString && !validObject) {
-            throw new Error("Signstr returned a malformed error response.");
+            throw new Error("Signeur returned a malformed error response.");
         }
     }
     if (response.result != null && typeof response.result !== "string") {
-        throw new Error("Signstr returned a malformed result.");
+        throw new Error("Signeur returned a malformed result.");
     }
     return response;
 }
@@ -95,7 +95,7 @@ export function validateConnectResponse(response, expectedID, expectedSecret) {
 
 export function validateUserPubkey(value) {
     if (typeof value !== "string" || !/^[0-9a-f]{64}$/.test(value)) {
-        throw new Error("Signstr returned an invalid user public key.");
+        throw new Error("Signeur returned an invalid user public key.");
     }
     return value;
 }
@@ -137,12 +137,12 @@ export function createNIP46RequestEvent({
 
 export function friendlyError(error) {
     const message = error instanceof Error ? error.message : String(error || "Unknown error");
-    if (message === "userRejected") return "The request was declined in Signstr.";
+    if (message === "userRejected") return "The request was declined in Signeur.";
     if (message.includes("expected pairing secret")) {
         return "The response could not be authenticated. Reset the test and create a fresh pairing code.";
     }
     if (message.includes("timed out")) {
-        return "No response arrived in time. Keep this page open, check Signstr is online, then try again.";
+        return "No response arrived in time. Keep this page open, check Signeur is online, then try again.";
     }
     if (message.includes("relay") || message.includes("Relay")) {
         return "The page could not reach a Nostr relay. Check your connection or try again in a moment.";
@@ -358,9 +358,9 @@ export class NIP46BrowserSession {
         }
         const messages = {
             relay: "Connecting to relays",
-            approval: "Waiting for approval in Signstr",
+            approval: "Waiting for approval in Signeur",
             connected: "Pairing authenticated",
-            "public-key": "Approve the public-key request in Signstr",
+            "public-key": "Approve the public-key request in Signeur",
             success: "Connected securely"
         };
         if (messages[phase]) this.elements.statusText.textContent = messages[phase];

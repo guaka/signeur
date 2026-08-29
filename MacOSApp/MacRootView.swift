@@ -1,5 +1,5 @@
 import AppKit
-import SignstrCore
+import SigneurCore
 import SwiftUI
 
 private enum MacRootSection: String, CaseIterable, Identifiable {
@@ -50,7 +50,7 @@ struct MacRootView: View {
                         .accessibilityHidden(true)
 
                     VStack(alignment: .leading, spacing: 4) {
-                        Text("Signstr")
+                        Text("Signeur")
                             .font(.title2.bold())
                         Text("Nostr signer")
                             .font(.body.weight(.medium))
@@ -67,7 +67,7 @@ struct MacRootView: View {
                     }
                 }
             }
-            .navigationTitle("Signstr")
+            .navigationTitle("Signeur")
             .navigationSplitViewColumnWidth(min: 180, ideal: 210)
         } detail: {
             content
@@ -79,7 +79,7 @@ struct MacRootView: View {
                         Button(action: pasteConnectionLink) {
                             Label("Connect from Clipboard", systemImage: "doc.on.clipboard")
                         }
-                        .help("Paste a Nostr Connect or Signstr link")
+                        .help("Paste a Nostr Connect or Signeur link")
                     }
                 }
         }
@@ -149,7 +149,7 @@ struct MacRootView: View {
         case .keys:
             MacKeysView(viewModel: keysVM)
         case .help:
-            MacSignstrHelpView()
+            MacSigneurHelpView()
         }
     }
 
@@ -159,9 +159,9 @@ struct MacRootView: View {
     }
 }
 
-private struct MacSignstrHelpView: View {
+private struct MacSigneurHelpView: View {
     private let buildTime: String = {
-        guard let value = Bundle.main.object(forInfoDictionaryKey: "SignstrBuildTime") as? String,
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "SigneurBuildTime") as? String,
               !value.isEmpty,
               !value.hasPrefix("$(")
         else {
@@ -174,7 +174,7 @@ private struct MacSignstrHelpView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Group {
-                    Text("How to use Signstr")
+                    Text("How to use Signeur")
                         .font(.title2.bold())
                     Text("1. In Keys, create a key or import an nsec.\n2. In your Nostr app, choose Nostr Connect or remote signer, then paste its connection link.\n3. Approve only requests you expect.")
                 }
@@ -183,13 +183,13 @@ private struct MacSignstrHelpView: View {
                     Text("Nostr and your keys")
                         .font(.headline)
                     Text("Nostr is an open network where apps exchange messages through relays. Your npub is your public, shareable identity. Your nsec is the private key that controls it: never share it or paste it into a website.")
-                    Text("Signstr keeps your private key on this device and uses it only when you approve a request.")
+                    Text("Signeur keeps your private key on this device and uses it only when you approve a request.")
                 }
 
                 Divider()
 
-                Link("Open the Signstr guide and NIP-46 tester", destination: URL(string: "https://guaka.github.io/signstr/")!)
-                Link("View Signstr on GitHub", destination: URL(string: "https://github.com/guaka/signstr")!)
+                Link("Open the Signeur guide and NIP-46 tester", destination: URL(string: "https://guaka.github.io/signeur/")!)
+                Link("View Signeur on GitHub", destination: URL(string: "https://github.com/guaka/signeur")!)
                 Text("Build time: \(buildTime)")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -197,6 +197,6 @@ private struct MacSignstrHelpView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(24)
         }
-        .accessibilityIdentifier("signstr-help")
+        .accessibilityIdentifier("signeur-help")
     }
 }

@@ -1,10 +1,10 @@
-# Signstr 0.1.0 next steps
+# Signeur 0.1.0 next steps
 
 Follow these phases in order. Do not create `v0.1.0` until phases 1–3 are complete; pushing the tag starts the macOS publishing workflow.
 
 ## 1. Return the repository to green
 
-Owner: Signstr maintainers.
+Owner: Signeur maintainers.
 
 1. Finish or reconcile the current security and test-fixture changes.
 2. Run `swift test` and confirm every test passes from a clean build.
@@ -17,18 +17,18 @@ Stop here if tests or either unsigned build fails. The macOS release workflow re
 
 Owner: Trustroots Foundation Apple Account Holder or Admin.
 
-1. Add the maintainer's Apple Account to the Trustroots Foundation Apple Developer team and App Store Connect. Grant the Developer role and enough App Manager access to manage the Signstr record and TestFlight group.
+1. Add the maintainer's Apple Account to the Trustroots Foundation Apple Developer team and App Store Connect. Grant the Developer role and enough App Manager access to manage the Signeur record and TestFlight group.
 2. Register these explicit App IDs:
 
-   - `org.trustroots.signstr`
-   - `org.trustroots.signstr.mac`
+   - `org.trustroots.signeur`
+   - `org.trustroots.signeur.mac`
 
-3. Create the iOS App Store Connect record using English (U.S.) and SKU `signstr-ios`.
-4. Create a Developer ID Application certificate and a Developer ID provisioning profile for the Mac identifier. The profile must authorize the Keychain group `<Foundation Team ID>.org.trustroots.signstr.mac`.
+3. Create the iOS App Store Connect record using English (U.S.) and SKU `signeur-ios`.
+4. Create a Developer ID Application certificate and a Developer ID provisioning profile for the Mac identifier. The profile must authorize the Keychain group `<Foundation Team ID>.org.trustroots.signeur.mac`.
 5. Create an App Store Connect API key that can submit software to Apple's notarization service.
 6. Supply the Foundation team ID, support contact, and public privacy-policy URL.
 7. Accept all outstanding Apple Developer and App Store Connect agreements.
-8. Complete Apple's encryption questionnaire for NIP-04, NIP-44, and secp256k1. Record Apple's determination; do not assume Signstr is exempt.
+8. Complete Apple's encryption questionnaire for NIP-04, NIP-44, and secp256k1. Record Apple's determination; do not assume Signeur is exempt.
 
 Keep certificates and private keys out of chat, issues, commits, and release artifacts.
 
@@ -36,7 +36,7 @@ Keep certificates and private keys out of chat, issues, commits, and release art
 
 Owner: repository administrator.
 
-The `macos-release` environment has already been created for `guaka/signstr`. It accepts only `v*` tags and requires approval from `guaka`. Add every secret listed in [README.md](README.md#macos-github-environment), then check that none is empty.
+The `macos-release` environment has already been created for `guaka/signeur`. It accepts only `v*` tags and requires approval from `guaka`. Add every secret listed in [README.md](README.md#macos-github-environment), then check that none is empty.
 
 Do not put the same values in repository variables or plaintext workflow files. The environment should remain protected after the release.
 
@@ -66,7 +66,7 @@ Owner: maintainer and Foundation release approver.
 2. Create and push the immutable tag:
 
    ```sh
-   git tag -a v0.1.0 -m "Signstr 0.1.0"
+   git tag -a v0.1.0 -m "Signeur 0.1.0"
    git push origin v0.1.0
    ```
 
@@ -74,8 +74,8 @@ Owner: maintainer and Foundation release approver.
 4. Wait for the workflow to test, build, sign, notarize, staple, validate, checksum, and publish both files.
 5. Confirm the GitHub entry is a prerelease containing exactly:
 
-   - `Signstr-0.1.0-macOS.dmg`
-   - `Signstr-0.1.0-macOS.dmg.sha256`
+   - `Signeur-0.1.0-macOS.dmg`
+   - `Signeur-0.1.0-macOS.dmg.sha256`
 
 6. Complete [macOS/acceptance-checklist.md](macOS/acceptance-checklist.md) on a clean non-development Mac.
 

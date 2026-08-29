@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct SignstrMacApp: App {
+struct SigneurMacApp: App {
     var body: some Scene {
         WindowGroup {
             MacRootView()

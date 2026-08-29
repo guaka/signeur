@@ -1,6 +1,6 @@
 import P256K
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 /// Plays the part of a remote app: pairs, sends an encrypted request over a relay,
 /// and reads the reply back off that relay.
@@ -265,7 +265,7 @@ final class NIP46EndToEndTests: XCTestCase {
         await harness.sockets.socket(for: relay).resetFrames()
     }
 
-    /// Decrypts the newest event Signstr published, the way the app would.
+    /// Decrypts the newest event Signeur published, the way the app would.
     private func lastReply(from harness: Harness) async throws -> [String: Any]? {
         let frames = await harness.sockets.socket(for: relay).frames()
         guard

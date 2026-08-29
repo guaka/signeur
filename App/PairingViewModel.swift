@@ -100,15 +100,15 @@ public final class PairingViewModel: ObservableObject {
         if let signerError = error as? SignerURLParseError {
             switch signerError {
             case .invalidScheme:
-                return "This is not a signing request Signstr understands."
+                return "This is not a signing request Signeur understands."
             case let .unsupportedType(type):
-                return "This app asked for \"\(type)\", which Signstr cannot do yet."
+                return "This app asked for \"\(type)\", which Signeur cannot do yet."
             case .missingPayload:
                 return "This signing request has nothing in it to sign."
             case .missingPeerPubkey:
                 return "This request does not say whose key to encrypt to."
             case let .unsupportedCompression(kind):
-                return "This request is \(kind)-compressed, which Signstr cannot read yet."
+                return "This request is \(kind)-compressed, which Signeur cannot read yet."
             case .invalidCallback:
                 return "This request contains an unsafe callback address."
             case .payloadTooLarge:
@@ -128,7 +128,7 @@ public final class PairingViewModel: ObservableObject {
         case .invalidClientPubkey:
             return "This link contains an invalid app public key."
         case .invalidRelay:
-            return "This link uses an insecure or invalid relay. Signstr requires WSS except for local development."
+            return "This link uses an insecure or invalid relay. Signeur requires WSS except for local development."
         case .invalidSecret:
             return "This link contains an invalid or oversized pairing secret."
         case .invalidMetadata:

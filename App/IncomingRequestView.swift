@@ -55,7 +55,7 @@ public struct IncomingRequestView: View {
                 .foregroundStyle(.secondary)
             Text("No pending requests")
                 .font(.title2.bold())
-            Text("Signstr is ready. Approve requests here when an app asks you to sign.")
+            Text("Signeur is ready. Approve requests here when an app asks you to sign.")
                 .font(.body)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(idleTextAlignment)
@@ -124,14 +124,14 @@ public struct IncomingRequestView: View {
 
                     if request.method == .nip04Encrypt || request.method == .nip04Decrypt {
                         Label(
-                            "Legacy NIP-04 encryption is not authenticated. Review this request carefully; Signstr will never approve it automatically.",
+                            "Legacy NIP-04 encryption is not authenticated. Review this request carefully; Signeur will never approve it automatically.",
                             systemImage: "exclamationmark.triangle.fill"
                         )
                         .foregroundStyle(.orange)
                         .font(.callout)
                     } else if request.origin == .localSigner {
                         Label(
-                            "This local app identity cannot be verified cryptographically, so Signstr will always ask before acting.",
+                            "This local app identity cannot be verified cryptographically, so Signeur will always ask before acting.",
                             systemImage: "exclamationmark.shield.fill"
                         )
                         .foregroundStyle(.secondary)
@@ -218,7 +218,7 @@ public struct IncomingRequestView: View {
                 .font(.headline)
 
             Label {
-                Text("Connect to Signstr using **\(viewModel.selectedIdentityName ?? "your active key")**")
+                Text("Connect to Signeur using **\(viewModel.selectedIdentityName ?? "your active key")**")
             } icon: {
                 Image(systemName: "key.fill")
             }
@@ -235,7 +235,7 @@ public struct IncomingRequestView: View {
                     ForEach(request.requestedPermissions, id: \.self) { permission in
                         Label(permissionLabel(permission), systemImage: permissionIcon(permission))
                     }
-                    Text("These are the capabilities the app says it may request. Signstr will still ask before sensitive actions unless you later choose to remember one.")
+                    Text("These are the capabilities the app says it may request. Signeur will still ask before sensitive actions unless you later choose to remember one.")
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                 }

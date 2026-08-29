@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 private final class FakeRelayTask: RelayWebSocketTask, @unchecked Sendable {
     private(set) var receivedMessages: [String] = []
@@ -192,6 +192,23 @@ final class URLSessionRelaySocketTests: XCTestCase {
         let received = try await socket.receive()
 
         XCTAssertEqual(received, "signed-binary")
+    }
+
+    func testSendAfterCloseThrowsNotConnected() async throws {
+        let task = FakeRelayTask()
+        let socket = URLSessionRelaySocket(
+            url: URL(string: "wss://example.com/relay")!,
+            taskFactory: FakeRelayTaskFactory(task: task)
+        )
+        try await socket.connect()
+        await socket.close()
+
+        do {
+            try await socket.send("late")
+            XCTFail("sending without an active connection should fail")
+        } catch {
+            XCTAssertEqual(error as? RelaySocketError, .notConnected)
+        }
     }
 
     func testClosingConnectedTaskCancelsReceive() async throws {

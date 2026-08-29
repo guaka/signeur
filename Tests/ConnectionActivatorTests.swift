@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class ConnectionActivatorTests: XCTestCase {
     func testRegisterStoresPairingRequestsWithExpectedMetadata() async throws {
@@ -102,5 +102,34 @@ final class ConnectionActivatorTests: XCTestCase {
 
         let connection = await connections.connection(forAppPubkey: appPubkey)
         XCTAssertEqual(connection?.isApproved, true)
+    }
+
+    func testActivateDoesNothingWhenConnectionDoesNotExist() async throws {
+        let connections = ConnectionStore(defaults: makeEphemeralDefaults())
+        let activator = ConnectionActivator(connections: connections, listener: nil)
+
+        await activator.activate(appPubkey: "does-not-exist")
+
+        let connection = await connections.connection(forAppPubkey: "does-not-exist")
+        XCTAssertNil(connection)
+    }
+
+    func testForgettingConnectionRemovesItFromStore() async throws {
+        let appPubkey = try NostrKeyDeriver.derivePublicKeyHex(fromNsec: TestVectors.otherNsec)
+        let connections = ConnectionStore(defaults: makeEphemeralDefaults())
+        await connections.upsert(
+            AppConnection(
+                appPubkey: appPubkey,
+                appName: "Amethyst",
+                relays: ["wss://relay.one"],
+                identityID: "id-1"
+            )
+        )
+        let activator = ConnectionActivator(connections: connections, listener: nil)
+
+        await activator.forget(appPubkey: appPubkey)
+
+        let connection = await connections.connection(forAppPubkey: appPubkey)
+        XCTAssertNil(connection)
     }
 }

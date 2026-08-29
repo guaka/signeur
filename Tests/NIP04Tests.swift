@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class NIP04Tests: XCTestCase {
     private let sec1 = TestVectors.secretHex

@@ -2,7 +2,7 @@ import Foundation
 import LocalAuthentication
 import Security
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class NsecUnlockCacheTests: XCTestCase {
     func testProtectedStorageFailureHasAnActionableMessage() {
@@ -15,7 +15,7 @@ final class NsecUnlockCacheTests: XCTestCase {
     func testMissingEntitlementHasAnActionableMessage() {
         XCTAssertEqual(
             NsecStoreError.unexpectedStatus(errSecMissingEntitlement).errorDescription,
-            "This build of Signstr is missing Keychain permission. (error -34018)"
+            "This build of Signeur is missing Keychain permission. (error -34018)"
         )
     }
 

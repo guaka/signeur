@@ -1,5 +1,5 @@
 import SwiftUI
-import SignstrCore
+import SigneurCore
 
 enum RootSection: String, CaseIterable, Identifiable {
     case requests
@@ -76,11 +76,11 @@ struct RootView: View {
                                 .frame(width: 30, height: 30)
                                 .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                         }
-                        Text("Signstr")
+                        Text("Signeur")
                             .font(.headline)
                     }
                     .accessibilityElement(children: .combine)
-                    .accessibilityLabel("Signstr")
+                    .accessibilityLabel("Signeur")
                 }
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -175,7 +175,7 @@ struct RootView: View {
         case .keys:
             KeysView(viewModel: keysVM)
         case .help:
-            SignstrHelpView()
+            SigneurHelpView()
         }
     }
 
@@ -185,9 +185,9 @@ struct RootView: View {
     }
 }
 
-private struct SignstrHelpView: View {
+private struct SigneurHelpView: View {
     private let buildTime: String = {
-        guard let value = Bundle.main.object(forInfoDictionaryKey: "SignstrBuildTime") as? String,
+        guard let value = Bundle.main.object(forInfoDictionaryKey: "SigneurBuildTime") as? String,
               !value.isEmpty,
               !value.hasPrefix("$(")
         else {
@@ -200,7 +200,7 @@ private struct SignstrHelpView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 Group {
-                    Text("How to use Signstr")
+                    Text("How to use Signeur")
                         .font(.title2.bold())
                     Text("1. In Keys, create a key or import an nsec.\n2. In your Nostr app, choose Nostr Connect or remote signer, then scan its code or paste its link.\n3. Approve only requests you expect.")
                 }
@@ -209,13 +209,13 @@ private struct SignstrHelpView: View {
                     Text("Nostr and your keys")
                         .font(.headline)
                     Text("Nostr is an open network where apps exchange messages through relays. Your npub is your public, shareable identity. Your nsec is the private key that controls it: never share it or paste it into a website.")
-                    Text("Signstr keeps your private key on this device and uses it only when you approve a request.")
+                    Text("Signeur keeps your private key on this device and uses it only when you approve a request.")
                 }
 
                 Divider()
 
-                Link("Open the Signstr guide and NIP-46 tester", destination: URL(string: "https://guaka.github.io/signstr/")!)
-                Link("View Signstr on GitHub", destination: URL(string: "https://github.com/guaka/signstr")!)
+                Link("Open the Signeur guide and NIP-46 tester", destination: URL(string: "https://guaka.github.io/signeur/")!)
+                Link("View Signeur on GitHub", destination: URL(string: "https://github.com/guaka/signeur")!)
                 Text("Build time: \(buildTime)")
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -223,6 +223,6 @@ private struct SignstrHelpView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding()
         }
-        .accessibilityIdentifier("signstr-help")
+        .accessibilityIdentifier("signeur-help")
     }
 }

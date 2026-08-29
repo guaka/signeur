@@ -3,9 +3,18 @@
 set -euo pipefail
 
 readonly output_dir="${1:-coverage-report}"
-readonly repository_root="$(git rev-parse --show-toplevel)"
+readonly script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+readonly repository_root="$(cd "${script_dir}/.." && pwd)"
 readonly coverage_assets="${repository_root}/Scripts/coverage-site"
-readonly coverage_json="$(find "${repository_root}/.build" -path '*/codecov/signstr.json' -type f -print -quit)"
+readonly coverage_json="$(
+    if [[ -d "${repository_root}/.build" ]]; then
+        find "${repository_root}/.build" -path '*/codecov/signeur.json' -type f -print -quit
+    elif [[ -d "${repository_root}/.build-coverage-full" ]]; then
+        find "${repository_root}/.build-coverage-full" -path '*/codecov/signeur.json' -type f -print -quit
+    else
+        echo ""
+    fi
+)"
 
 if [[ -z "${coverage_json}" ]]; then
     echo "Coverage JSON not found. Run 'swift test --enable-code-coverage' first." >&2
@@ -15,7 +24,7 @@ fi
 readonly codecov_dir="$(dirname "${coverage_json}")"
 readonly build_dir="$(dirname "${codecov_dir}")"
 readonly profile_data="${codecov_dir}/default.profdata"
-readonly test_binary="${build_dir}/signstrPackageTests.xctest/Contents/MacOS/signstrPackageTests"
+readonly test_binary="${build_dir}/signeurPackageTests.xctest/Contents/MacOS/signeurPackageTests"
 
 if [[ ! -f "${profile_data}" || ! -x "${test_binary}" ]]; then
     echo "Coverage profile or instrumented test binary is missing." >&2
@@ -29,12 +38,12 @@ xcrun llvm-cov show "${test_binary}" \
     -instr-profile="${profile_data}" \
     -format=html \
     -output-dir="${output_dir}" \
-    -ignore-filename-regex='(/Tests/|/.build/)' \
+    -ignore-filename-regex='(/Tests/|/.build/|/.build-coverage-full/)' \
     -show-instantiations=false \
     -show-line-counts-or-regions
 
 cp "${repository_root}/iOSApp/Assets.xcassets/AppIcon.appiconset/Icon-App-60x60@3x.png" \
-    "${output_dir}/signstr-icon.png"
+    "${output_dir}/signeur-icon.png"
 cp "${coverage_assets}/coverage.css" "${output_dir}/coverage.css"
 "${coverage_assets}/node_modules/.bin/esbuild" \
     "${coverage_assets}/nip46-tester.source.mjs" \
@@ -70,6 +79,7 @@ jq -r --arg root "${repository_root}/" '
         | select(.filename | startswith($root))
         | . + {relative: (.filename | ltrimstr($root))}
         | select(.relative | startswith(".build/") | not)
+        | select(.relative | startswith(".build-") | not)
         | select(.relative | startswith("Tests/") | not)
     ] as $files
     | (metric_sum($files; "lines")) as $lines
@@ -78,7 +88,7 @@ jq -r --arg root "${repository_root}/" '
     | [
         "## Code coverage",
         "",
-        "SignstrCore sources only; tests, generated files, and dependencies are excluded.",
+        "SigneurCore sources only; tests, generated files, and dependencies are excluded.",
         "",
         "| Metric | Covered | Total | Coverage |",
         "| --- | ---: | ---: | ---: |",

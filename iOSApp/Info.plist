@@ -18,26 +18,26 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
-	<key>SignstrBuildTime</key>
-	<string>$(SIGNSTR_BUILD_TIME)</string>
+	<key>SigneurBuildTime</key>
+	<string>$(SIEGNUR_BUILD_TIME)</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSCameraUsageDescription</key>
-	<string>Signstr uses the camera to scan Nostr Connect pairing codes shown by apps.</string>
+	<string>Signeur uses the camera to scan Nostr Connect pairing codes shown by apps.</string>
 	<key>NSFaceIDUsageDescription</key>
-	<string>Signstr uses Face ID to unlock your Nostr key for signing and decryption.</string>
+	<string>Signeur uses Face ID to unlock your Nostr key for signing and decryption.</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>org.trustroots.signstr.nostrconnect</string>
+			<string>org.trustroots.signeur.nostrconnect</string>
 			<key>CFBundleTypeRole</key>
 			<string>Viewer</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
 				<string>nostrconnect</string>
 				<string>nostrsigner</string>
-				<string>signstr</string>
+				<string>signeur</string>
 			</array>
 		</dict>
 	</array>
