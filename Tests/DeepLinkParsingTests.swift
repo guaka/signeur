@@ -9,13 +9,11 @@ final class DeepLinkParsingTests: XCTestCase {
         try XCTUnwrap(URL(string: string))
     }
 
-    func testLegacyPairingWrapperRemainsSupported() throws {
+    func testUnsupportedPairingWrapperIsRejected() throws {
         let link = "nostrconnect://" + String(repeating: "a", count: 64) + "?relay=wss://relay.example.com&secret=test-secret"
         let wrapped = link.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
-        XCTAssertEqual(
-            try PairingPayloadParser().parse("signstr://pair?uri=\(wrapped)"),
-            try PairingPayloadParser().parse("signeur://pair?uri=\(wrapped)")
-        )
+        XCTAssertThrowsError(try PairingPayloadParser().parse("unsupported-app://pair?uri=\(wrapped)"))
+        XCTAssertNoThrow(try PairingPayloadParser().parse("signeur://pair?uri=\(wrapped)"))
     }
 
     func testParsesFullConnectLink() throws {

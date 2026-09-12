@@ -25,7 +25,7 @@ xcodebuild archive \
   SIGNEUR_BUILD_TIME="$build_time"
 
 actual_bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :ApplicationProperties:CFBundleIdentifier' "$archive_path/Info.plist")"
-if [[ "$actual_bundle_id" != "org.trustroots.signstr" ]]; then
+if [[ "$actual_bundle_id" != "org.trustroots.signeur" ]]; then
   echo "Unexpected archived bundle identifier: $actual_bundle_id" >&2
   exit 1
 fi

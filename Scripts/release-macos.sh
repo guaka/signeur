@@ -53,7 +53,7 @@ bundle_id="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$info_plist
 bundle_version="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$info_plist")"
 build_number="$(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' "$info_plist")"
 
-[[ "$bundle_id" == "org.trustroots.signstr.mac" ]] || { echo "Unexpected bundle identifier: $bundle_id" >&2; exit 1; }
+[[ "$bundle_id" == "org.trustroots.signeur.mac" ]] || { echo "Unexpected bundle identifier: $bundle_id" >&2; exit 1; }
 [[ "$bundle_version" == "$version" ]] || { echo "Unexpected app version: $bundle_version" >&2; exit 1; }
 [[ "$build_number" == "$BUILD_NUMBER" ]] || { echo "Unexpected build number: $build_number" >&2; exit 1; }
 
@@ -65,7 +65,7 @@ architectures="$(lipo -archs "$binary_path")"
 
 codesign --verify --deep --strict --verbose=2 "$app_path"
 codesign -d --entitlements :- "$app_path" >"$entitlements_path"
-/usr/libexec/PlistBuddy -c 'Print :keychain-access-groups' "$entitlements_path" | grep -F "$APPLE_TEAM_ID.org.trustroots.signstr.mac" >/dev/null
+/usr/libexec/PlistBuddy -c 'Print :keychain-access-groups' "$entitlements_path" | grep -F "$APPLE_TEAM_ID.org.trustroots.signeur.mac" >/dev/null
 codesign -dvv "$app_path" 2>&1 | grep -F 'flags=0x10000(runtime)' >/dev/null
 
 ditto "$app_path" "$stage_path/Signeur.app"

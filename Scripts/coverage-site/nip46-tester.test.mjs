@@ -41,7 +41,9 @@ function browserElements() {
         qr: { width: 272, height: 272, getContext: () => ({ clearRect() {} }) },
         countdown: { textContent: "—" },
         statusText: { textContent: "" },
+        statusNpub: { textContent: "", hidden: true },
         statusDot: { className: "" },
+        pairingContent: { hidden: false },
         success: { hidden: true },
         npub: { textContent: "" },
         hexPubkey: { textContent: "" },
@@ -187,9 +189,34 @@ test("renders browser progress and a connected npub", () => {
     assert.equal(elements.success.hidden, false);
     assert.equal(elements.error.hidden, true);
     assert.match(elements.npub.textContent, /^npub1/);
+    assert.equal(elements.statusNpub.textContent, elements.npub.textContent);
+    assert.equal(elements.statusNpub.hidden, false);
+    assert.equal(elements.statusText.textContent, "Connected securely");
+    assert.equal(elements.pairingContent.hidden, true);
     assert.equal(elements.hexPubkey.textContent, userPubkey);
     assert.equal(elements.permissions.textContent, "Read public key · Ping");
     assert.equal(elements.statusDot.className, "tester-status-dot success");
+});
+
+test("reset and failure clear the connected identity display", () => {
+    for (const action of ["reset", "fail"]) {
+        const elements = browserElements();
+        const session = new NIP46BrowserSession(elements);
+        session.succeed(userPubkey);
+        assert.equal(elements.pairingContent.hidden, true);
+        assert.notEqual(elements.statusNpub.textContent, "");
+        if (action === "reset") {
+            session.reset();
+            assert.equal(elements.pairingContent.hidden, false);
+            assert.equal(elements.panel.hidden, true);
+        } else {
+            session.fail(new Error("All relay connections closed."));
+            assert.equal(elements.error.hidden, false);
+        }
+        assert.equal(elements.statusNpub.textContent, "");
+        assert.equal(elements.statusNpub.hidden, true);
+        assert.equal(elements.success.hidden, true);
+    }
 });
 
 test("renders actionable browser errors and resets sensitive session state", () => {
@@ -211,6 +238,7 @@ test("renders actionable browser errors and resets sensitive session state", () 
     assert.equal(elements.errorCode.textContent, "WEB-1001");
     assert.match(session.lastError, /WEB-1001/);
     assert.equal(elements.statusText.textContent, "Test stopped · WEB-1001");
+    assert.equal(elements.statusNpub.hidden, true);
     assert.equal(elements.statusDot.className, "tester-status-dot error");
 
     session.reset();
@@ -222,6 +250,7 @@ test("renders actionable browser errors and resets sensitive session state", () 
     assert.equal(session.lastError, null);
     assert.equal(elements.permissions.textContent, "");
     assert.equal(elements.panel.hidden, true);
+    assert.equal(elements.pairingContent.hidden, false);
     assert.equal(elements.intro.hidden, false);
 });
 

@@ -387,9 +387,13 @@ export class NIP46BrowserSession {
         this.clearCountdown();
         this.phase = "success";
         this.setPhase("success");
-        this.elements.npub.textContent = nip19.npubEncode(userPubkey);
+        const npub = nip19.npubEncode(userPubkey);
+        this.elements.npub.textContent = npub;
+        this.elements.statusNpub.textContent = npub;
+        this.elements.statusNpub.hidden = false;
         this.elements.hexPubkey.textContent = userPubkey;
         this.elements.permissions.textContent = this.permissions.map(permissionDisplayName).join(" · ");
+        this.elements.pairingContent.hidden = true;
         this.elements.success.hidden = false;
         this.elements.error.hidden = true;
         this.elements.statusText.textContent = "Connected securely";
@@ -407,6 +411,8 @@ export class NIP46BrowserSession {
         this.elements.errorTitle.textContent = detail.title;
         this.elements.errorText.textContent = detail.message;
         this.elements.errorCode.textContent = detail.code;
+        this.elements.statusNpub.textContent = "";
+        this.elements.statusNpub.hidden = true;
         this.elements.error.hidden = false;
         this.elements.success.hidden = true;
         this.elements.statusText.textContent = `Test stopped · ${detail.code}`;
@@ -492,7 +498,10 @@ export class NIP46BrowserSession {
         this.uri = null;
         if (!this.elements) return;
         this.elements.panel.hidden = true;
+        this.elements.pairingContent.hidden = false;
         this.elements.success.hidden = true;
+        this.elements.statusNpub.textContent = "";
+        this.elements.statusNpub.hidden = true;
         this.elements.permissions.textContent = "";
         this.elements.error.hidden = true;
         this.elements.intro.hidden = !showIntro;
@@ -522,7 +531,9 @@ function collectElements() {
         relayList: document.querySelector("#nip46-relays"),
         countdown: document.querySelector("#nip46-countdown"),
         statusText: document.querySelector("#nip46-status-text"),
+        statusNpub: document.querySelector("#nip46-status-npub"),
         statusDot: document.querySelector("#nip46-status-dot"),
+        pairingContent: document.querySelector("#nip46-pairing-content"),
         success: document.querySelector("#nip46-success"),
         npub: document.querySelector("#nip46-npub"),
         hexPubkey: document.querySelector("#nip46-hex-pubkey"),

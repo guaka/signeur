@@ -41,7 +41,8 @@ final class SigneurMacNIP46E2ETests: XCTestCase {
         approve("Approve", in: signeur)
 
         safari.activate()
-        XCTAssertTrue(webArea.staticTexts[expectedNpub].waitForExistence(timeout: 45))
+        XCTAssertTrue(webArea.staticTexts[expectedNpub].firstMatch.waitForExistence(timeout: 45))
+        assertConnectedResult(in: webArea)
         if webArea.staticTexts["Acquired permissions"].waitForExistence(timeout: 2) {
             XCTAssertTrue(webArea.staticTexts["Read public key · Ping"].exists)
         }
@@ -70,5 +71,12 @@ final class SigneurMacNIP46E2ETests: XCTestCase {
         }
         XCTAssertTrue(element.isHittable)
         element.click()
+    }
+
+    private func assertConnectedResult(in webArea: XCUIElement) {
+        XCTAssertTrue(webArea.staticTexts["Connected securely"].exists)
+        XCTAssertFalse(webArea.buttons["Copy link"].exists)
+        XCTAssertFalse(webArea.links["Open in Signeur"].exists)
+        XCTAssertFalse(webArea.links["Open raw nostrconnect:// link"].exists)
     }
 }

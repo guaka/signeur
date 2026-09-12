@@ -113,6 +113,8 @@ public actor NIP46SessionManager {
         guard session.stateMachine.state == .requestReceived else {
             return session.stateMachine.state
         }
+        // An existing connection keeps its identity even if the active key or UI selection changes.
+        let identityID = session.request.identityID ?? identityID
         guard SecurityPolicy.validateIdentifier(identityID) else {
             finishSession(session.id)
             await recordAudit(for: session.request, outcome: .unauthorized, approvalMode: approvalMode)

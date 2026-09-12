@@ -4,13 +4,13 @@ import XCTest
 final class PermissionRuleStoreTests: XCTestCase {
     func testCorruptRuleStorageFailsClosedForApprovalAndRevocation() async {
         let defaults = makeEphemeralDefaults()
-        defaults.set(Data("not json".utf8), forKey: "signstr.permission.rules")
+        defaults.set(Data("not json".utf8), forKey: "signeur.permission.rules")
         let store = PermissionRuleStore(defaults: defaults)
 
         let approved = await store.shouldAutoApprove(request: makeTestRequest())
         XCTAssertFalse(approved)
         await store.revoke(appPubkey: TestVectors.pubkeyHex)
-        XCTAssertEqual(defaults.data(forKey: "signstr.permission.rules"), Data("not json".utf8))
+        XCTAssertEqual(defaults.data(forKey: "signeur.permission.rules"), Data("not json".utf8))
     }
 
     func testNothingIsAutoApprovedByDefault() async {

@@ -67,7 +67,7 @@ struct DefaultNsecKeychainBackend: NsecKeychainBackend {
 
 public actor NsecKeychainStore: NsecStoring {
     public static let defaultUnlockDuration: TimeInterval = 5 * 60
-    private let service = "com.k.signstr.nsec"
+    private let service = "com.k.signeur.nsec"
     private let keychain: NsecKeychainBackend
     private var unlockCache: NsecUnlockCache
 

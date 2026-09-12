@@ -126,7 +126,7 @@ final class PermissionHardeningTests: XCTestCase {
             PermissionRule(appPubkey: "nostrsigner:damus", method: NIP46Method.signEvent.rawValue),
             PermissionRule(appPubkey: TestVectors.pubkeyHex, method: NIP46Method.ping.rawValue)
         ]
-        defaults.set(try JSONEncoder().encode(rules), forKey: "signstr.permission.rules")
+        defaults.set(try JSONEncoder().encode(rules), forKey: "signeur.permission.rules")
 
         let migrated = try await PermissionRuleStore(defaults: defaults).listRules()
 
@@ -174,10 +174,10 @@ final class ConnectionMigrationSecurityTests: XCTestCase {
 
     func testLegacyConnectionMigrationStripsSecretsAndUnsafeRelays() async throws {
         let defaults = makeEphemeralDefaults()
-        defaults.set(try JSONEncoder().encode([LegacyConnection(appPubkey: TestVectors.otherPubkeyHex)]), forKey: "signstr.connections")
+        defaults.set(try JSONEncoder().encode([LegacyConnection(appPubkey: TestVectors.otherPubkeyHex)]), forKey: "signeur.connections")
 
         let migrated = await ConnectionStore(defaults: defaults).all()
-        let rewritten = try XCTUnwrap(defaults.data(forKey: "signstr.connections"))
+        let rewritten = try XCTUnwrap(defaults.data(forKey: "signeur.connections"))
         let rewrittenText = String(decoding: rewritten, as: UTF8.self)
 
         XCTAssertEqual(migrated.first?.relays, ["wss://relay.example"])

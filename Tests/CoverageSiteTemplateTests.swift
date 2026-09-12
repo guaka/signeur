@@ -71,12 +71,16 @@ final class CoverageSiteTemplateTests: XCTestCase {
 
     func testSuccessfulNIP46PanelShowsIdentityAndAcquiredPermissions() throws {
         let template = try String(contentsOf: repositoryFile("Scripts/coverage-site/index.jq"))
+        let styles = try String(contentsOf: repositoryFile("Scripts/coverage-site/coverage.css"))
 
         XCTAssertTrue(template.contains("id=\\\"nip46-npub\\\""))
         XCTAssertTrue(template.contains("Acquired permissions"))
+        XCTAssertTrue(template.contains("id=\\\"nip46-status-npub\\\""))
+        XCTAssertTrue(template.contains("id=\\\"nip46-pairing-content\\\""))
         XCTAssertTrue(template.contains("id=\\\"nip46-permissions\\\""))
         XCTAssertTrue(template.contains("id=\\\"nip46-copy-error\\\""))
         XCTAssertTrue(template.contains("id=\\\"nip46-error-code\\\""))
+        XCTAssertTrue(styles.contains(".tester-grid[hidden] { display: none; }"))
     }
 
     func testCoveragePageShowsLatestPlatformE2EResults() throws {
