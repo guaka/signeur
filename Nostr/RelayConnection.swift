@@ -11,17 +11,26 @@ public actor RelayConnection {
 
     private let socket: RelaySocketing
     private let publishTimeout: TimeInterval
+    private let reconnectDelay: TimeInterval
 
     private var readerTask: Task<Void, Never>?
-    private var pendingPublishes: [String: CheckedContinuation<Void, Error>] = [:]
+    private var recoveryTask: Task<Void, Never>?
+    private var reconnectTask: Task<Void, Error>?
+    private struct PendingPublish {
+        let token: UUID
+        var continuations: [CheckedContinuation<Void, Error>]
+        var timeout: Task<Void, Never>?
+    }
+    private var pendingPublishes: [String: PendingPublish] = [:]
     private var eventHandler: (@Sendable (NostrEvent) async -> Void)?
     private var subscriptions: [String: (recipientPubkey: String, since: Int?)] = [:]
     private var isStopped = false
 
-    public init(url: URL, socket: RelaySocketing, publishTimeout: TimeInterval = 10) {
+    public init(url: URL, socket: RelaySocketing, publishTimeout: TimeInterval = 10, reconnectDelay: TimeInterval = 1) {
         self.url = url
         self.socket = socket
         self.publishTimeout = publishTimeout
+        self.reconnectDelay = max(0.01, reconnectDelay)
     }
 
     public func start(onEvent handler: @escaping @Sendable (NostrEvent) async -> Void) async throws {
@@ -59,61 +68,101 @@ public actor RelayConnection {
     }
 
     private func publishOnce(_ event: NostrEvent) async throws {
-        try await socket.connect()
-        startReaderIfNeeded()
-        try await socket.send(try RelayRequest.event(event))
-        try await waitForAcknowledgement(of: event.id)
+        guard !isStopped else { throw RelaySocketError.closed }
+        if let reconnectTask {
+            try await reconnectTask.value
+        } else if readerTask == nil {
+            try await reconnect()
+        }
+        let frame = try RelayRequest.event(event)
+        // Register synchronously before send can yield to the reader's OK handler.
+        try await withCheckedThrowingContinuation { continuation in
+            if pendingPublishes[event.id] != nil {
+                pendingPublishes[event.id]?.continuations.append(continuation)
+            } else {
+                let pending = PendingPublish(token: UUID(), continuations: [continuation])
+                pendingPublishes[event.id] = pending
+                Task { await self.sendAndTimeOut(frame, eventID: event.id, token: pending.token) }
+            }
+        }
     }
 
-    /// iOS can close a WebSocket while Signstr is suspended behind Safari. Reopen it
+    /// iOS can close a WebSocket while Signeur is suspended behind Safari. Reopen it
     /// once and restore subscriptions before retrying the response publish.
     private func reconnect() async throws {
+        if let reconnectTask { return try await reconnectTask.value }
+        guard !isStopped else { throw RelaySocketError.closed }
+        let task = Task { try await self.reopenConnection() }
+        reconnectTask = task
+        defer { reconnectTask = nil }
+        try await task.value
+    }
+
+    private func reopenConnection() async throws {
         let previousReader = readerTask
         previousReader?.cancel()
         readerTask = nil
+        failAllPending(with: RelaySocketError.closed)
         await socket.close()
         await previousReader?.value
-        try await socket.connect()
-        startReaderIfNeeded()
-        for (subscriptionID, subscription) in subscriptions {
-            try await socket.send(
-                try RelayRequest.subscribeToNIP46(
-                    subscriptionID: subscriptionID,
-                    recipientPubkey: subscription.recipientPubkey,
-                    since: subscription.since
+        try Task.checkCancellation()
+        do {
+            try await socket.connect()
+            try Task.checkCancellation()
+            for (subscriptionID, subscription) in subscriptions {
+                try await socket.send(
+                    try RelayRequest.subscribeToNIP46(
+                        subscriptionID: subscriptionID,
+                        recipientPubkey: subscription.recipientPubkey,
+                        since: subscription.since
+                    )
                 )
-            )
+            }
+            try Task.checkCancellation()
+            startReaderIfNeeded()
+        } catch {
+            await socket.close()
+            throw error
         }
     }
 
     public func stop() async {
         isStopped = true
+        recoveryTask?.cancel()
+        recoveryTask = nil
+        reconnectTask?.cancel()
         readerTask?.cancel()
         readerTask = nil
         await socket.close()
         failAllPending(with: RelaySocketError.closed)
     }
 
-    private func waitForAcknowledgement(of eventID: String) async throws {
-        let nanoseconds = UInt64(publishTimeout * 1_000_000_000)
-        // A silent relay must not leave the caller waiting forever.
-        let timeoutTask = Task { [weak self] in
+    private func sendAndTimeOut(_ frame: String, eventID: String, token: UUID) async {
+        guard pendingPublishes[eventID]?.token == token else { return }
+        // The deadline also covers a send that never completes.
+        let timeoutTask = Task { [weak self, publishTimeout] in
             do {
-                try await Task.sleep(nanoseconds: nanoseconds)
+                try await Task.sleep(for: .seconds(publishTimeout))
             } catch {
                 return
             }
-            await self?.timeOutPublish(eventID)
+            await self?.finishPublish(eventID, token: token, result: .failure(RelayConnectionError.publishTimedOut))
         }
-        defer { timeoutTask.cancel() }
-
-        try await withCheckedThrowingContinuation { continuation in
-            pendingPublishes[eventID] = continuation
+        pendingPublishes[eventID]?.timeout = timeoutTask
+        do {
+            try await socket.send(frame)
+        } catch {
+            finishPublish(eventID, token: token, result: .failure(error))
         }
     }
 
-    private func timeOutPublish(_ eventID: String) {
-        pendingPublishes.removeValue(forKey: eventID)?.resume(throwing: RelayConnectionError.publishTimedOut)
+    private func finishPublish(_ eventID: String, token: UUID? = nil, result: Result<Void, Error>) {
+        guard let pending = pendingPublishes[eventID], token == nil || pending.token == token else { return }
+        pendingPublishes.removeValue(forKey: eventID)
+        pending.timeout?.cancel()
+        for continuation in pending.continuations {
+            continuation.resume(with: result)
+        }
     }
 
     private func startReaderIfNeeded() {
@@ -129,12 +178,39 @@ public actor RelayConnection {
                 let text = try await socket.receive()
                 await handle(RelayFrame.decode(text))
             } catch {
+                guard !Task.isCancelled else { return }
                 failAllPending(with: error)
                 await socket.close()
+                guard !Task.isCancelled, !isStopped else { return }
                 readerTask = nil
+                scheduleRecovery()
                 return
             }
         }
+    }
+
+    private func scheduleRecovery() {
+        guard recoveryTask == nil else { return }
+        recoveryTask = Task { [weak self, reconnectDelay] in
+            var delay = reconnectDelay
+            while !Task.isCancelled {
+                do {
+                    try await Task.sleep(for: .seconds(delay))
+                    guard let self else { return }
+                    try await self.recoverIfNeeded()
+                    return
+                } catch {
+                    delay = min(delay * 2, 30)
+                }
+            }
+        }
+    }
+
+    private func recoverIfNeeded() async throws {
+        if readerTask == nil { try await reconnect() }
+        guard !Task.isCancelled else { return }
+        recoveryTask = nil
+        if readerTask == nil, !isStopped { scheduleRecovery() }
     }
 
     private func handle(_ frame: RelayFrame?) async {
@@ -143,11 +219,10 @@ public actor RelayConnection {
             await eventHandler?(event)
 
         case let .ok(eventID, accepted, message):
-            guard let continuation = pendingPublishes.removeValue(forKey: eventID) else { return } // coverage:ignore-region An unsolicited OK has no local continuation and is intentionally ignored.
             if accepted {
-                continuation.resume()
+                finishPublish(eventID, result: .success(()))
             } else {
-                continuation.resume(throwing: RelayConnectionError.rejected(message))
+                finishPublish(eventID, result: .failure(RelayConnectionError.rejected(message)))
             }
 
         case let .closed(subscriptionID, _):
@@ -159,10 +234,8 @@ public actor RelayConnection {
     }
 
     private func failAllPending(with error: Error) {
-        let pending = pendingPublishes
-        pendingPublishes.removeAll()
-        for continuation in pending.values {
-            continuation.resume(throwing: error)
+        for eventID in pendingPublishes.keys {
+            finishPublish(eventID, result: .failure(error))
         }
     }
 }

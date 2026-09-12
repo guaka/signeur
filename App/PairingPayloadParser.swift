@@ -4,7 +4,7 @@ import Foundation
 /// text that may carry extra words, or a URL another app opened us with.
 public struct PairingPayloadParser: Sendable {
     private static let pairingScheme = "nostrconnect://"
-    private static let wrapperScheme = "signstr://"
+    private static let wrapperScheme = "signeur://"
 
     private let deepLinkHandler: DeepLinkHandler
 
@@ -36,7 +36,7 @@ public struct PairingPayloadParser: Sendable {
         return URL(string: String(link))
     }
 
-    /// Unpacks `signstr://pair?uri=<encoded nostrconnect link>`, which lets an app hand us
+    /// Unpacks `signeur://pair?uri=<encoded nostrconnect link>`, which lets an app hand us
     /// a pairing request through our own scheme.
     private static func unwrap(_ text: String) -> String? {
         guard

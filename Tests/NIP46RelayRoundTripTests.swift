@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class ConnectionStoreTests: XCTestCase {
     private func makeConnection(pubkey: String = TestVectors.otherPubkeyHex, approved: Bool = false) -> AppConnection {
@@ -99,7 +99,7 @@ final class ConnectionStoreTests: XCTestCase {
 }
 
 final class NIP46RelayTransportTests: XCTestCase {
-    /// The app's own key, used here to read what Signstr sends back.
+    /// The app's own key, used here to read what Signeur sends back.
     private let appNsec = TestVectors.otherNsec
 
     private func makeSetup(legacy: Bool = false) async throws -> (

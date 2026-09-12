@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct Signstr: App {
+struct SigneurApp: App {
     var body: some Scene {
         WindowGroup {
             RootView()

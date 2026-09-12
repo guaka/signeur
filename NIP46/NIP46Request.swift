@@ -23,6 +23,8 @@ public struct NIP46Request: Codable, Equatable, Sendable {
     public let correlationID: String
     public let rawPayloadPreview: String
     public let origin: NIP46RequestOrigin
+    /// Set locally from the approved connection, never from the client's JSON-RPC payload.
+    public let identityID: String?
 
     public init(
         id: String,
@@ -36,7 +38,8 @@ public struct NIP46Request: Codable, Equatable, Sendable {
         requestedAt: Date = Date(),
         correlationID: String,
         rawPayloadPreview: String,
-        origin: NIP46RequestOrigin = .relay
+        origin: NIP46RequestOrigin = .relay,
+        identityID: String? = nil
     ) {
         self.id = id
         self.method = method
@@ -50,5 +53,6 @@ public struct NIP46Request: Codable, Equatable, Sendable {
         self.correlationID = correlationID
         self.rawPayloadPreview = rawPayloadPreview
         self.origin = origin
+        self.identityID = identityID
     }
 }

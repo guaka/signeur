@@ -131,7 +131,7 @@ public struct SignerURLRequest: Equatable, Sendable {
               let components = URLComponents(string: value),
               let scheme = components.scheme?.lowercased(),
               scheme.range(of: #"^[a-z][a-z0-9+.-]*$"#, options: .regularExpression) != nil,
-              !["http", "https", "file", "data", "javascript", "signstr", "nostrsigner", "nostrconnect"].contains(scheme),
+              !["http", "https", "file", "data", "javascript", "signeur", "nostrsigner", "nostrconnect"].contains(scheme),
               components.user == nil,
               components.password == nil,
               components.fragment == nil

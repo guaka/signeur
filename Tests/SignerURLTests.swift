@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class SignerURLRequestTests: XCTestCase {
     private let eventJSON = #"{"kind":1,"content":"gm","created_at":1700000000}"#

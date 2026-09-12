@@ -42,7 +42,7 @@ jobs:
           queries: security-extended
 
       - name: Build Swift package
-        run: swift build --arch arm64 --target SignstrCore
+        run: swift build --arch arm64 --target SigneurCore
 
       - name: Analyze
         uses: github/codeql-action/analyze@cdf488f595d80d6e07e03d4674febd5ab45fa938 # v4

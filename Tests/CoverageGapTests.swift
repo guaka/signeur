@@ -1,7 +1,7 @@
 import Foundation
 import Security
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 @MainActor
 final class ViewModelCoverageGapTests: XCTestCase {
@@ -268,7 +268,7 @@ final class ProtocolCoverageGapTests: XCTestCase {
         let backend = DefaultNsecKeychainBackend()
         let query: [String: Any] = [
             kSecClass as String: kSecClassGenericPassword,
-            kSecAttrService as String: "signstr.coverage.\(UUID().uuidString)",
+            kSecAttrService as String: "signeur.coverage.\(UUID().uuidString)",
             kSecAttrAccount as String: "coverage"
         ]
         var result: CFTypeRef?

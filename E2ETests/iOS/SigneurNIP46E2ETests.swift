@@ -1,9 +1,9 @@
 import XCTest
 
-final class SignstrNIP46E2ETests: XCTestCase {
+final class SigneurNIP46E2ETests: XCTestCase {
     private var testURL: String {
-        ProcessInfo.processInfo.environment["SIGNSTR_E2E_TEST_URL"]
-            ?? "https://guaka.github.io/signstr/#nip46-test"
+        ProcessInfo.processInfo.environment["SIGNEUR_E2E_TEST_URL"]
+            ?? "https://guaka.github.io/signeur/#nip46-test"
     }
     private let testNsec = "nsec1vl029mgpspedva04g90vltkh6fvh240zqtv9k0t9af8935ke9laqsnlfe5"
     private let expectedNpub = "npub10elfcs4fr0l0r8af98jlmgdh9c8tcxjvz9qkw038js35mp4dma8qzvjptg"
@@ -13,10 +13,10 @@ final class SignstrNIP46E2ETests: XCTestCase {
     }
 
     func testPublishedNIP46TesterCompletesOnIOS() {
-        let signstr = XCUIApplication()
-        signstr.launchEnvironment = [
-            "SIGNSTR_E2E_ENABLED": "1",
-            "SIGNSTR_E2E_NSEC": testNsec
+        let signeur = XCUIApplication()
+        signeur.launchEnvironment = [
+            "SIGNEUR_E2E_ENABLED": "1",
+            "SIGNEUR_E2E_NSEC": testNsec
         ]
         let safari = XCUIApplication(bundleIdentifier: "com.apple.mobilesafari")
         safari.launch()
@@ -36,17 +36,17 @@ final class SignstrNIP46E2ETests: XCTestCase {
             return
         }
 
-        openConnection(connectionURL, in: signstr)
+        openConnection(connectionURL, in: signeur)
 
-        // iOS may suspend Safari while Signstr is foregrounded. Bring it back so the
+        // iOS may suspend Safari while Signeur is foregrounded. Bring it back so the
         // browser can receive the connect response and publish `get_public_key`, then
-        // return to Signstr to approve that follow-up request.
+        // return to Signeur to approve that follow-up request.
         safari.activate()
         XCTAssertTrue(
-            webView.staticTexts["Approve the public-key request in Signstr"].waitForExistence(timeout: 30)
+            webView.staticTexts["Approve the public-key request in Signeur"].waitForExistence(timeout: 30)
         )
-        signstr.activate()
-        approve("Approve", in: signstr)
+        signeur.activate()
+        approve("Approve", in: signeur)
 
         safari.activate()
         XCTAssertTrue(webView.staticTexts[expectedNpub].waitForExistence(timeout: 45))
@@ -76,20 +76,20 @@ final class SignstrNIP46E2ETests: XCTestCase {
 
     private func approve(_ title: String, in app: XCUIApplication) {
         let button = app.buttons[title]
-        XCTAssertTrue(button.waitForExistence(timeout: 30), "Expected \(title) in Signstr")
+        XCTAssertTrue(button.waitForExistence(timeout: 30), "Expected \(title) in Signeur")
         button.tap()
     }
 
     private func openConnection(_ url: URL, in app: XCUIApplication) {
         let approveConnection = app.buttons["Approve Connection"]
-        app.launchEnvironment["SIGNSTR_E2E_PAIRING_URI"] = url.absoluteString
+        app.launchEnvironment["SIGNEUR_E2E_PAIRING_URI"] = url.absoluteString
         app.launch()
         XCTAssertTrue(
             approveConnection.waitForExistence(timeout: 30),
-            "Expected Approve Connection in Signstr"
+            "Expected Approve Connection in Signeur"
         )
         approveConnection.tap()
-        let connectedClient = app.staticTexts["Signstr NIP-46 tester"]
+        let connectedClient = app.staticTexts["Signeur NIP-46 tester"]
         let followUpApproval = app.buttons["Approve"]
         XCTAssertTrue(
             waitForEither(connectedClient, or: followUpApproval, timeout: 30),

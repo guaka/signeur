@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class RedactedLoggerTests: XCTestCase {
     private let logger = RedactedLogger()

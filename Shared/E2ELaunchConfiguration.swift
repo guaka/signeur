@@ -4,10 +4,10 @@ import Foundation
 /// A deliberately debug-only way for UI tests to launch either app with a disposable key.
 /// Release builds cannot read or activate this configuration.
 public struct E2ELaunchConfiguration: Sendable {
-    public static let enabledEnvironmentKey = "SIGNSTR_E2E_ENABLED"
-    public static let nsecEnvironmentKey = "SIGNSTR_E2E_NSEC"
-    public static let pairingEnvironmentKey = "SIGNSTR_E2E_PAIRING_URI"
-    public static let identityID = "signstr-e2e-identity"
+    public static let enabledEnvironmentKey = "SIGNEUR_E2E_ENABLED"
+    public static let nsecEnvironmentKey = "SIGNEUR_E2E_NSEC"
+    public static let pairingEnvironmentKey = "SIGNEUR_E2E_PAIRING_URI"
+    public static let identityID = "signeur-e2e-identity"
 
     public let identity: Identity
     public let nsec: String
@@ -38,7 +38,7 @@ public struct E2ELaunchConfiguration: Sendable {
     }
 
     public func makeIdentityStore() -> IdentityStore {
-        let suiteName = "signstr.e2e.\(UUID().uuidString)"
+        let suiteName = "signeur.e2e.\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suiteName)!
         defaults.removePersistentDomain(forName: suiteName)
         return IdentityStore(defaults: defaults, seed: [identity])

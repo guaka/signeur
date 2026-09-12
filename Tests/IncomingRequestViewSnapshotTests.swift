@@ -1,6 +1,6 @@
 import XCTest
 import SwiftUI
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class IncomingRequestViewSnapshotTests: XCTestCase {
     func testApprovalViewBuildsForFixtureRequest() async {
