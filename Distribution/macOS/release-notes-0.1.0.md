@@ -12,5 +12,3 @@ Signeur 0.1.0 is a beta release for macOS 14 Sonoma and later.
 Signeur keeps imported Nostr secret keys in the system Keychain and asks for biometric or device authentication before sensitive operations. Pairing requests must be explicitly approved.
 
 This beta does not update itself. Follow the GitHub Releases page for newer versions, then replace the app in Applications. Do not delete the key from inside Signeur when upgrading; Keychain data is expected to remain available to releases using the same Foundation identity.
-
-The new `org.trustroots.signstr.mac` identity is separate from older `com.k.*` development builds. Keys and connections from those builds are not migrated.

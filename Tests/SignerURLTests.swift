@@ -9,12 +9,10 @@ final class SignerURLRequestTests: XCTestCase {
         return "nostrsigner:\(encoded)?\(query)"
     }
 
-    func testBothAppSchemesAreRejectedAsCallbacks() {
-        for scheme in ["signstr", "signeur"] {
-            XCTAssertThrowsError(try SignerURLRequest.parse(
-                url(payload: eventJSON, query: "type=sign_event&callbackUrl=\(scheme)://signed")
-            ))
-        }
+    func testAppSchemeIsRejectedAsCallback() {
+        XCTAssertThrowsError(try SignerURLRequest.parse(
+            url(payload: eventJSON, query: "type=sign_event&callbackUrl=signeur://signed")
+        ))
     }
 
     func testSignEventRequestCarriesTheEventAndCallback() throws {

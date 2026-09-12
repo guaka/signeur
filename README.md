@@ -35,18 +35,15 @@ iPhone app.
 
 ## Live NIP-46 end-to-end tests
 
-The UI tests pair each app with the published [NIP-46 tester](https://guaka.github.io/signeur/#nip46-test), approve the connection and public-key request, and verify the returned npub and acquired permissions in Safari. They use a disposable in-memory key in debug builds only.
+The UI tests pair each app with the [NIP-46 tester](https://guaka.github.io/signeur/#nip46-test), approve the connection and public-key request, and verify the returned npub and acquired permissions in Safari. They use a disposable in-memory key in debug builds only.
 
-Run both platforms with `Scripts/run-nip46-e2e.sh`, or pass `ios` or `macos` to run one platform. Because these tests depend on public relays and Safari, they run after changes land on `main`, on demand, and weekly rather than blocking pull requests. The latest per-platform results appear on the [Signeur project page](https://guaka.github.io/signeur/#e2e-results).
+Run both platforms with `Scripts/run-nip46-e2e.sh`, or pass `ios` or `macos` to run one platform. These tests use public relays and Safari. Both platforms must pass in pull-request CI; they also run on `main`, on demand, and weekly. The latest per-platform results appear on the [Signeur project page](https://guaka.github.io/signeur/#e2e-results).
 
 Private keys are stored as biometric-protected Keychain items. Key use requires
 Touch ID on Mac or Face ID/Touch ID on iPhone when available, with the device
 password/passcode as the system fallback. Apple Secure Enclave hardware cannot
 perform Nostr's secp256k1 signatures directly, so Signeur performs the Nostr
 operation in memory only after the Keychain access check succeeds.
-
-Signeur retains Signstr's original bundle and storage identifiers so an update
-signed by the same team keeps existing keys, connected apps, permissions, and activity.
 
 ## Distribution
 
@@ -56,6 +53,6 @@ Release preparation lives in [Distribution/README.md](Distribution/README.md). F
 
 Signeur is licensed under the [GNU Affero General Public License v3.0](LICENSE).
 
-### Upgrade compatibility
+### App identifiers
 
-Signeur retains the original `org.trustroots.signstr` app identifiers, Keychain service, and persisted storage keys so upgrades keep existing identities, keys, connections, permissions, and audit history. Both `signeur://` and legacy `signstr://` pairing links remain supported. These internal compatibility identifiers are intentionally independent of the displayed app name.
+Signeur uses `org.trustroots.signeur` on iOS and `org.trustroots.signeur.mac` on macOS. App-specific pairing links use `signeur://`.

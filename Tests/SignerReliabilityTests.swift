@@ -3,27 +3,27 @@ import XCTest
 
 @MainActor
 final class SignerReliabilityTests: XCTestCase {
-    func testRenamePreservesExistingIdentityMetadata() async throws {
+    func testIdentityStoreLoadsSavedMetadata() async throws {
         let defaults = makeEphemeralDefaults()
-        let legacy = Identity(id: "legacy-key", displayName: "Existing key", npub: TestVectors.npub)
-        defaults.set(try JSONEncoder().encode([legacy]), forKey: "signstr.identities")
-        defaults.set(legacy.id, forKey: "signstr.active.identity")
+        let saved = Identity(id: "saved-key", displayName: "Existing key", npub: TestVectors.npub)
+        defaults.set(try JSONEncoder().encode([saved]), forKey: "signeur.identities")
+        defaults.set(saved.id, forKey: "signeur.active.identity")
         let store = IdentityStore(defaults: defaults)
         let identities = await store.list()
         let active = await store.activeIdentityID()
-        XCTAssertEqual(identities.map(\.id), [legacy.id])
-        XCTAssertEqual(active, legacy.id)
+        XCTAssertEqual(identities.map(\.id), [saved.id])
+        XCTAssertEqual(active, saved.id)
     }
 
     func testRenamePreservesConnectionsPermissionsAndActivity() async throws {
         let defaults = makeEphemeralDefaults()
-        let connection = AppConnection(appPubkey: TestVectors.pubkeyHex, appName: "Existing app", relays: ["wss://relay.one"], identityID: "legacy-key", isApproved: true)
+        let connection = AppConnection(appPubkey: TestVectors.pubkeyHex, appName: "Existing app", relays: ["wss://relay.one"], identityID: "saved-key", isApproved: true)
         let rule = PermissionRule(appPubkey: TestVectors.pubkeyHex, method: "sign_event", kind: 1)
         let entry = AuditEntry(appName: "Existing app", method: "sign_event", outcome: .signed)
-        defaults.set(try JSONEncoder().encode([connection]), forKey: "signstr.connections")
-        defaults.set(try JSONEncoder().encode([rule]), forKey: "signstr.permission.rules")
-        defaults.set([TestVectors.pubkeyHex: "Existing app"], forKey: "signstr.permission.appnames")
-        defaults.set(try JSONEncoder().encode([entry]), forKey: "signstr.audit.entries")
+        defaults.set(try JSONEncoder().encode([connection]), forKey: "signeur.connections")
+        defaults.set(try JSONEncoder().encode([rule]), forKey: "signeur.permission.rules")
+        defaults.set([TestVectors.pubkeyHex: "Existing app"], forKey: "signeur.permission.appnames")
+        defaults.set(try JSONEncoder().encode([entry]), forKey: "signeur.audit.entries")
 
         let connections = await ConnectionStore(defaults: defaults).approved()
         let permissions = PermissionRuleStore(defaults: defaults)

@@ -2,18 +2,16 @@ import Foundation
 import XCTest
 
 final class AppConfigurationRegressionTests: XCTestCase {
-    func testSigneurRetainsSignstrInstallationAndKeychainAccessGroups() throws {
+    func testSigneurUsesItsOwnInstallationAndKeychainAccessGroups() throws {
         let project = try String(contentsOf: repositoryFile("Signeur.xcodeproj/project.pbxproj"))
         let configuration = try String(contentsOf: repositoryFile("project.yml"))
         for source in [project, configuration] {
-            XCTAssertTrue(source.contains("org.trustroots.signstr"))
-            XCTAssertTrue(source.contains("org.trustroots.signstr.mac"))
-            XCTAssertFalse(source.contains("org.trustroots.signeur"))
+            XCTAssertTrue(source.contains("org.trustroots.signeur"))
+            XCTAssertTrue(source.contains("org.trustroots.signeur.mac"))
         }
         for path in ["Scripts/archive-ios.sh", "Scripts/release-macos.sh"] {
             let script = try String(contentsOf: repositoryFile(path))
-            XCTAssertTrue(script.contains("org.trustroots.signstr"))
-            XCTAssertFalse(script.contains("org.trustroots.signeur"))
+            XCTAssertTrue(script.contains("org.trustroots.signeur"))
         }
     }
     func testE2ERunnerForwardsConfiguredSiteToBothPlatforms() throws {
@@ -47,10 +45,10 @@ final class AppConfigurationRegressionTests: XCTestCase {
         }
     }
 
-    func testRebrandPreservesInstalledAppIdentityAndBuildTimeSetting() throws {
+    func testRebrandUsesSigneurAppIdentityAndBuildTimeSetting() throws {
         let project = try String(contentsOf: repositoryFile("Signeur.xcodeproj/project.pbxproj"))
         let spec = try String(contentsOf: repositoryFile("project.yml"))
-        for identifier in ["org.trustroots.signstr", "org.trustroots.signstr.mac"] {
+        for identifier in ["org.trustroots.signeur", "org.trustroots.signeur.mac"] {
             XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = \(identifier);"))
             XCTAssertTrue(spec.contains("PRODUCT_BUNDLE_IDENTIFIER: \(identifier)"))
         }
@@ -60,8 +58,7 @@ final class AppConfigurationRegressionTests: XCTestCase {
             XCTAssertEqual(plist["SigneurBuildTime"] as? String, "$(SIGNEUR_BUILD_TIME)")
             let types = try XCTUnwrap(plist["CFBundleURLTypes"] as? [[String: Any]])
             let schemes = try XCTUnwrap(types.first?["CFBundleURLSchemes"] as? [String])
-            XCTAssertTrue(schemes.contains("signstr"))
-            XCTAssertTrue(schemes.contains("signeur"))
+            XCTAssertEqual(schemes, ["nostrconnect", "nostrsigner", "signeur"])
         }
         for path in ["Scripts/archive-ios.sh", "Scripts/release-macos.sh"] {
             XCTAssertTrue(try String(contentsOf: repositoryFile(path)).contains("SIGNEUR_BUILD_TIME="))
@@ -86,7 +83,7 @@ final class AppConfigurationRegressionTests: XCTestCase {
 
         let project = try String(contentsOf: repositoryFile("Signeur.xcodeproj/project.pbxproj"))
         XCTAssertTrue(project.contains("CODE_SIGN_ENTITLEMENTS = MacOSApp/SigneurMac.entitlements;"))
-        XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;"))
+        XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur.mac;"))
         XCTAssertTrue(project.contains("DEVELOPMENT_TEAM = SUJ594N47C;"))
     }
 
