@@ -198,6 +198,27 @@ test("renders browser progress and a connected npub", () => {
     assert.equal(elements.statusDot.className, "tester-status-dot success");
 });
 
+test("reset and failure clear the connected identity display", () => {
+    for (const action of ["reset", "fail"]) {
+        const elements = browserElements();
+        const session = new NIP46BrowserSession(elements);
+        session.succeed(userPubkey);
+        assert.equal(elements.pairingContent.hidden, true);
+        assert.notEqual(elements.statusNpub.textContent, "");
+        if (action === "reset") {
+            session.reset();
+            assert.equal(elements.pairingContent.hidden, false);
+            assert.equal(elements.panel.hidden, true);
+        } else {
+            session.fail(new Error("All relay connections closed."));
+            assert.equal(elements.error.hidden, false);
+        }
+        assert.equal(elements.statusNpub.textContent, "");
+        assert.equal(elements.statusNpub.hidden, true);
+        assert.equal(elements.success.hidden, true);
+    }
+});
+
 test("renders actionable browser errors and resets sensitive session state", () => {
     const elements = browserElements();
     const session = new NIP46BrowserSession(elements);
