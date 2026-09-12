@@ -1,7 +1,7 @@
 import CryptoKit
 import P256K
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class NostrKeyDeriverTests: XCTestCase {
     // NIP-19 test vector; expected pubkey cross-checked with Tools/derive_reference.py.
@@ -49,7 +49,7 @@ final class NostrKeyDeriverTests: XCTestCase {
     func testSignatureVerifiesAgainstDerivedPublicKey() throws {
         let secret = try NostrKeyDeriver.secretKeyBytes(fromNsec: nsec)
         let privateKey = try P256K.Schnorr.PrivateKey(dataRepresentation: Data(secret))
-        var digest = Array(CryptoKit.SHA256.hash(data: Data("signstr".utf8)))
+        var digest = Array(CryptoKit.SHA256.hash(data: Data("signeur".utf8)))
         let signature = try privateKey.signature(message: &digest, auxiliaryRand: nil, strict: true)
 
         let xonly = try NostrKeyDeriver.xonlyPublicKeyBytes(fromNsec: nsec)

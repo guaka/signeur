@@ -15,10 +15,10 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "7FEF835F801865554B1CB876"
-               BuildableName = "Signstr.app"
-               BlueprintName = "Signstr"
-               ReferencedContainer = "container:Signstr.xcodeproj">
+               BlueprintIdentifier = "4DD01A09D99C1BBB31282CA9"
+               BuildableName = "SigneurMac.app"
+               BlueprintName = "SigneurMac"
+               ReferencedContainer = "container:Signeur.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
          <BuildActionEntry
@@ -29,10 +29,10 @@
             buildForAnalyzing = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9F9A8C94196443CBE0100E2D"
-               BuildableName = "SignstrE2ETests.xctest"
-               BlueprintName = "SignstrE2ETests"
-               ReferencedContainer = "container:Signstr.xcodeproj">
+               BlueprintIdentifier = "DF5D04D48D0BAD894339CA0E"
+               BuildableName = "SigneurMacE2ETests.xctest"
+               BlueprintName = "SigneurMacE2ETests"
+               ReferencedContainer = "container:Signeur.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -46,10 +46,10 @@
       <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7FEF835F801865554B1CB876"
-            BuildableName = "Signstr.app"
-            BlueprintName = "Signstr"
-            ReferencedContainer = "container:Signstr.xcodeproj">
+            BlueprintIdentifier = "4DD01A09D99C1BBB31282CA9"
+            BuildableName = "SigneurMac.app"
+            BlueprintName = "SigneurMac"
+            ReferencedContainer = "container:Signeur.xcodeproj">
          </BuildableReference>
       </MacroExpansion>
       <Testables>
@@ -58,10 +58,10 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "9F9A8C94196443CBE0100E2D"
-               BuildableName = "SignstrE2ETests.xctest"
-               BlueprintName = "SignstrE2ETests"
-               ReferencedContainer = "container:Signstr.xcodeproj">
+               BlueprintIdentifier = "DF5D04D48D0BAD894339CA0E"
+               BuildableName = "SigneurMacE2ETests.xctest"
+               BlueprintName = "SigneurMacE2ETests"
+               ReferencedContainer = "container:Signeur.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -82,10 +82,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7FEF835F801865554B1CB876"
-            BuildableName = "Signstr.app"
-            BlueprintName = "Signstr"
-            ReferencedContainer = "container:Signstr.xcodeproj">
+            BlueprintIdentifier = "4DD01A09D99C1BBB31282CA9"
+            BuildableName = "SigneurMac.app"
+            BlueprintName = "SigneurMac"
+            ReferencedContainer = "container:Signeur.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -99,10 +99,10 @@
          runnableDebuggingMode = "0">
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "7FEF835F801865554B1CB876"
-            BuildableName = "Signstr.app"
-            BlueprintName = "Signstr"
-            ReferencedContainer = "container:Signstr.xcodeproj">
+            BlueprintIdentifier = "4DD01A09D99C1BBB31282CA9"
+            BuildableName = "SigneurMac.app"
+            BlueprintName = "SigneurMac"
+            ReferencedContainer = "container:Signeur.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

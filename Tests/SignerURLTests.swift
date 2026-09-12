@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class SignerURLRequestTests: XCTestCase {
     private let eventJSON = #"{"kind":1,"content":"gm","created_at":1700000000}"#
@@ -7,6 +7,14 @@ final class SignerURLRequestTests: XCTestCase {
     private func url(payload: String = "", query: String) -> String {
         let encoded = payload.addingPercentEncoding(withAllowedCharacters: .alphanumerics) ?? payload
         return "nostrsigner:\(encoded)?\(query)"
+    }
+
+    func testBothAppSchemesAreRejectedAsCallbacks() {
+        for scheme in ["signstr", "signeur"] {
+            XCTAssertThrowsError(try SignerURLRequest.parse(
+                url(payload: eventJSON, query: "type=sign_event&callbackUrl=\(scheme)://signed")
+            ))
+        }
     }
 
     func testSignEventRequestCarriesTheEventAndCallback() throws {

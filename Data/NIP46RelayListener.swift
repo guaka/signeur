@@ -2,7 +2,7 @@ import Foundation
 
 /// Decodes an incoming NIP-46 request event and hands it to the approval flow.
 public actor NIP46RelayListener {
-    public static let requestReceivedNotification = Notification.Name("signstr.nip46.request-received")
+    public static let requestReceivedNotification = Notification.Name("signeur.nip46.request-received")
 
     public struct DecodedRequest: Equatable, Sendable {
         public let request: NIP46Request

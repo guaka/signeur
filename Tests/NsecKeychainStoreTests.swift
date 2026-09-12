@@ -2,7 +2,7 @@ import Foundation
 import LocalAuthentication
 import Security
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class NsecKeychainStoreTests: XCTestCase {
     func testNsecStoreErrorMessagesCoverLessCommonVariants() {

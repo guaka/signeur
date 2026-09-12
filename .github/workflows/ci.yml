@@ -46,15 +46,15 @@ jobs:
 
       - name: Serve the generated site locally
         run: |
-          python3 -m http.server 8765 --bind 127.0.0.1 --directory coverage-report > "$RUNNER_TEMP/signstr-site.log" 2>&1 &
-          echo "SIGNSTR_E2E_TEST_URL=http://127.0.0.1:8765/#nip46-test" >> "$GITHUB_ENV"
+          python3 -m http.server 8765 --bind 127.0.0.1 --directory coverage-report > "$RUNNER_TEMP/signeur-site.log" 2>&1 &
+          echo "SIGNEUR_E2E_TEST_URL=http://127.0.0.1:8765/#nip46-test" >> "$GITHUB_ENV"
           curl --retry 5 --retry-connrefused --fail --silent http://127.0.0.1:8765/ > /dev/null
 
       - name: Build macOS app
         run: >-
           xcodebuild
-          -project Signstr.xcodeproj
-          -scheme SignstrMac
+          -project Signeur.xcodeproj
+          -scheme SigneurMac
           -configuration Debug
           -destination 'platform=macOS'
           -skipPackagePluginValidation
@@ -64,8 +64,8 @@ jobs:
       - name: Build iOS app
         run: >-
           xcodebuild
-          -project Signstr.xcodeproj
-          -scheme Signstr
+          -project Signeur.xcodeproj
+          -scheme Signeur
           -configuration Debug
           -destination 'generic/platform=iOS Simulator'
           -skipPackagePluginValidation
@@ -84,14 +84,14 @@ jobs:
 
       - name: Generate coverage and E2E report
         env:
-          SIGNSTR_E2E_IOS_STATUS: ${{ steps.e2e_ios.outcome }}
-          SIGNSTR_E2E_MACOS_STATUS: ${{ steps.e2e_macos.outcome }}
+          SIGNEUR_E2E_IOS_STATUS: ${{ steps.e2e_ios.outcome }}
+          SIGNEUR_E2E_MACOS_STATUS: ${{ steps.e2e_macos.outcome }}
         run: |
           Scripts/generate-coverage-report.sh coverage-report
           cat coverage-report/summary.md >> "$GITHUB_STEP_SUMMARY"
           if [[ "$GITHUB_REF" == "refs/heads/main" ]]; then
             echo "" >> "$GITHUB_STEP_SUMMARY"
-            echo "[Browse coverage and live E2E results](https://guaka.github.io/signstr/)" >> "$GITHUB_STEP_SUMMARY"
+            echo "[Browse coverage and live E2E results](https://guaka.github.io/signeur/)" >> "$GITHUB_STEP_SUMMARY"
           fi
 
       - name: Upload coverage and E2E report

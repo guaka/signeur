@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 // NIP-19 test vector, cross-checked against Tools/derive_reference.py.
 enum TestVectors {
@@ -17,7 +17,7 @@ enum TestVectors {
 
 /// Isolated `UserDefaults` so store tests never touch the developer's real domain.
 func makeEphemeralDefaults(function: String = #function) -> UserDefaults {
-    let name = "signstr.tests.\(function).\(UUID().uuidString)"
+    let name = "signeur.tests.\(function).\(UUID().uuidString)"
     guard let defaults = UserDefaults(suiteName: name) else {
         fatalError("Could not create test defaults for \(name)")
     }

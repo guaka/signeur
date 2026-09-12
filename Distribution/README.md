@@ -1,4 +1,4 @@
-# Signstr 0.1.0 distribution
+# Signeur 0.1.0 distribution
 
 Start with [NEXT_STEPS.md](NEXT_STEPS.md) for the ordered Foundation and maintainer handoff.
 
@@ -7,9 +7,9 @@ Trustroots Foundation owns and signs the iOS and macOS releases. The release ide
 - iOS: `org.trustroots.signstr`
 - macOS: `org.trustroots.signstr.mac`
 - Version/tag: `0.1.0` / `v0.1.0`
-- Mac artifact: `Signstr-0.1.0-macOS.dmg`
+- Mac artifact: `Signeur-0.1.0-macOS.dmg`
 
-These bundle identifiers create a clean installation boundary. Existing `com.k.*` builds remain separate and their Keychain items are not migrated. The URL schemes (`nostrconnect`, `nostrsigner`, and `signstr`) and platform icons are unchanged.
+These bundle identifiers create a clean installation boundary. Existing `com.k.*` builds remain separate and their Keychain items are not migrated. The URL schemes (`nostrconnect`, `nostrsigner`, and `signeur`) and platform icons are unchanged.
 
 `MARKETING_VERSION` and the initial `CURRENT_PROJECT_VERSION` live in `project.yml`. Release automation overrides the build number with GitHub's monotonically increasing run number. Local iOS archives require an explicitly supplied, unused build number.
 

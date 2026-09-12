@@ -66,9 +66,9 @@ public enum SessionFailureReason: String, Error, Equatable, Sendable {
         case .keyAuthenticationCanceled:
             return "Key authentication was canceled. (N46-2202)"
         case .keychainInteractionNotAllowed:
-            return "iOS did not allow Signstr to show key authentication. Keep Signstr open and try again. (N46-2203)"
+            return "iOS did not allow Signeur to show key authentication. Keep Signeur open and try again. (N46-2203)"
         case .keychainPermissionMissing:
-            return "This Signstr build does not have permission to read its Keychain. (N46-2204)"
+            return "This Signeur build does not have permission to read its Keychain. (N46-2204)"
         case .keychainProtectionUnavailable:
             return "Biometric Keychain protection is unavailable on this device. (N46-2205)"
         case .keychainUnavailable:

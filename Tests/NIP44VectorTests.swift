@@ -1,6 +1,6 @@
 import CryptoKit
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 /// Runs the official NIP-44 v2 vectors from https://github.com/paulmillr/nip44
 /// (vendored at Tests/Vectors/nip44.vectors.json) against our implementation.

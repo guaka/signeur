@@ -1,5 +1,5 @@
 import Foundation
-import SignstrCore
+import SigneurCore
 import UIKit
 
 enum AppBootstrap {
