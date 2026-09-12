@@ -5,6 +5,11 @@ set -euo pipefail
 readonly platform="${1:-all}"
 readonly repository_root="$(git rev-parse --show-toplevel)"
 
+# xcodebuild strips TEST_RUNNER_ when forwarding variables to XCTest.
+if [[ -n "${SIGNSTR_E2E_TEST_URL:-}" ]]; then
+    export TEST_RUNNER_SIGNSTR_E2E_TEST_URL="${SIGNSTR_E2E_TEST_URL}"
+fi
+
 run_ios() {
     local destination_id="${SIGNSTR_IOS_DESTINATION_ID:-}"
     if [[ -z "${destination_id}" ]]; then
