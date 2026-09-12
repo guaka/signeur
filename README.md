@@ -45,6 +45,9 @@ password/passcode as the system fallback. Apple Secure Enclave hardware cannot
 perform Nostr's secp256k1 signatures directly, so Signeur performs the Nostr
 operation in memory only after the Keychain access check succeeds.
 
+Signeur retains Signstr's original bundle and storage identifiers so an update
+signed by the same team keeps existing keys, connected apps, permissions, and activity.
+
 ## Distribution
 
 Release preparation lives in [Distribution/README.md](Distribution/README.md). For the ordered 0.1.0 handoff, start with [Distribution/NEXT_STEPS.md](Distribution/NEXT_STEPS.md).

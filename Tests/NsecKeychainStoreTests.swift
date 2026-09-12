@@ -5,6 +5,17 @@ import XCTest
 @testable import SigneurCore
 
 final class NsecKeychainStoreTests: XCTestCase {
+    func testSigneurReadsExistingSignstrKeychainItemsWithoutRewritingThem() async throws {
+        let backend = FakeNsecKeychainBackend(copyStatuses: [errSecSuccess], copyData: Data(TestVectors.nsec.utf8))
+        let store = NsecKeychainStore(unlockDuration: 0, keychain: backend)
+        let loaded = try await store.loadNsec(for: "existing-identity")
+        let query = backend.lastCopyQuery()
+        XCTAssertEqual(loaded, TestVectors.nsec)
+        XCTAssertEqual(query[kSecAttrService as String] as? String, "com.k.signstr.nsec")
+        XCTAssertEqual(query[kSecAttrAccount as String] as? String, "existing-identity")
+        XCTAssertEqual(backend.addCount(), 0)
+        XCTAssertEqual(backend.deleteCount(), 0)
+    }
     func testNsecStoreErrorMessagesCoverLessCommonVariants() {
         XCTAssertEqual(
             NsecStoreError.invalidInput.errorDescription,
@@ -60,7 +71,7 @@ final class NsecKeychainStoreTests: XCTestCase {
         XCTAssertEqual(backend.deleteCount(), 1)
         XCTAssertEqual(backend.addCount(), 1)
         let query = backend.lastAddQuery()
-        XCTAssertEqual(query[kSecAttrService as String] as? String, "com.k.signeur.nsec")
+        XCTAssertEqual(query[kSecAttrService as String] as? String, "com.k.signstr.nsec")
         XCTAssertEqual(query[kSecAttrAccount as String] as? String, "identity-1")
         XCTAssertNotNil(query[kSecAttrAccessControl as String])
 
@@ -231,6 +242,7 @@ private final class FakeNsecKeychainBackend: NsecKeychainBackend, @unchecked Sen
     func copyMatchingCount() -> Int { copyQueries.count }
     func deleteCount() -> Int { deleteQueries.count }
     func lastAddQuery() -> [String: Any] { addQueries.last ?? [:] }
+    func lastCopyQuery() -> [String: Any] { copyQueries.last ?? [:] }
     func lastAddedData() -> Data? { lastAddQuery()[kSecValueData as String] as? Data }
     func authenticationContexts() -> [LAContext] {
         copyQueries.compactMap { $0[kSecUseAuthenticationContext as String] as? LAContext }

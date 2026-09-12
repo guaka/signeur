@@ -166,7 +166,8 @@ public actor NIP46RelayListener {
             requestedAt: Date(timeIntervalSince1970: TimeInterval(event.createdAt)),
             correlationID: event.id,
             rawPayloadPreview: SecurityPolicy.truncatedPreview(Self.preview(method: method, params: params)),
-            origin: .relay
+            origin: .relay,
+            identityID: connection.identityID
         )
     }
 

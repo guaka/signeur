@@ -86,7 +86,8 @@ func makeTestRequest(
     appName: String? = "Test App",
     appPubkey: String = TestVectors.pubkeyHex,
     payload: String = "{\"kind\":1,\"content\":\"hi\"}",
-    origin: NIP46RequestOrigin = .relay
+    origin: NIP46RequestOrigin = .relay,
+    identityID: String? = nil
 ) -> NIP46Request {
     NIP46Request(
         id: id,
@@ -97,7 +98,8 @@ func makeTestRequest(
         appPubkey: appPubkey,
         correlationID: "corr-\(id)",
         rawPayloadPreview: payload,
-        origin: origin
+        origin: origin,
+        identityID: identityID
     )
 }
 
@@ -191,6 +193,7 @@ actor FakeRelaySocket: RelaySocketing {
     }
 
     func receive() async throws -> String {
+        guard isConnected else { throw RelaySocketError.notConnected }
         if !incoming.isEmpty {
             return incoming.removeFirst()
         }

@@ -13,4 +13,4 @@ Signeur keeps imported Nostr secret keys in the system Keychain and asks for bio
 
 This beta does not update itself. Follow the GitHub Releases page for newer versions, then replace the app in Applications. Do not delete the key from inside Signeur when upgrading; Keychain data is expected to remain available to releases using the same Foundation identity.
 
-The new `org.trustroots.signeur.mac` identity is separate from older `com.k.*` development builds. Keys and connections from those builds are not migrated.
+The new `org.trustroots.signstr.mac` identity is separate from older `com.k.*` development builds. Keys and connections from those builds are not migrated.

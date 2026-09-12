@@ -26,7 +26,11 @@ public final class SessionViewModel: ObservableObject {
 
     public func refresh() async {
         currentSession = await sessionManager.activateNextPendingIfNeeded()
-        selectedIdentityID = await identityStore.activeIdentityID()
+        if let identityID = currentSession?.request.identityID {
+            selectedIdentityID = identityID
+        } else {
+            selectedIdentityID = await identityStore.activeIdentityID()
+        }
         let identities = await identityStore.list()
         selectedIdentityName = identities.first { $0.id == selectedIdentityID }?.displayName
         sessionState = currentSession?.stateMachine.state ?? .idle
