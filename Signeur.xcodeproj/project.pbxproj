@@ -379,7 +379,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signeur.e2e-tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.e2e-tests";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.1;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -400,7 +400,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr;
 				PRODUCT_NAME = Signeur;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.1;
@@ -539,7 +539,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signeur.mac.e2e-tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.mac.e2e-tests";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.1;
 				TEST_TARGET_NAME = SigneurMac;
@@ -560,7 +560,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur.mac;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;
 				PRODUCT_NAME = Signeur;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.1;
@@ -578,7 +578,7 @@
 					"@executable_path/Frameworks",
 					"@loader_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signeur.e2e-tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.e2e-tests";
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.1;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -598,7 +598,7 @@
 					"@loader_path/Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signeur.mac.e2e-tests";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.trustroots.signstr.mac.e2e-tests";
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.1;
 				TEST_TARGET_NAME = SigneurMac;
@@ -617,7 +617,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr;
 				PRODUCT_NAME = Signeur;
 				SDKROOT = iphoneos;
 				SWIFT_VERSION = 5.1;
@@ -639,7 +639,7 @@
 					"@executable_path/../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 14.0;
-				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur.mac;
+				PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;
 				PRODUCT_NAME = Signeur;
 				SDKROOT = macosx;
 				SWIFT_VERSION = 5.1;

@@ -25,7 +25,7 @@ public struct PairingPayloadParser: Sendable {
 
     private static func pairingURL(in payload: String) -> URL? {
         let text = payload.trimmingCharacters(in: .whitespacesAndNewlines)
-        if text.lowercased().hasPrefix(wrapperScheme) {
+        if text.lowercased().hasPrefix(wrapperScheme) || text.lowercased().hasPrefix("signstr://") {
             return unwrap(text).flatMap(URL.init(string:))
         }
         guard let range = text.range(of: pairingScheme, options: [.caseInsensitive]) else {

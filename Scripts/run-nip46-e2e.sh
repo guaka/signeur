@@ -5,6 +5,11 @@ set -euo pipefail
 readonly platform="${1:-all}"
 readonly repository_root="$(git rev-parse --show-toplevel)"
 
+# Xcode only forwards custom runner environment variables with this prefix.
+if [[ -n "${SIGNEUR_E2E_TEST_URL:-}" ]]; then
+    export TEST_RUNNER_SIGNEUR_E2E_TEST_URL="${SIGNEUR_E2E_TEST_URL}"
+fi
+
 run_ios() {
     local destination_id="${SIGNEUR_IOS_DESTINATION_ID:-}"
     if [[ -z "${destination_id}" ]]; then

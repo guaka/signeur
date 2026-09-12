@@ -5,7 +5,7 @@
 - Platform: iOS
 - Name: Signeur
 - Primary language: English (U.S.)
-- Bundle ID: `org.trustroots.signeur`
+- Bundle ID: `org.trustroots.signstr`
 - SKU: `signeur-ios`
 - Internal group: `Trustroots Foundation`
 - Distribution milestone: internal TestFlight only
@@ -32,7 +32,7 @@ The secret key is stored locally in the iOS Keychain. Test only with a disposabl
 ## Build and upload
 
 1. Add the maintainer's Apple Account to the Trustroots Foundation developer team and App Store Connect with Developer and App Manager access as needed.
-2. Register `org.trustroots.signeur` and create the app record above.
+2. Register `org.trustroots.signstr` and create the app record above.
 3. Set an unused integer build number. Build numbers must always increase.
 4. Run:
 

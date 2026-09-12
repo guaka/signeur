@@ -2,6 +2,58 @@ import Foundation
 import XCTest
 
 final class AppConfigurationRegressionTests: XCTestCase {
+    func testE2ERunnerForwardsConfiguredSiteToBothPlatforms() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        for (name, script) in [
+            ("git", "#!/bin/sh\necho /test-repository\n"),
+            ("xcrun", "#!/bin/sh\nexit 0\n"),
+            ("xcodebuild", "#!/bin/sh\nprintf '%s' \"$TEST_RUNNER_SIGNEUR_E2E_TEST_URL\" > \"$CAPTURE_PATH\"\n")
+        ] {
+            let url = directory.appendingPathComponent(name)
+            try script.write(to: url, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+        }
+        for platform in ["ios", "macos"] {
+            let capture = directory.appendingPathComponent(platform)
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/bin/bash")
+            process.arguments = [repositoryFile("Scripts/run-nip46-e2e.sh").path, platform]
+            var environment = ProcessInfo.processInfo.environment
+            environment["PATH"] = directory.path + ":/usr/bin:/bin"
+            environment["SIGNEUR_E2E_TEST_URL"] = "http://127.0.0.1:8765/#nip46-test"
+            environment["SIGNEUR_IOS_DESTINATION_ID"] = "test-device"
+            environment["CAPTURE_PATH"] = capture.path
+            process.environment = environment
+            try process.run()
+            process.waitUntilExit()
+            XCTAssertEqual(process.terminationStatus, 0)
+            XCTAssertEqual(try String(contentsOf: capture), environment["SIGNEUR_E2E_TEST_URL"])
+        }
+    }
+
+    func testRebrandPreservesInstalledAppIdentityAndBuildTimeSetting() throws {
+        let project = try String(contentsOf: repositoryFile("Signeur.xcodeproj/project.pbxproj"))
+        let spec = try String(contentsOf: repositoryFile("project.yml"))
+        for identifier in ["org.trustroots.signstr", "org.trustroots.signstr.mac"] {
+            XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = \(identifier);"))
+            XCTAssertTrue(spec.contains("PRODUCT_BUNDLE_IDENTIFIER: \(identifier)"))
+        }
+        for path in ["iOSApp/Info.plist", "MacOSApp/Info.plist"] {
+            let data = try Data(contentsOf: repositoryFile(path))
+            let plist = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+            XCTAssertEqual(plist["SigneurBuildTime"] as? String, "$(SIGNEUR_BUILD_TIME)")
+            let types = try XCTUnwrap(plist["CFBundleURLTypes"] as? [[String: Any]])
+            let schemes = try XCTUnwrap(types.first?["CFBundleURLSchemes"] as? [String])
+            XCTAssertTrue(schemes.contains("signstr"))
+            XCTAssertTrue(schemes.contains("signeur"))
+        }
+        for path in ["Scripts/archive-ios.sh", "Scripts/release-macos.sh"] {
+            XCTAssertTrue(try String(contentsOf: repositoryFile(path)).contains("SIGNEUR_BUILD_TIME="))
+        }
+    }
+
     func testMacAppUsesASingleWindowScene() throws {
         let source = try String(contentsOf: repositoryFile("MacOSApp/SigneurMacApp.swift"))
 
@@ -20,7 +72,7 @@ final class AppConfigurationRegressionTests: XCTestCase {
 
         let project = try String(contentsOf: repositoryFile("Signeur.xcodeproj/project.pbxproj"))
         XCTAssertTrue(project.contains("CODE_SIGN_ENTITLEMENTS = MacOSApp/SigneurMac.entitlements;"))
-        XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signeur.mac;"))
+        XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;"))
         XCTAssertTrue(project.contains("DEVELOPMENT_TEAM = SUJ594N47C;"))
     }
 

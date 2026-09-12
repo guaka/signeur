@@ -60,7 +60,7 @@ final class NsecKeychainStoreTests: XCTestCase {
         XCTAssertEqual(backend.deleteCount(), 1)
         XCTAssertEqual(backend.addCount(), 1)
         let query = backend.lastAddQuery()
-        XCTAssertEqual(query[kSecAttrService as String] as? String, "com.k.signeur.nsec")
+        XCTAssertEqual(query[kSecAttrService as String] as? String, "com.k.signstr.nsec")
         XCTAssertEqual(query[kSecAttrAccount as String] as? String, "identity-1")
         XCTAssertNotNil(query[kSecAttrAccessControl as String])
 

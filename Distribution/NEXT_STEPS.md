@@ -20,11 +20,11 @@ Owner: Trustroots Foundation Apple Account Holder or Admin.
 1. Add the maintainer's Apple Account to the Trustroots Foundation Apple Developer team and App Store Connect. Grant the Developer role and enough App Manager access to manage the Signeur record and TestFlight group.
 2. Register these explicit App IDs:
 
-   - `org.trustroots.signeur`
-   - `org.trustroots.signeur.mac`
+   - `org.trustroots.signstr`
+   - `org.trustroots.signstr.mac`
 
 3. Create the iOS App Store Connect record using English (U.S.) and SKU `signeur-ios`.
-4. Create a Developer ID Application certificate and a Developer ID provisioning profile for the Mac identifier. The profile must authorize the Keychain group `<Foundation Team ID>.org.trustroots.signeur.mac`.
+4. Create a Developer ID Application certificate and a Developer ID provisioning profile for the Mac identifier. The profile must authorize the Keychain group `<Foundation Team ID>.org.trustroots.signstr.mac`.
 5. Create an App Store Connect API key that can submit software to Apple's notarization service.
 6. Supply the Foundation team ID, support contact, and public privacy-policy URL.
 7. Accept all outstanding Apple Developer and App Store Connect agreements.
