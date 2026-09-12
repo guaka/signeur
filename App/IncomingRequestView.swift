@@ -207,7 +207,7 @@ public struct IncomingRequestView: View {
 
     func approveRequest() {
         Task {
-            if await viewModel.approve() {
+            if await viewModel.approve(), viewModel.currentSession == nil {
                 onConnectionApproved?()
             }
         }

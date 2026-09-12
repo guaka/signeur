@@ -55,3 +55,7 @@ Release preparation lives in [Distribution/README.md](Distribution/README.md). F
 ## License
 
 Signeur is licensed under the [GNU Affero General Public License v3.0](LICENSE).
+
+### Upgrade compatibility
+
+Signeur retains the original `org.trustroots.signstr` app identifiers, Keychain service, and persisted storage keys so upgrades keep existing identities, keys, connections, permissions, and audit history. Both `signeur://` and legacy `signstr://` pairing links remain supported. These internal compatibility identifiers are intentionally independent of the displayed app name.

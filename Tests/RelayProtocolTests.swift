@@ -79,6 +79,16 @@ final class RelayConnectionTests: XCTestCase {
         )
     }
 
+    func testAcknowledgementBeforeSendReturnsIsNotLost() async throws {
+        let socket = EarlyAcknowledgementSocket()
+        let connection = RelayConnection(url: URL(string: "wss://relay.one")!, socket: socket, publishTimeout: 0.2)
+        try await connection.start { _ in }
+        try await connection.publish(makeEvent())
+        let count = await socket.frames().count
+        XCTAssertEqual(count, 1, "An early acknowledgement must not cause a retry")
+        await connection.stop()
+    }
+
     func testPublishSendsAnEventFrameAndWaitsForTheRelayToAcceptIt() async throws {
         let socket = FakeRelaySocket()
         let connection = RelayConnection(url: URL(string: "wss://relay.one")!, socket: socket)
@@ -337,4 +347,18 @@ actor Collector<Element: Sendable> {
 
     func append(_ element: Element) { stored.append(element) }
     func items() -> [Element] { stored }
+}
+
+
+private actor EarlyAcknowledgementSocket: RelaySocketing {
+    private let wrapped = FakeRelaySocket()
+    func connect() async throws { try await wrapped.connect() }
+    func send(_ frame: String) async throws {
+        try await wrapped.send(frame)
+        // Give the reader the OK while send is still suspended.
+        try await Task.sleep(for: .milliseconds(50))
+    }
+    func receive() async throws -> String { try await wrapped.receive() }
+    func close() async { await wrapped.close() }
+    func frames() async -> [String] { await wrapped.frames() }
 }

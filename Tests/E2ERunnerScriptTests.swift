@@ -17,7 +17,7 @@ final class E2ERunnerScriptTests: XCTestCase {
         let stubs = [
             "git": "#!/bin/bash\npwd\n",
             "xcrun": "#!/bin/bash\nexit 0\n",
-            "xcodebuild": "#!/bin/bash\nprintf '%s\\n' \"${TEST_RUNNER_SIGNSTR_E2E_TEST_URL-unset}\"\n"
+            "xcodebuild": "#!/bin/bash\nprintf '%s\\n' \"${TEST_RUNNER_SIGNEUR_E2E_TEST_URL-unset}\"\n"
         ]
         for (name, contents) in stubs {
             let file = directory.appendingPathComponent(name)
@@ -31,9 +31,9 @@ final class E2ERunnerScriptTests: XCTestCase {
             process.arguments = [root.appendingPathComponent("Scripts/run-nip46-e2e.sh").path, platform]
             process.environment = [
                 "PATH": "\(directory.path):/usr/bin:/bin",
-                "SIGNSTR_IOS_DESTINATION_ID": "test-simulator"
+                "SIGNEUR_IOS_DESTINATION_ID": "test-simulator"
             ]
-            process.environment?["SIGNSTR_E2E_TEST_URL"] = url
+            process.environment?["SIGNEUR_E2E_TEST_URL"] = url
             let output = Pipe()
             process.standardOutput = output
             try process.run()

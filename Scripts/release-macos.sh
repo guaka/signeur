@@ -37,7 +37,7 @@ xcodebuild archive \
   -skipPackagePluginValidation \
   DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
   CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
-  SIEGNUR_BUILD_TIME="$build_time" \
+  SIGNEUR_BUILD_TIME="$build_time" \
   CODE_SIGN_STYLE=Manual \
   CODE_SIGN_IDENTITY="$signing_identity" \
   PROVISIONING_PROFILE_SPECIFIER="$MACOS_PROVISIONING_PROFILE_SPECIFIER" \
