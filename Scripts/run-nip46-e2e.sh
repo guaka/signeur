@@ -5,7 +5,7 @@ set -euo pipefail
 readonly platform="${1:-all}"
 readonly repository_root="$(git rev-parse --show-toplevel)"
 
-# Xcode only forwards custom runner environment variables with this prefix.
+# xcodebuild strips TEST_RUNNER_ when forwarding variables to XCTest.
 if [[ -n "${SIGNEUR_E2E_TEST_URL:-}" ]]; then
     export TEST_RUNNER_SIGNEUR_E2E_TEST_URL="${SIGNEUR_E2E_TEST_URL}"
 fi
