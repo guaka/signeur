@@ -1,6 +1,6 @@
 import Foundation
 
-/// Remembers which apps are connected so Signstr can answer them again after a relaunch.
+/// Remembers which apps are connected so Signeur can answer them again after a relaunch.
 public actor ConnectionStore {
     private static let storageKey = "signstr.connections"
 

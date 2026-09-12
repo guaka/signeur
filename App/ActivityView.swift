@@ -17,7 +17,7 @@ public final class ActivityViewModel: ObservableObject {
             errorMessage = nil
         } catch {
             entries = []
-            errorMessage = "Signstr could not load activity history."
+            errorMessage = "Signeur could not load activity history."
         }
     }
 

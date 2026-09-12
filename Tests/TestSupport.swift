@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 // NIP-19 test vector, cross-checked against Tools/derive_reference.py.
 enum TestVectors {
@@ -17,7 +17,7 @@ enum TestVectors {
 
 /// Isolated `UserDefaults` so store tests never touch the developer's real domain.
 func makeEphemeralDefaults(function: String = #function) -> UserDefaults {
-    let name = "signstr.tests.\(function).\(UUID().uuidString)"
+    let name = "signeur.tests.\(function).\(UUID().uuidString)"
     guard let defaults = UserDefaults(suiteName: name) else {
         fatalError("Could not create test defaults for \(name)")
     }
@@ -86,7 +86,8 @@ func makeTestRequest(
     appName: String? = "Test App",
     appPubkey: String = TestVectors.pubkeyHex,
     payload: String = "{\"kind\":1,\"content\":\"hi\"}",
-    origin: NIP46RequestOrigin = .relay
+    origin: NIP46RequestOrigin = .relay,
+    identityID: String? = nil
 ) -> NIP46Request {
     NIP46Request(
         id: id,
@@ -97,7 +98,8 @@ func makeTestRequest(
         appPubkey: appPubkey,
         correlationID: "corr-\(id)",
         rawPayloadPreview: payload,
-        origin: origin
+        origin: origin,
+        identityID: identityID
     )
 }
 
@@ -191,6 +193,7 @@ actor FakeRelaySocket: RelaySocketing {
     }
 
     func receive() async throws -> String {
+        guard isConnected else { throw RelaySocketError.notConnected }
         if !incoming.isEmpty {
             return incoming.removeFirst()
         }

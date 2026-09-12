@@ -1,9 +1,9 @@
 import P256K
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
-/// Plays the part of another app on the phone: opens Signstr with a `nostrsigner:` URL,
-/// then reads the result off the callback URL Signstr opens in return.
+/// Plays the part of another app on the phone: opens Signeur with a `nostrsigner:` URL,
+/// then reads the result off the callback URL Signeur opens in return.
 final class NIP55EndToEndTests: XCTestCase {
     private struct Harness {
         let manager: NIP46SessionManager
@@ -138,7 +138,7 @@ final class NIP55EndToEndTests: XCTestCase {
 
         do {
             _ = try await harness.coordinator.routeSignerURL(url)
-            XCTFail("Signstr should not prompt for something it cannot do")
+            XCTFail("Signeur should not prompt for something it cannot do")
         } catch {
             XCTAssertEqual(error as? SignerURLParseError, .unsupportedType("decrypt_zap_event"))
         }

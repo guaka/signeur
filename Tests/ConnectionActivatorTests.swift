@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class ConnectionActivatorTests: XCTestCase {
     func testRegisterStoresPairingRequestsWithExpectedMetadata() async throws {

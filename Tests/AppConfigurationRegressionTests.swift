@@ -2,15 +2,81 @@ import Foundation
 import XCTest
 
 final class AppConfigurationRegressionTests: XCTestCase {
-    func testMacAppUsesASingleWindowScene() throws {
-        let source = try String(contentsOf: repositoryFile("MacOSApp/SignstrMacApp.swift"))
+    func testSigneurRetainsSignstrInstallationAndKeychainAccessGroups() throws {
+        let project = try String(contentsOf: repositoryFile("Signeur.xcodeproj/project.pbxproj"))
+        let configuration = try String(contentsOf: repositoryFile("project.yml"))
+        for source in [project, configuration] {
+            XCTAssertTrue(source.contains("org.trustroots.signstr"))
+            XCTAssertTrue(source.contains("org.trustroots.signstr.mac"))
+            XCTAssertFalse(source.contains("org.trustroots.signeur"))
+        }
+        for path in ["Scripts/archive-ios.sh", "Scripts/release-macos.sh"] {
+            let script = try String(contentsOf: repositoryFile(path))
+            XCTAssertTrue(script.contains("org.trustroots.signstr"))
+            XCTAssertFalse(script.contains("org.trustroots.signeur"))
+        }
+    }
+    func testE2ERunnerForwardsConfiguredSiteToBothPlatforms() throws {
+        let directory = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: directory) }
+        for (name, script) in [
+            ("git", "#!/bin/sh\necho /test-repository\n"),
+            ("xcrun", "#!/bin/sh\nexit 0\n"),
+            ("xcodebuild", "#!/bin/sh\nprintf '%s' \"$TEST_RUNNER_SIGNEUR_E2E_TEST_URL\" > \"$CAPTURE_PATH\"\n")
+        ] {
+            let url = directory.appendingPathComponent(name)
+            try script.write(to: url, atomically: true, encoding: .utf8)
+            try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: url.path)
+        }
+        for platform in ["ios", "macos"] {
+            let capture = directory.appendingPathComponent(platform)
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/bin/bash")
+            process.arguments = [repositoryFile("Scripts/run-nip46-e2e.sh").path, platform]
+            var environment = ProcessInfo.processInfo.environment
+            environment["PATH"] = directory.path + ":/usr/bin:/bin"
+            environment["SIGNEUR_E2E_TEST_URL"] = "http://127.0.0.1:8765/#nip46-test"
+            environment["SIGNEUR_IOS_DESTINATION_ID"] = "test-device"
+            environment["CAPTURE_PATH"] = capture.path
+            process.environment = environment
+            try process.run()
+            process.waitUntilExit()
+            XCTAssertEqual(process.terminationStatus, 0)
+            XCTAssertEqual(try String(contentsOf: capture), environment["SIGNEUR_E2E_TEST_URL"])
+        }
+    }
 
-        XCTAssertTrue(source.contains("Window(\"Signstr\", id: \"main\")"))
+    func testRebrandPreservesInstalledAppIdentityAndBuildTimeSetting() throws {
+        let project = try String(contentsOf: repositoryFile("Signeur.xcodeproj/project.pbxproj"))
+        let spec = try String(contentsOf: repositoryFile("project.yml"))
+        for identifier in ["org.trustroots.signstr", "org.trustroots.signstr.mac"] {
+            XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = \(identifier);"))
+            XCTAssertTrue(spec.contains("PRODUCT_BUNDLE_IDENTIFIER: \(identifier)"))
+        }
+        for path in ["iOSApp/Info.plist", "MacOSApp/Info.plist"] {
+            let data = try Data(contentsOf: repositoryFile(path))
+            let plist = try XCTUnwrap(PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any])
+            XCTAssertEqual(plist["SigneurBuildTime"] as? String, "$(SIGNEUR_BUILD_TIME)")
+            let types = try XCTUnwrap(plist["CFBundleURLTypes"] as? [[String: Any]])
+            let schemes = try XCTUnwrap(types.first?["CFBundleURLSchemes"] as? [String])
+            XCTAssertTrue(schemes.contains("signstr"))
+            XCTAssertTrue(schemes.contains("signeur"))
+        }
+        for path in ["Scripts/archive-ios.sh", "Scripts/release-macos.sh"] {
+            XCTAssertTrue(try String(contentsOf: repositoryFile(path)).contains("SIGNEUR_BUILD_TIME="))
+        }
+    }
+
+    func testMacAppUsesASingleWindowScene() throws {
+        let source = try String(contentsOf: repositoryFile("MacOSApp/SigneurMacApp.swift"))
+
+        XCTAssertTrue(source.contains("Window(\"Signeur\", id: \"main\")"))
         XCTAssertFalse(source.contains("WindowGroup"))
     }
 
     func testMacTargetCarriesItsKeychainEntitlements() throws {
-        let entitlementsData = try Data(contentsOf: repositoryFile("MacOSApp/SignstrMac.entitlements"))
+        let entitlementsData = try Data(contentsOf: repositoryFile("MacOSApp/SigneurMac.entitlements"))
         let entitlements = try XCTUnwrap(
             PropertyListSerialization.propertyList(from: entitlementsData, format: nil) as? [String: Any]
         )
@@ -18,8 +84,8 @@ final class AppConfigurationRegressionTests: XCTestCase {
 
         XCTAssertEqual(groups, ["$(AppIdentifierPrefix)$(PRODUCT_BUNDLE_IDENTIFIER)"])
 
-        let project = try String(contentsOf: repositoryFile("Signstr.xcodeproj/project.pbxproj"))
-        XCTAssertTrue(project.contains("CODE_SIGN_ENTITLEMENTS = MacOSApp/SignstrMac.entitlements;"))
+        let project = try String(contentsOf: repositoryFile("Signeur.xcodeproj/project.pbxproj"))
+        XCTAssertTrue(project.contains("CODE_SIGN_ENTITLEMENTS = MacOSApp/SigneurMac.entitlements;"))
         XCTAssertTrue(project.contains("PRODUCT_BUNDLE_IDENTIFIER = org.trustroots.signstr.mac;"))
         XCTAssertTrue(project.contains("DEVELOPMENT_TEAM = SUJ594N47C;"))
     }
@@ -87,8 +153,8 @@ final class AppConfigurationRegressionTests: XCTestCase {
         for path in ["MacOSApp/MacRootView.swift", "iOSApp/RootView.swift"] {
             let source = try String(contentsOf: repositoryFile(path))
 
-            XCTAssertTrue(source.contains("Open the Signstr guide and NIP-46 tester"), path)
-            XCTAssertTrue(source.contains("https://guaka.github.io/signstr/"), path)
+            XCTAssertTrue(source.contains("Open the Signeur guide and NIP-46 tester"), path)
+            XCTAssertTrue(source.contains("https://guaka.github.io/signeur/"), path)
         }
     }
 

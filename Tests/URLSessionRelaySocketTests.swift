@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 private final class FakeRelayTask: RelayWebSocketTask, @unchecked Sendable {
     private(set) var receivedMessages: [String] = []

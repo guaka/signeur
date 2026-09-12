@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class SecurityPolicyTests: XCTestCase {
     func testPublicKeysMustBeCanonicalASCIIHex() {
@@ -138,7 +138,7 @@ final class CallbackHardeningTests: XCTestCase {
     func testUnsafeCallbackSchemesAndFragmentsAreRejected() {
         for callback in [
             "https://example.com/return", "file:///tmp/x", "data:text/plain,x", "javascript:alert(1)",
-            "signstr://pair", "nostrsigner:payload", "damus://signed#fragment", "damus://user:pass@host/x"
+            "signeur://pair", "nostrsigner:payload", "damus://signed#fragment", "damus://user:pass@host/x"
         ] {
             let encoded = callback.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
             XCTAssertThrowsError(try SignerURLRequest.parse("nostrsigner:?type=get_public_key&callbackUrl=\(encoded)"), callback)

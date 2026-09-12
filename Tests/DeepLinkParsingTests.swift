@@ -1,5 +1,5 @@
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class DeepLinkParsingTests: XCTestCase {
     private let handler = DeepLinkHandler()
@@ -7,6 +7,15 @@ final class DeepLinkParsingTests: XCTestCase {
 
     private func url(_ string: String) throws -> URL {
         try XCTUnwrap(URL(string: string))
+    }
+
+    func testLegacyPairingWrapperRemainsSupported() throws {
+        let link = "nostrconnect://" + String(repeating: "a", count: 64) + "?relay=wss://relay.example.com&secret=test-secret"
+        let wrapped = link.addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
+        XCTAssertEqual(
+            try PairingPayloadParser().parse("signstr://pair?uri=\(wrapped)"),
+            try PairingPayloadParser().parse("signeur://pair?uri=\(wrapped)")
+        )
     }
 
     func testParsesFullConnectLink() throws {
@@ -90,13 +99,13 @@ final class DeepLinkParsingTests: XCTestCase {
     func testPayloadParserUnwrapsOurOwnScheme() throws {
         let wrapped = "nostrconnect://\(clientPubkey)?relay=wss://relay.one&secret=s3cret"
             .addingPercentEncoding(withAllowedCharacters: .alphanumerics)!
-        let parsed = try PairingPayloadParser().parse("signstr://pair?uri=\(wrapped)")
+        let parsed = try PairingPayloadParser().parse("signeur://pair?uri=\(wrapped)")
         XCTAssertEqual(parsed.clientPubkey, clientPubkey)
         XCTAssertEqual(parsed.secret, "s3cret")
     }
 
     func testPayloadParserRejectsOurSchemeWithoutAPairingLink() {
-        XCTAssertThrowsError(try PairingPayloadParser().parse("signstr://pair")) { error in
+        XCTAssertThrowsError(try PairingPayloadParser().parse("signeur://pair")) { error in
             XCTAssertEqual(error as? DeepLinkParseError, .invalidScheme)
         }
     }

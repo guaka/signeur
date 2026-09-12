@@ -1,6 +1,6 @@
 import XCTest
 import Security
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class NIP46SessionManagerTests: XCTestCase {
     func testDuplicateRequestIDDoesNotCreateMultiplePrompts() async {

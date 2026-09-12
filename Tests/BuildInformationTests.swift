@@ -1,6 +1,6 @@
 import Foundation
 import XCTest
-@testable import SignstrCore
+@testable import SigneurCore
 
 final class BuildInformationTests: XCTestCase {
     func testBundleBuildTimeUsesTheConfiguredValueOrExecutableTimestamp() {
@@ -21,7 +21,7 @@ final class BuildInformationTests: XCTestCase {
         let date = Date(timeIntervalSince1970: 1_777_777_777)
 
         XCTAssertEqual(
-            BuildInformation.displayBuildTime(configuredValue: "$(SIGNSTR_BUILD_TIME)", fallbackDate: date),
+            BuildInformation.displayBuildTime(configuredValue: "$(SIGNEUR_BUILD_TIME)", fallbackDate: date),
             "2026-05-03 03:09:37 UTC"
         )
         XCTAssertEqual(
