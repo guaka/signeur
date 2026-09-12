@@ -14,6 +14,7 @@ public actor RelayConnection {
 
     private var readerTask: Task<Void, Never>?
     private var pendingPublishes: [String: CheckedContinuation<Void, Error>] = [:]
+    private var publishTokens: [String: UUID] = [:]
     private var eventHandler: (@Sendable (NostrEvent) async -> Void)?
     private var subscriptions: [String: (recipientPubkey: String, since: Int?)] = [:]
     private var isStopped = false
@@ -61,8 +62,7 @@ public actor RelayConnection {
     private func publishOnce(_ event: NostrEvent) async throws {
         try await socket.connect()
         startReaderIfNeeded()
-        try await socket.send(try RelayRequest.event(event))
-        try await waitForAcknowledgement(of: event.id)
+        try await waitForAcknowledgement(of: event.id, frame: RelayRequest.event(event))
     }
 
     /// iOS can close a WebSocket while Signeur is suspended behind Safari. Reopen it
@@ -94,7 +94,10 @@ public actor RelayConnection {
         failAllPending(with: RelaySocketError.closed)
     }
 
-    private func waitForAcknowledgement(of eventID: String) async throws {
+    private func waitForAcknowledgement(of eventID: String, frame: String) async throws {
+        let token = UUID()
+        publishTokens[eventID] = token
+        defer { publishTokens.removeValue(forKey: eventID) }
         let nanoseconds = UInt64(publishTimeout * 1_000_000_000)
         // A silent relay must not leave the caller waiting forever.
         let timeoutTask = Task { [weak self] in
@@ -109,6 +112,16 @@ public actor RelayConnection {
 
         try await withCheckedThrowingContinuation { continuation in
             pendingPublishes[eventID] = continuation
+            // Register before send yields: the relay can acknowledge immediately.
+            Task {
+                do {
+                    try await socket.send(frame)
+                } catch {
+                    if publishTokens[eventID] == token {
+                        pendingPublishes.removeValue(forKey: eventID)?.resume(throwing: error)
+                    }
+                }
+            }
         }
     }
 

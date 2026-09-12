@@ -109,6 +109,29 @@ final class SwiftUIViewRenderingTests: XCTestCase {
         render(IncomingRequestView(viewModel: viewModel))
     }
 
+    func testPairingCompletionKeepsQueuedApprovalVisible() async {
+        let (viewModel, manager) = await makeSessionViewModel()
+        for (id, method, params) in [
+            ("connect-follow-up", NIP46Method.connect, ["pairing-secret"]),
+            ("public-key-follow-up", NIP46Method.getPublicKey, [])
+        ] {
+            _ = await manager.onRequestArrived(renderingRequest(
+                id: id, method: method, params: params, appName: "Tester",
+                appURL: nil, requestedPermissions: [], relays: [],
+                rawPayloadPreview: "pairing-secret"
+            ))
+        }
+        await viewModel.refresh()
+        let navigation = expectation(description: "must keep follow-up approval visible")
+        navigation.isInverted = true
+        IncomingRequestView(viewModel: viewModel, onConnectionApproved: {
+            navigation.fulfill()
+        }).approveRequest()
+        await fulfillment(of: [navigation], timeout: 0.3)
+        XCTAssertEqual(viewModel.currentSession?.request.id, "public-key-follow-up")
+        XCTAssertEqual(viewModel.sessionState, .requestReceived)
+    }
+
     func testIncomingRequestActionsApproveConnectionsAndRejectRequests() async {
         let (viewModel, manager) = await makeSessionViewModel()
         let approved = expectation(description: "connection approval callback")
