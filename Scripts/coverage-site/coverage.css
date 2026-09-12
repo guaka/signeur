@@ -399,7 +399,14 @@ footer p a { color: var(--muted); }
 }
 .tester-live-status,
 .tester-meta { display: flex; align-items: center; gap: 10px; }
+.tester-live-status { min-width: 0; }
+.tester-status-copy { display: grid; min-width: 0; gap: 4px; }
 .tester-live-status strong { font-size: 13px; }
+.tester-status-copy code {
+    overflow-wrap: anywhere;
+    color: var(--green);
+    font: 10px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
 .tester-status-dot {
     width: 8px;
     height: 8px;
@@ -424,6 +431,7 @@ footer p a { color: var(--muted); }
 }
 
 .tester-grid { display: grid; grid-template-columns: 0.86fr 1.14fr; }
+.tester-grid[hidden] { display: none; }
 .pairing-card,
 .pairing-guide { padding: 24px; }
 .pairing-card { border-right: 1px solid var(--border); }
